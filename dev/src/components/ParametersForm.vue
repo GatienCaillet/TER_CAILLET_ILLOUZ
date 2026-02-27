@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue'
-import AppInput from './AppInput.vue'
+import { ref } from "vue";
+import AppInput from "./AppInput.vue";
+import AppInputMinMax from "./AppInputMinMax.vue";
 
 // Les valeurs réelles
 const params = ref({
@@ -8,16 +9,85 @@ const params = ref({
   comparaisonTime: 200,
   commandTime: 300,
   errorRate: 5,
-  alphaTime: 20
-})
+  alphaTime: 20,
+});
 
 // La configuration des champs pour le v-for
 const configInitialisation = [
-  { id: 'encoding-time', label: "Temps d'encodage (ms)", key: 'encodingTime' },
-  { id: 'comparaison-time', label: "Temps de comparaison (ms)", key: 'comparaisonTime' },
-  { id: 'command-time', label: "Temps commande moteur (ms)", key: 'commandTime' },
-  { id: 'error-rate', label: "Taux d'erreur (%)", key: 'errorRate' },
-]
+  { id: "encoding-time", label: "Temps d'encodage (ms)", key: "encodingTime" },
+  {
+    id: "comparaison-time",
+    label: "Temps de comparaison (ms)",
+    key: "comparaisonTime",
+  },
+  {
+    id: "command-time",
+    label: "Temps commande moteur (ms)",
+    key: "commandTime",
+  },
+  { id: "error-rate", label: "Taux d'erreur (%)", key: "errorRate" },
+];
+
+const paramsEstimation = ref({
+  alpha: 20,
+  beta: 1260,
+  delta: 340,
+  eta: 270,
+  tau: 4800,
+  rho: 50,
+});
+
+// La configuration des champs pour le v-for
+const configEstimation = [
+  {
+    id: "alpha",
+    label: "α : Temps de calcul entre chaque lettre (ms)",
+    key: "alpha",
+    min: 20,
+    max: 50,
+    pas: 50,
+  },
+  {
+    id: "beta",
+    label: "β : Facteur de durée de comptage",
+    key: "beta",
+    min: 50,
+    max: 50,
+    pas: 50,
+  },
+  {
+    id: "delta",
+    label: "δ : Diviseur de la durée de comptage",
+    key: "delta",
+    min: 200,
+    max: 1200,
+    pas: 50,
+  },
+  {
+    id: "eta",
+    label: "η : Temps de récupération en mémoire (ms)",
+    key: "eta",
+    min: 100,
+    max: 250,
+    pas: 50,
+  },
+  {
+    id: "tau",
+    label: "τ : Facteur de récupération en mémoire",
+    key: "tau",
+    min: 3500,
+    max: 5000,
+    pas: 50,
+  },
+  {
+    id: "rho",
+    label: "ρ : Diviseur de la récupération en mémoire",
+    key: "rho",
+    min: 50,
+    max: 100,
+    pas: 25,
+  },
+];
 </script>
 
 <template>
@@ -26,15 +96,28 @@ const configInitialisation = [
       <div id="initialization" class="d-flex flex-column mb-4">
         <div class="ms-5 fw-bold">Paramètres d'initialisation :</div>
         <div class="d-flex flex-row justify-content-around flex-wrap">
-          
-          <AppInput 
-            v-for="item in configInitialisation" 
+          <AppInput
+            v-for="item in configInitialisation"
             :key="item.id"
             :id="item.id"
             :label="item.label"
-            v-model="params[item.key]" 
+            v-model="params[item.key]"
           />
-
+        </div>
+      </div>
+      <div id="estimation" class="d-flex flex-column mb-4">
+        <div class="ms-5 fw-bold">Paramètres d'estimation :</div>
+        <div class="d-flex flex-row justify-content-around flex-wrap">
+          <AppInputMinMax
+            v-for="item in configEstimation"
+            :key="item.id"
+            :id="item.id"
+            :label="item.label"
+            :min="item.min"
+            :max="item.max"
+            :pas="item.pas"
+            v-model="paramsEstimation[item.key]"
+          />
         </div>
       </div>
     </form>

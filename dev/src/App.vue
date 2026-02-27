@@ -4,7 +4,6 @@ import ParametersForm from './components/ParametersForm.vue'
 
 <template>
   <main>
-    
     <ParametersForm />
   </main>
 </template>
