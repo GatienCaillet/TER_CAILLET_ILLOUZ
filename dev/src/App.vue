@@ -30,6 +30,21 @@ const { importEquations, importData } = useDataImporter()
 // Handlers qui appellent la logique du composable
 const handleImportEquations = () => importEquations(equations)
 const handleImportData = () => importData(data)
+
+const handleLanchEstimation = () => {
+  // Logique pour lancer l'estimation des paramètres (à implémenter)
+  console.log('Btn lancer estimation des paramètres clicked')
+}
+
+const handleLanchModel = () => {
+  // Logique pour lancer le modèle (à implémenter)
+  console.log('Btn lancer le modèle clicked')
+}
+
+const handleSaveResults = () => {
+  // Logique pour sauvegarder les résultats (à implémenter)
+  console.log('Btn sauvegarder résultats clicked')
+}
 </script>
 
 <template>
@@ -52,7 +67,18 @@ const handleImportData = () => importData(data)
       @import="handleImportData"
     />
     </div>
-    <ParametersForm />
+    <ParametersForm
+      @lanch-estimation="handleLanchEstimation"
+      @lanch-model="handleLanchModel"
+    />
+    
+    <BaseDataTable 
+      title="Tableau des résultats"
+      buttonLabel="Sauvegarder les résultats"
+      :rows="data"
+      :columns="dataCols"
+      @import="handleSaveResults"
+    />
   </main>
 </template>
 

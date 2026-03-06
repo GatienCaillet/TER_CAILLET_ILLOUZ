@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import AppInput from "./AppInput.vue";
 import AppInputMinMax from "./AppInputMinMax.vue";
+import BaseButton from "./BaseButton.vue";
 
 // Les valeurs réelles
 const params = ref({
@@ -88,6 +89,8 @@ const configEstimation = [
     pas: 25,
   },
 ];
+
+defineEmits(["lanch-estimation", "lanch-model"]);
 </script>
 
 <template>
@@ -119,6 +122,24 @@ const configEstimation = [
             v-model="paramsEstimation[item.key]"
           />
         </div>
+      </div>
+      <div class="d-flex flex-column align-items-center gap-3">
+        <BaseButton
+          variant="btn btn-primary"
+          size="lg"
+          :disabled="false"
+          @click="$emit('lanch-estimation')"
+        >
+          Lancer l'estimation des paramètres (environ X minutes)
+        </BaseButton>
+        <BaseButton
+          variant="btn btn-primary"
+          size="lg"
+          :disabled="false"
+          @click="$emit('lanch-model')"
+        >
+          Lancer le modèle
+        </BaseButton>
       </div>
     </form>
   </div>
