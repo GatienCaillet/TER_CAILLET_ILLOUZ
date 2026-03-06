@@ -34,5 +34,6 @@ defineProps({
   columns: { type: Array, required: true },
 });
 
+// Envoi à components/ParametersForm.vue l'information que les inputs ont été modifiés
 defineEmits(["import"]);
 </script>

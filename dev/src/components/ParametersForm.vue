@@ -4,7 +4,7 @@ import AppInput from "./AppInput.vue";
 import AppInputMinMax from "./AppInputMinMax.vue";
 import BaseButton from "./BaseButton.vue";
 
-// Les valeurs réelles
+// Les valeurs par défaut des paramètres d'initialisation
 const params = ref({
   encodingTime: 80,
   comparaisonTime: 200,
@@ -13,7 +13,7 @@ const params = ref({
   alphaTime: 20,
 });
 
-// La configuration des champs pour le v-for
+// La configuration des champs pour les inputs  des paramètres d'initialisation (components/AppInput.vue) du formulaire
 const configInitialisation = [
   { id: "encoding-time", label: "Temps d'encodage (ms)", key: "encodingTime" },
   {
@@ -29,6 +29,7 @@ const configInitialisation = [
   { id: "error-rate", label: "Taux d'erreur (%)", key: "errorRate" },
 ];
 
+// Les valeurs par défaut des paramètres d'estimation
 const paramsEstimation = ref({
   alpha: 20,
   beta: 1260,
@@ -38,7 +39,7 @@ const paramsEstimation = ref({
   rho: 50,
 });
 
-// La configuration des champs pour le v-for
+// La configuration des champs pour les inputs des paramètres d'estimation (components/AppInputMinMax.vue) du formulaire
 const configEstimation = [
   {
     id: "alpha",
@@ -90,6 +91,7 @@ const configEstimation = [
   },
 ];
 
+// Envoi à App.vue l'information que le bouton "Lancer l'estimation des paramètres" ou "Lancer le modèle" ont été cliqué
 defineEmits(["lanch-estimation", "lanch-model"]);
 </script>
 

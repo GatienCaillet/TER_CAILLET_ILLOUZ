@@ -11,9 +11,10 @@ defineProps({
   modelValue: Number, // La valeur transmise par le parent
 });
 
+// Envoi à components/ParametersForm.vue l'information que les inputs ont été modifiés
 defineEmits(["update:modelValue", "update:min", "update:max", "update:pas"]);
 
-// Par défaut, on décide que c'est désactivé (false)
+// Par défaut, la partie "min" "max" et "pas" est désactivée (false)
 const isEnabled = ref(false);
 </script>
 

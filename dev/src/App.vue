@@ -4,7 +4,7 @@ import BaseDataTable from './components/BaseDataTable.vue'
 import ParametersForm from './components/ParametersForm.vue'
 import { useDataImporter } from './composables/useDataImporter.js'
 
-// Définition des colonnes pour les équations
+// Définition des colonnes pour le tableau des équations à donner au modèle
 const equationCols = [
   { key: 'id', label: '#' },
   { key: 'augend', label: 'Augend' },
@@ -12,37 +12,36 @@ const equationCols = [
   { key: 'result', label: 'Résultat' }
 ]
 
-// Définition des colonnes pour les données (en reprenant les colonnes des équations + des colonnes supplémentaires)
+// Définition des colonnes pour les données existantes (en reprenant les colonnes des équations + des colonnes supplémentaires)
 const dataCols = [
   ...equationCols, // On reprend la structure précédente
   { key: 'time', label: 'Temps' },
   { key: 'session', label: 'Session' }
 ]
 
-// Données fictives (placeholders) pour les équations et les données
+// Définition des ref pour les équations et les données
 const equations = ref([])
+const data = ref([]) 
 
-const data = ref([])
-
-// Récupération des fonctions depuis le composable
+// Récupération des fonctions depuis le composable (composables/useDataImporter.js)
 const { importEquations, importData } = useDataImporter()
 
 // Handlers qui appellent la logique du composable
 const handleImportEquations = () => importEquations(equations)
 const handleImportData = () => importData(data)
 
+// Logique pour lancer l'estimation des paramètres (à implémenter)
 const handleLanchEstimation = () => {
-  // Logique pour lancer l'estimation des paramètres (à implémenter)
   console.log('Btn lancer estimation des paramètres clicked')
 }
 
+// Logique pour lancer le modèle (à implémenter)
 const handleLanchModel = () => {
-  // Logique pour lancer le modèle (à implémenter)
   console.log('Btn lancer le modèle clicked')
 }
 
+// Logique pour sauvegarder les résultats (à implémenter)
 const handleSaveResults = () => {
-  // Logique pour sauvegarder les résultats (à implémenter)
   console.log('Btn sauvegarder résultats clicked')
 }
 </script>
@@ -67,6 +66,8 @@ const handleSaveResults = () => {
       @import="handleImportData"
     />
     </div>
+
+    <!-- Formulaire des paramètres d'initialisation et d'estimation -->
     <ParametersForm
       @lanch-estimation="handleLanchEstimation"
       @lanch-model="handleLanchModel"
@@ -81,7 +82,3 @@ const handleSaveResults = () => {
     />
   </main>
 </template>
-
-<style scoped>
-
-</style>

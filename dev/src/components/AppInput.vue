@@ -5,7 +5,8 @@ defineProps({
   modelValue: Number // La valeur transmise par le parent
 })
 
-defineEmits(['update:modelValue'])
+// Envoi à components/ParametersForm.vue l'information que l'input a été modifié
+defineEmits(['update:modelValue']) 
 </script>
 
 <template>
