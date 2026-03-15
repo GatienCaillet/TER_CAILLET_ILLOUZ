@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import BaseDataTable from './components/BaseDataTable.vue'
 import ParametersForm from './components/ParametersForm.vue'
+import GraphicsResult from './components/GraphicsResult.vue'
 import { useDataImporter } from './composables/useDataImporter.js'
 
 // Définition des colonnes pour le tableau des équations à donner au modèle
@@ -79,6 +80,12 @@ const handleSaveResults = () => {
       :rows="data"
       :columns="dataCols"
       @import="handleSaveResults"
+    />
+
+    <!-- Graphique des résultats -->
+    <GraphicsResult 
+      :data="data"
+      title="Graphique des résultats"
     />
   </main>
 </template>
