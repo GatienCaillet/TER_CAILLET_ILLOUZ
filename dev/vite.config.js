@@ -10,6 +10,12 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  test: {
+    // Permet d'utiliser 'describe', 'it', 'expect' sans les importer
+    globals: true,
+    // Simule l'environnement du navigateur
+    environment: 'jsdom',
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
