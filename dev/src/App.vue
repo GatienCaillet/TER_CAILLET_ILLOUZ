@@ -73,6 +73,8 @@ const handleSaveResults = () => {
       @lanch-estimation="handleLanchEstimation"
       @lanch-model="handleLanchModel"
     />
+
+    <hr/>
     
     <BaseDataTable 
       title="Tableau des résultats"

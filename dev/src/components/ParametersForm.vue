@@ -59,7 +59,7 @@ const configEstimation = [
   },
   {
     id: "delta",
-    label: "δ : Diviseur de la durée de comptage",
+    label: "δ : Taux de la diminution de la durée de réponse selon l'entrainement",
     key: "delta",
     min: 200,
     max: 1200,
@@ -83,7 +83,7 @@ const configEstimation = [
   },
   {
     id: "rho",
-    label: "ρ : Diviseur de la récupération en mémoire",
+    label: "ρ : Taux de la diminution du temps de récupération selon la force de l'association",
     key: "rho",
     min: 50,
     max: 100,
