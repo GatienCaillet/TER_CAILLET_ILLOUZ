@@ -33,6 +33,13 @@
  * @typedef {Stimulus[]} Stimuli
  */
 
+/**
+ * Nombre de fois où le modèle est passé d'une lettre à la suivante.
+ * @typedef {Object} Practice
+ * @property {string} lettre - Lettre à laquelle on fait plus 1
+ * @property {number} nombre - Nombre de fois où on est passé de cette lettre à la suivante
+ */
+
 export class Model {
   /**
    * @param {ParamsInit} paramsInit
@@ -59,5 +66,38 @@ export class Model {
     this.paramsInit = paramsInit;
     this.paramsEstim = paramsEstim;
     this.stimuli = stimuli;
+    this.practice = {
+        lettre: "A",
+        nombre: 0
+    };
+  }
+
+  /**
+   * Fonction qui calcule le temps de résolution pour une 
+   * équation (un stimulus) avec une stratégie de comptage
+   * @param {Stimulus} stimulus
+   * @returns {number} Temps en ms
+   */
+  calculCountingTime(stimulus) {
+    const fraction = -(this.practice.nombre)/this.paramsEstim.delta ;
+    const exp = Math.exp(fraction)
+    const multiplication = this.paramsEstim.beta * exp;
+    const countingTime = this.paramsEstim.alpha + multiplication;
+    return countingTime;
+  }
+
+  /**
+   * Fonction qui calcule le temps de résolution pour une 
+   * équation (un stimulus) avec une stratégie de récupération en mémoire
+   * @param {Stimulus} stimulus
+   * @returns {number} Temps en ms
+   */
+  calculRetrievalTime(stimulus) {
+    const assoStrength = 0;
+    const fraction = -(assoStrength)/this.paramsEstim.rho ;
+    const exp = Math.exp(fraction)
+    const multiplication = this.paramsEstim.tau * exp;
+    const retrievalTime = this.paramsEstim.eta + multiplication;
+    return retrievalTime;
   }
 }
