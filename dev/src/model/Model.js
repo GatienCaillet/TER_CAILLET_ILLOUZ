@@ -7,7 +7,7 @@
  * @property {number} comparisonTime - Temps de comparaison (ms)
  * @property {number} commandTime - Temps de commande moteur / clic (ms)
  * @property {number} errorRate - Taux d'erreur en pourcentage (0-100)
-*/
+ */
 
 /**
  * Paramètres d'estimation du modèle.
@@ -33,28 +33,31 @@
  * @typedef {Stimulus[]} Stimuli
  */
 
-
 export class Model {
-    /**
-     * @param {ParamsInit} paramsInit
-     * @param {ParamsEstim} paramsEstim
-     * @param {Stimuli} stimuli
-     */
-    constructor(paramsInit = {
-        encodingTime: 80,
-        comparisonTime: 200,
-        commandTime: 300,
-        errorRate: 5
-    }, paramsEstim = {
-        alpha: 20,
-        beta: 1260,
-        delta: 340,
-        eta: 270,
-        tau: 4800,
-        rho: 50
-    }, stimuli = [
-    ]) {
-
-    }
-
+  /**
+   * @param {ParamsInit} paramsInit
+   * @param {ParamsEstim} paramsEstim
+   * @param {Stimuli} stimuli
+   */
+  constructor(
+    paramsInit = {
+      encodingTime: 80,
+      comparisonTime: 200,
+      commandTime: 300,
+      errorRate: 5,
+    },
+    paramsEstim = {
+      alpha: 20,
+      beta: 1260,
+      delta: 340,
+      eta: 270,
+      tau: 4800,
+      rho: 50,
+    },
+    stimuli = [],
+  ) {
+    this.paramsInit = paramsInit;
+    this.paramsEstim = paramsEstim;
+    this.stimuli = stimuli;
+  }
 }
