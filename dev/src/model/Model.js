@@ -28,7 +28,6 @@
 
 /**
  * Stimuli passés au modèle.
- * @typedef {Array} Stimuli
- * @property {Stimulus} stimulus1 - Stimulus 1
- * @property {Stimulus} stimulus2 - Stimulus 2
+ * @typedef {Stimulus[]} Stimuli
  */
+
