@@ -9,8 +9,7 @@ const params = ref({
   encodingTime: 80,
   comparaisonTime: 200,
   commandTime: 300,
-  errorRate: 5,
-  alphaTime: 20,
+  errorRate: 5
 });
 
 // La configuration des champs pour les inputs  des paramètres d'initialisation (components/AppInput.vue) du formulaire
