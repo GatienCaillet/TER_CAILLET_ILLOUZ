@@ -1,3 +1,5 @@
+// @ts-check
+
 /**
  * Paramètres d'initialisation du modèle.
  * @typedef {Object} ParamsInit
@@ -12,10 +14,10 @@
  * @typedef {Object} ParamsEstim
  * @property {number} alpha - Temps de calcul entre chaque lettre (ms)
  * @property {number} beta - Facteur de durée de comptage
- * @property {number} delta - Diviser de la durée de comptage
+ * @property {number} delta - Taux de la diminution de la durée de réponse selon l'entrainement
  * @property {number} eta - Temps de récupération en mémoire (ms)
  * @property {number} tau - Facteur de récupération en mémoire
- * @property {number} rho - Diviseur de la récupération en mémoire
+ * @property {number} rho - Taux de la diminution du temps de récupération selon la force de l'association
  */
 
 /**
