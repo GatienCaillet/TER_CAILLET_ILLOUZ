@@ -7,7 +7,7 @@ import BaseButton from "./BaseButton.vue";
 // Les valeurs par défaut des paramètres d'initialisation
 const params = ref({
   encodingTime: 80,
-  comparaisonTime: 200,
+  comparisonTime: 200,
   commandTime: 300,
   errorRate: 5,
   alphaTime: 20,
@@ -19,7 +19,7 @@ const configInitialisation = [
   {
     id: "comparaison-time",
     label: "Temps de comparaison (ms)",
-    key: "comparaisonTime",
+    key: "comparisonTime",
   },
   {
     id: "command-time",
