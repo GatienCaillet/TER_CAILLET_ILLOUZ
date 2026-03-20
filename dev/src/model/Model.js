@@ -79,6 +79,7 @@ export class Model {
    * @returns {number} Temps en ms
    */
   calculCountingTime(stimulus) {
+    //TODO
     const fraction = -(this.practice.nombre)/this.paramsEstim.delta ;
     const exp = Math.exp(fraction)
     const multiplication = this.paramsEstim.beta * exp;
@@ -93,6 +94,7 @@ export class Model {
    * @returns {number} Temps en ms
    */
   calculRetrievalTime(stimulus) {
+    //TODO
     const assoStrength = 0;
     const fraction = -(assoStrength)/this.paramsEstim.rho ;
     const exp = Math.exp(fraction)
@@ -100,4 +102,37 @@ export class Model {
     const retrievalTime = this.paramsEstim.eta + multiplication;
     return retrievalTime;
   }
+
+    /**
+   * La fonction permet de calculer le temps de réponse
+   * pour un stimulus avec la stratégie optimale
+   * @param {Stimulus} stimulus
+   * @returns {number} - Renvoie le temps minimum entre les 
+   * deux stratégies en ms
+   */
+  timeWithBestStrategy(stimulus) {
+    // TODO
+    const countingTime = this.calculCountingTime(stimulus);
+    const retrievalTime = this.calculRetrievalTime(stimulus);
+    if(countingTime < retrievalTime) {
+        return countingTime;
+    } else {
+        return retrievalTime;
+    }
+  }
+
+      /**
+   * La fonction calcule le temps de réponse
+   * de chaque stimulus
+   * @param {Stimuli} stimuli
+   * @returns {[]} resultats - Renvoie un tableau de résultats
+   */
+  calculEveryStimuli(stimuli) {
+    // TODO
+    stimuli.forEach(stimulus => {
+        this.timeWithBestStrategy(stimulus);
+    });
+    return ;
+  }
+
 }
