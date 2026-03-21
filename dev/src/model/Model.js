@@ -1,5 +1,7 @@
 // @ts-check
 
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 /**
  * Paramètres d'initialisation du modèle.
  * @typedef {Object} ParamsInit
@@ -34,10 +36,15 @@
  */
 
 /**
- * Nombre de fois où le modèle est passé d'une lettre à la suivante.
- * @typedef {Object} Practice
- * @property {string} lettre - Lettre à laquelle on fait plus 1
- * @property {number} nombre - Nombre de fois où on est passé de cette lettre à la suivante
+ * Dictionnaire de pratique.
+ * La clé est la lettre (ex: "A") et la valeur est le nombre de passages.
+ * @typedef {Object.<string, number>} PracticeMap
+ */
+
+/**
+ * Force de l'association en mémoire pour une équation complète.
+ * La clé est au format "Augend+Addend" (ex: "A+3") et la valeur est le nombre de répétitions.
+ * @typedef {Object.<string, number>} AssociationMap
  */
 
 export class Model {
@@ -66,73 +73,113 @@ export class Model {
     this.paramsInit = paramsInit;
     this.paramsEstim = paramsEstim;
     this.stimuli = stimuli;
-    this.practice = {
-        lettre: "A",
-        nombre: 0
-    };
+
+    this.initTime =
+      this.paramsInit.encodingTime +
+      this.paramsInit.comparisonTime +
+      this.paramsInit.commandTime;
+
+    // Initialisation du dictionnaire de pratique : { "A": 0, "B": 0, ... }
+    this.practice = {};
+
+    for (let lettre of ALPHABET) {
+      this.practice[lettre] = 0;
+    }
+
+    // Initialisation des associations : {"A+3": 5, "B+2": 12, ...}
+    this.associations = {};
   }
 
   /**
-   * Fonction qui calcule le temps de résolution pour une 
-   * équation (un stimulus) avec une stratégie de comptage
-   * @param {Stimulus} stimulus
-   * @returns {number} Temps en ms
+   * Calcule le temps de résolution par stratégie de comptage.
+   * Le temps diminue spécifiquement pour chaque lettre pratiquée.
    */
   calculCountingTime(stimulus) {
-    //TODO
-    const fraction = -(this.practice.nombre)/this.paramsEstim.delta ;
-    const exp = Math.exp(fraction)
-    const multiplication = this.paramsEstim.beta * exp;
-    const countingTime = this.paramsEstim.alpha + multiplication;
+    let countingTime = 0;
+    let currentIdx = ALPHABET.indexOf(stimulus.augend.toUpperCase());
+
+    for (let i = 0; i < stimulus.addend; i++) {
+      const lettreActuelle = ALPHABET[currentIdx];
+
+      // On récupère le nombre de fois où le modèle a vu ce calcul
+      const nPratique = this.practice[lettreActuelle];
+
+      // Calcul du temps pour le saut (ex: A -> B)
+      const fraction = -nPratique / this.paramsEstim.delta;
+      const stepTime =
+        this.paramsEstim.alpha + this.paramsEstim.beta * Math.exp(fraction);
+
+      countingTime += stepTime;
+
+      // Mise à jour de la pratique pour cette lettre uniquement
+      this.practice[lettreActuelle] += 1;
+
+      // On passe à l'index suivant pour le prochain saut de la boucle
+      currentIdx++;
+    }
+
     return countingTime;
   }
 
   /**
-   * Fonction qui calcule le temps de résolution pour une 
-   * équation (un stimulus) avec une stratégie de récupération en mémoire
+   * Calcule le temps de récupération directe en mémoire.
    * @param {Stimulus} stimulus
    * @returns {number} Temps en ms
    */
   calculRetrievalTime(stimulus) {
-    //TODO
-    const assoStrength = 0;
-    const fraction = -(assoStrength)/this.paramsEstim.rho ;
-    const exp = Math.exp(fraction)
-    const multiplication = this.paramsEstim.tau * exp;
-    const retrievalTime = this.paramsEstim.eta + multiplication;
+    // On crée une clé unique pour cette équation (ex: "A+3")
+    const equationKey = `${stimulus.augend.toUpperCase()}+${stimulus.addend}`;
+
+    // On récupère la force de l'association (0 si jamais vue)
+    const assoStrength = this.associations[equationKey] || 0;
+
+    // Calcul selon ta formule
+    const fraction = -assoStrength / this.paramsEstim.rho;
+    const retrievalTime =
+      this.paramsEstim.eta + this.paramsEstim.tau * Math.exp(fraction);
+
+    // On incrémente la force de l'association
+    this.associations[equationKey] = assoStrength + 1;
+
     return retrievalTime;
   }
 
-    /**
-   * La fonction permet de calculer le temps de réponse
-   * pour un stimulus avec la stratégie optimale
+  /**
+   * Calcule le temps de réponse total en ajoutant le temps d'initialisation
+   * au temps de la stratégie la plus performante.
    * @param {Stimulus} stimulus
-   * @returns {number} - Renvoie le temps minimum entre les 
-   * deux stratégies en ms
+   * @returns {number} Temps total en ms
    */
   timeWithBestStrategy(stimulus) {
-    // TODO
     const countingTime = this.calculCountingTime(stimulus);
     const retrievalTime = this.calculRetrievalTime(stimulus);
-    if(countingTime < retrievalTime) {
-        return countingTime;
-    } else {
-        return retrievalTime;
-    }
+
+    // On prend le minimum entre les deux stratégies
+    const bestStrategyTime = Math.min(countingTime, retrievalTime);
+
+    return this.initTime + bestStrategyTime;
   }
 
-      /**
-   * La fonction calcule le temps de réponse
-   * de chaque stimulus
+  /**
+   * La fonction calcule le temps de réponse de chaque stimulus.
    * @param {Stimuli} stimuli
-   * @returns {[]} resultats - Renvoie un tableau de résultats
+   * @returns {Array<Object>} resultats - Renvoie un tableau d'objets résultats
    */
-  calculEveryStimuli(stimuli) {
-    // TODO
-    stimuli.forEach(stimulus => {
-        this.timeWithBestStrategy(stimulus);
-    });
-    return ;
-  }
+  calculEveryStimulusTime(stimuli) {
+    const session = 0; // Valeur fixe pour le moment
 
+    return stimuli.map((stimulus) => {
+      // On calcule le temps via la stratégie optimale
+      const calculTime = this.timeWithBestStrategy(stimulus);
+
+      // On retourne l'objet structuré selon tes besoins
+      return {
+        Augend: stimulus.augend,
+        Addend: stimulus.addend,
+        Resultat: stimulus.resultat,
+        Temps: calculTime,
+        Session: session,
+      };
+    });
+  }
 }
