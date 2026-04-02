@@ -28,6 +28,7 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
  * @property {string} augend - Lettre à gauche de l'équation
  * @property {number} addend - Chiffre à droite de l'équation
  * @property {string} resultat - Résultat de l'équation
+ * @property {number} session - Session d'entraînement
  */
 
 /**
@@ -45,6 +46,17 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
  * Force de l'association en mémoire pour une équation complète.
  * La clé est au format "Augend+Addend" (ex: "A+3") et la valeur est le nombre de répétitions.
  * @typedef {Object.<string, number>} AssociationMap
+ */
+
+/**
+ * Resultats calculés pour chaque stimulus.
+ * Chaque objet contient : Augend, Addend, Resultat, Temps, Session.
+ * @typedef {Object} Resultat
+ * @property {string} augend
+ * @property {number} addend
+ * @property {string} resultat
+ * @property {number} temps
+ * @property {number} session
  */
 
 export class Model {
@@ -88,6 +100,28 @@ export class Model {
 
     // Initialisation des associations : {"A+3": 5, "B+2": 12, ...}
     this.associations = {};
+
+    // Resultats calculés pour chaque stimulus
+    this.results = [];
+  }
+
+  /**
+ * Calcule le temps estimé pour la stratégie de comptage en fonction du dernier stimulus avec le même addend.
+ */
+  calculCountingTimeEstimation(stimulus) {
+    let countingTimeEstimated = 0;
+
+    // parcourir les stimuli précédents pour trouver le dernier stimulus avec le même addend
+    for (let i = this.results.length - 1; i >= 0; i--) {
+      if (this.results[i].addend === stimulus.addend) {
+        countingTimeEstimated = this.results[i].temps;
+        break;
+      }
+    }
+    // Si aucun stimulus précédent avec le même addend n'est trouvé, on calculera le temps de comptage 
+    // (0 pour faire en sorte que ce soit plus rapide que la récupération en mémoire)
+
+    return countingTimeEstimated;
   }
 
   /**
@@ -151,35 +185,35 @@ export class Model {
    * @returns {number} Temps total en ms
    */
   timeWithBestStrategy(stimulus) {
-    const countingTime = this.calculCountingTime(stimulus);
+    const countingTimeEstimated = this.calculCountingTimeEstimation(stimulus);
     const retrievalTime = this.calculRetrievalTime(stimulus);
 
     // On prend le minimum entre les deux stratégies
-    const bestStrategyTime = Math.min(countingTime, retrievalTime);
-
-    return this.initTime + bestStrategyTime;
+    if (countingTimeEstimated < retrievalTime) {
+      return this.initTime + this.calculCountingTime(stimulus);
+    } else {
+      return this.initTime + retrievalTime;
+    }
   }
 
   /**
    * La fonction calcule le temps de réponse de chaque stimulus.
    * @param {Stimuli} stimuli
-   * @returns {Array<Object>} resultats - Renvoie un tableau d'objets résultats
+   * @returns {void} resultats - Renvoie un tableau d'objets résultats
    */
   calculEveryStimulusTime(stimuli) {
-    const session = 0; // Valeur fixe pour le moment
 
-    return stimuli.map((stimulus) => {
+    stimuli.forEach((stimulus) => {
       // On calcule le temps via la stratégie optimale
       const calculTime = this.timeWithBestStrategy(stimulus);
 
-      // On retourne l'objet structuré selon tes besoins
-      return {
-        Augend: stimulus.augend,
-        Addend: stimulus.addend,
-        Resultat: stimulus.resultat,
-        Temps: calculTime,
-        Session: session,
-      };
+      this.results.push({
+        augend: stimulus.augend,
+        addend: stimulus.addend,
+        resultat: stimulus.resultat,
+        temps: calculTime,
+        session: stimulus.session
+      });
     });
   }
 }
