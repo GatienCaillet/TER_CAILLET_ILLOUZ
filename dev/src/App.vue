@@ -4,6 +4,7 @@ import BaseDataTable from './components/BaseDataTable.vue'
 import ParametersForm from './components/ParametersForm.vue'
 import GraphicsResult from './components/GraphicsResult.vue'
 import { useDataImporter } from './composables/useDataImporter.js'
+import { Model } from './model/Model'
 
 // Définition des colonnes pour le tableau des équations à donner au modèle
 const equationCols = [
@@ -23,6 +24,7 @@ const dataCols = [
 // Définition des ref pour les équations et les données
 const equations = ref([])
 const data = ref([]) 
+const dataResults = ref([]) 
 
 // Récupération des fonctions depuis le composable (composables/useDataImporter.js)
 const { importEquations, importData } = useDataImporter()
@@ -32,13 +34,39 @@ const handleImportEquations = () => importEquations(equations)
 const handleImportData = () => importData(data)
 
 // Logique pour lancer l'estimation des paramètres (à implémenter)
-const handleLanchEstimation = () => {
+const handleLaunchEstimation = () => {
   console.log('Btn lancer estimation des paramètres clicked')
 }
 
 // Logique pour lancer le modèle (à implémenter)
-const handleLanchModel = () => {
-  console.log('Btn lancer le modèle clicked')
+const handleLaunchModel = ({ paramsInit, paramsEstim }) => {
+  if (!data.value.length) {
+    console.warn('Aucun stimulus importé. Importez des équations avant de lancer le modèle.')
+    return
+  }
+
+  // Mapping des lignes de la vue vers le format attendu par Model.js
+  const stimuli = data.value.map((equation) => ({
+    augend: equation.augend,
+    addend: Number(equation.addend),
+    resultat: equation.result,
+    session: Number(equation.session ?? 1)
+  }))
+
+  const model = new Model(paramsInit, paramsEstim, stimuli)
+  model.calculEveryStimulusTime(stimuli)
+
+  // Mapping inverse pour afficher les résultats dans la table de l'UI
+  dataResults.value = model.results.map((result, index) => ({
+    id: index + 1,
+    augend: result.augend,
+    addend: result.addend,
+    result: result.resultat,
+    time: Math.round(result.temps),
+    session: result.session
+  }))
+
+  console.log('Modèle exécuté. Résultats générés :', dataResults.value)
 }
 
 // Logique pour sauvegarder les résultats (à implémenter)
@@ -70,21 +98,21 @@ const handleSaveResults = () => {
 
     <!-- Formulaire des paramètres d'initialisation et d'estimation -->
     <ParametersForm
-      @lanch-estimation="handleLanchEstimation"
-      @lanch-model="handleLanchModel"
+      @launch-estimation="handleLaunchEstimation"
+      @launch-model="handleLaunchModel"
     />
     
     <BaseDataTable 
       title="Tableau des résultats"
       buttonLabel="Sauvegarder les résultats"
-      :rows="data"
+      :rows="dataResults"
       :columns="dataCols"
       @import="handleSaveResults"
     />
 
     <!-- Graphique des résultats -->
     <GraphicsResult 
-      :data="data"
+      :data="dataResults"
       title="Graphique des résultats"
     />
   </main>

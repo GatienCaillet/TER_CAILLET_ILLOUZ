@@ -7,7 +7,7 @@ import BaseButton from "./BaseButton.vue";
 // Les valeurs par défaut des paramètres d'initialisation
 const params = ref({
   encodingTime: 80,
-  comparaisonTime: 200,
+  comparisonTime: 200,
   commandTime: 300,
   errorRate: 5
 });
@@ -18,7 +18,7 @@ const configInitialisation = [
   {
     id: "comparaison-time",
     label: "Temps de comparaison (ms)",
-    key: "comparaisonTime",
+    key: "comparisonTime",
   },
   {
     id: "command-time",
@@ -91,7 +91,21 @@ const configEstimation = [
 ];
 
 // Envoi à App.vue l'information que le bouton "Lancer l'estimation des paramètres" ou "Lancer le modèle" ont été cliqué
-defineEmits(["lanch-estimation", "lanch-model"]);
+const emit = defineEmits(["launch-estimation", "launch-model"]);
+
+const emitLaunchEstimation = () => {
+  emit("launch-estimation", {
+    paramsInit: { ...params.value },
+    paramsEstim: { ...paramsEstimation.value },
+  });
+};
+
+const emitLaunchModel = () => {
+  emit("launch-model", {
+    paramsInit: { ...params.value },
+    paramsEstim: { ...paramsEstimation.value },
+  });
+};
 </script>
 
 <template>
@@ -129,7 +143,7 @@ defineEmits(["lanch-estimation", "lanch-model"]);
           variant="btn btn-primary"
           size="lg"
           :disabled="false"
-          @click="$emit('lanch-estimation')"
+          @click.prevent="emitLaunchEstimation"
         >
           Lancer l'estimation des paramètres (environ X minutes)
         </BaseButton>
@@ -137,7 +151,7 @@ defineEmits(["lanch-estimation", "lanch-model"]);
           variant="btn btn-primary"
           size="lg"
           :disabled="false"
-          @click="$emit('lanch-model')"
+          @click.prevent="emitLaunchModel"
         >
           Lancer le modèle
         </BaseButton>
