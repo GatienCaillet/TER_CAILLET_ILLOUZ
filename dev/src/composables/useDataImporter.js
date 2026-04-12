@@ -1,4 +1,4 @@
-import { read, utils } from "xlsx";
+import ExcelJS from "exceljs";
 
 // Detection des noms des colonnes pour les données importées
 const COLUMN_ALIASES = {
@@ -77,14 +77,38 @@ const parseJsonRows = async (file) => {
 // Import Excel/CSV
 const parseSpreadsheetRows = async (file) => {
   const buffer = await file.arrayBuffer();
-  const workbook = read(buffer, { type: "array" });
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
 
-  if (!workbook.SheetNames.length) {
+  const firstWorksheet = workbook.getWorksheet(1);
+  if (!firstWorksheet) {
     return [];
   }
 
-  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-  return utils.sheet_to_json(firstSheet, { defval: undefined });
+  const rows = [];
+  const headerRow = firstWorksheet.getRow(1);
+  const headers = [];
+  
+  // Extraction des entêtes
+  headerRow.eachCell((cell) => {
+    headers.push(cell.value);
+  });
+
+  // Conversion des lignes en objets
+  firstWorksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return; // Ignorer la première ligne (entêtes)
+    
+    const rowObject = {};
+    row.eachCell((cell, colNumber) => {
+      const header = headers[colNumber - 1];
+      if (header) {
+        rowObject[header] = cell.value;
+      }
+    });
+    rows.push(rowObject);
+  });
+
+  return rows;
 };
 
 // TODO : dictionnaire des stimuli possibles
