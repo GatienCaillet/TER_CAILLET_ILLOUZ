@@ -59,6 +59,11 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
  * @property {number} session
  */
 
+/**
+ * Liste de resultats calculés pour tous les stimuli.
+ * @typedef {Resultat[]} Resultats
+ */
+
 export class Model {
   /**
    * @param {ParamsInit} paramsInit
@@ -92,6 +97,7 @@ export class Model {
       this.paramsInit.commandTime;
 
     // Initialisation du dictionnaire de pratique : { "A": 0, "B": 0, ... }
+    /** @type {PracticeMap} */
     this.practice = {};
 
     for (let lettre of ALPHABET) {
@@ -99,14 +105,18 @@ export class Model {
     }
 
     // Initialisation des associations : {"A+3": 5, "B+2": 12, ...}
+    /** @type {AssociationMap} */
     this.associations = {};
 
     // Resultats calculés pour chaque stimulus
+    /** @type {Resultats} */
     this.results = [];
   }
 
   /**
  * Calcule le temps estimé pour la stratégie de comptage en fonction du dernier stimulus avec le même addend.
+ * @param {Stimulus} stimulus
+ * @returns {number} Temps estimé en ms
  */
   calculCountingTimeEstimation(stimulus) {
     let countingTimeEstimated = 0;
@@ -127,6 +137,8 @@ export class Model {
   /**
    * Calcule le temps de résolution par stratégie de comptage.
    * Le temps diminue spécifiquement pour chaque lettre pratiquée.
+   * @param {Stimulus} stimulus
+   * @returns {number} Temps estimé en ms
    */
   calculCountingTime(stimulus) {
     let countingTime = 0;
