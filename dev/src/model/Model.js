@@ -27,7 +27,7 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
  * @typedef {Object} Stimulus
  * @property {string} augend - Lettre à gauche de l'équation
  * @property {number} addend - Chiffre à droite de l'équation
- * @property {string} resultat - Résultat de l'équation
+ * @property {string} result - Résultat de l'équation
  * @property {number} session - Session d'entraînement
  */
 
@@ -50,11 +50,11 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 /**
  * Resultats calculés pour chaque stimulus.
- * Chaque objet contient : Augend, Addend, Resultat, Temps, Session.
+ * Chaque objet contient : Augend, Addend, Result, Temps, Session.
  * @typedef {Object} Resultat
  * @property {string} augend
  * @property {number} addend
- * @property {string} resultat
+ * @property {string} result
  * @property {number} temps
  * @property {number} session
  */
@@ -114,6 +114,30 @@ export class Model {
   }
 
   /**
+   * Vérifie qu'un stimulus contient des valeurs exploitables par le modèle.
+   * Normalement pas utilisé car les stimuli sont déjà filtrés par les chercheurs.
+   * @param {Stimulus} stimulus
+   * @returns {void}
+   */
+  validateStimulus(stimulus) {
+    const augend = String(stimulus.augend || '').toUpperCase();
+    const addend = Number(stimulus.addend);
+    const augendIndex = ALPHABET.indexOf(augend);
+
+    if (augendIndex === -1) {
+      throw new Error(`Stimulus invalide: augend doit être une lettre entre A et Z (${stimulus.augend})`);
+    }
+
+    if (!Number.isInteger(addend) || addend < 0 || addend >= ALPHABET.length) {
+      throw new Error(`Stimulus invalide: addend doit être un entier entre 0 et 25 (${stimulus.addend})`);
+    }
+
+    if (augendIndex + addend >= ALPHABET.length) {
+      throw new Error(`Stimulus invalide: ${augend}+${addend} dépasse Z`);
+    }
+  }
+
+  /**
  * Calcule le temps estimé pour la stratégie de comptage en fonction du dernier stimulus avec le même addend.
  * @param {Stimulus} stimulus
  * @returns {number} Temps estimé en ms
@@ -169,11 +193,11 @@ export class Model {
 
   /**
    * Calcule le temps de récupération directe en mémoire.
+   * Le temps diminue spécifiquement pour chaque équation pratiquée.
    * @param {Stimulus} stimulus
    * @returns {number} Temps en ms
    */
-  calculRetrievalTime(stimulus) {
-    // On crée une clé unique pour cette équation (ex: "A+3")
+  calculRetrievalTime(stimulus) {    // On crée une clé unique pour cette équation (ex: "A+3")
     const equationKey = `${stimulus.augend.toUpperCase()}+${stimulus.addend}`;
 
     // On récupère la force de l'association (0 si jamais vue)
@@ -211,18 +235,23 @@ export class Model {
   /**
    * La fonction calcule le temps de réponse de chaque stimulus.
    * @param {Stimuli} stimuli
-   * @returns {void} resultats - Renvoie un tableau d'objets résultats
+   * @returns {void} results - Renvoie un tableau d'objets résultats
    */
   calculEveryStimulusTime(stimuli) {
+    this.results = [];
 
     stimuli.forEach((stimulus) => {
+      
+      // On vérifie que le stimulus est valide pour éviter les erreurs de calcul
+      this.validateStimulus(stimulus);
+
       // On calcule le temps via la stratégie optimale
       const calculTime = this.timeWithBestStrategy(stimulus);
 
       this.results.push({
         augend: stimulus.augend,
         addend: stimulus.addend,
-        resultat: stimulus.resultat,
+          result: stimulus.result,
         temps: calculTime,
         session: stimulus.session
       });

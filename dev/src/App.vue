@@ -42,31 +42,37 @@ const handleLaunchEstimation = () => {
 const handleLaunchModel = ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
     console.warn('Aucun stimulus importé. Importez des équations avant de lancer le modèle.')
+    dataResults.value = []
     return
   }
 
-  // Mapping des lignes de la vue vers le format attendu par Model.js
-  const stimuli = data.value.map((equation) => ({
-    augend: equation.augend,
-    addend: Number(equation.addend),
-    resultat: equation.result,
-    session: Number(equation.session ?? 1)
-  }))
+  try {
+    // Mapping des lignes du tableau vers le format attendu par Model.js
+    const stimuli = data.value.map((equation) => ({
+      augend: String(equation.augend ?? '').trim(),
+      addend: Number(equation.addend),
+      result: String(equation.result ?? '').trim(),
+      session: Number(equation.session ?? 1)
+    }))
 
-  const model = new Model(paramsInit, paramsEstim, stimuli)
-  model.calculEveryStimulusTime(stimuli)
+    const model = new Model(paramsInit, paramsEstim, stimuli)
+    model.calculEveryStimulusTime(stimuli)
 
-  // Mapping inverse pour afficher les résultats dans la table de l'UI
-  dataResults.value = model.results.map((result, index) => ({
-    id: index + 1,
-    augend: result.augend,
-    addend: result.addend,
-    result: result.resultat,
-    time: Math.round(result.temps),
-    session: result.session
-  }))
+    // Mapping inverse pour afficher les résultats dans la table de l'UI
+    dataResults.value = model.results.map((result, index) => ({
+      id: index + 1,
+      augend: result.augend,
+      addend: result.addend,
+      result: result.result,
+      time: Math.round(result.temps),
+      session: result.session
+    }))
 
-  console.log('Modèle exécuté. Résultats générés :', dataResults.value)
+    console.log('Modèle exécuté. Résultats générés :', dataResults.value)
+  } catch (error) {
+    console.error('Impossible de lancer le modèle:', error)
+    dataResults.value = []
+  }
 }
 
 // Logique pour sauvegarder les résultats (à implémenter)
