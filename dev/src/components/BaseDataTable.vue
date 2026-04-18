@@ -1,26 +1,32 @@
 <template>
   <div class="table-wrapper">
-    <BaseButton variant="btn btn-outline-primary" size="lg" :disabled="false" @click="$emit('import')">
+    <BaseButton
+      variant="btn btn-outline-primary"
+      size="lg"
+      :disabled="false"
+      @click="$emit('import')"
+    >
       {{ buttonLabel }}
     </BaseButton>
     <div>{{ title }} :</div>
-
-    <table class="table table-striped table-bordered">
-      <thead>
-        <tr>
-          <th v-for="col in columns" :key="col.key" scope="col">
-            {{ col.label }}
-          </th>
-        </tr>
-      </thead>
-      <tbody class="table-group-divider">
-        <tr v-for="(row, index) in rows" :key="index">
-          <td v-for="col in columns" :key="col.key">
-            {{ row[col.key] }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive" style="overflow-y: scroll; max-height: 250px">
+      <table class="table table-striped table-bordered">
+        <thead class="sticky-top">
+          <tr>
+            <th v-for="col in columns" :key="col.key" scope="col">
+              {{ col.label }}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          <tr v-for="(row, index) in rows" :key="index">
+            <td v-for="col in columns" :key="col.key">
+              {{ row[col.key] }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
