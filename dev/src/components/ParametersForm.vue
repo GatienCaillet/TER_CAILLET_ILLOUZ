@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, computed } from "vue";
 import AppInput from "./AppInput.vue";
 import AppInputMinMax from "./AppInputMinMax.vue";
 import BaseButton from "./BaseButton.vue";
@@ -56,7 +56,7 @@ const configEstimation = reactive([
     id: "alpha",
     label: "α : Temps de calcul entre chaque lettre (ms)",
     key: "alpha",
-    min: 20,
+    min: 0,
     max: 50,
     pas: 50,
     enabled: false,
@@ -65,7 +65,7 @@ const configEstimation = reactive([
     id: "beta",
     label: "β : Facteur de durée de comptage",
     key: "beta",
-    min: 50,
+    min: 0,
     max: 50,
     pas: 50,
     enabled: false,
@@ -111,7 +111,40 @@ const configEstimation = reactive([
 // Ref pour afficher les messages d'erreur
 const errorMessage = ref('');
 
-// Créer un objet avec les valeurs des paramètres d'estimation (ex: { alpha: { value: 20, enabled: true, min: 20, max: 50, pas: 50 }, ... })
+// Validation complète des paramètres d'estimation
+const validateEstimationParams = () => {
+  // Vérifier qu'au moins un paramètre est coché
+  const enabledParams = configEstimation.filter((item) => item.enabled);
+  if (enabledParams.length === 0) {
+    errorMessage.value = 'Veuillez cocher au moins un paramètre à estimer';
+    return false;
+  }
+
+  // Vérifier chaque paramètre coché
+  for (const item of enabledParams) {
+    // Vérifier que pas > 0
+    if (!Number.isFinite(item.pas) || item.pas <= 0) {
+      errorMessage.value = `"${item.label}" : le pas (step) ne peut pas être à 0 ou négatif`;
+      return false;
+    }
+
+    // Vérifier que min <= max
+    if (item.min > item.max) {
+      errorMessage.value = `"${item.label}" : min (${item.min}) est supérieur à max (${item.max})`;
+      return false;
+    }
+  }
+
+  return true;
+};
+
+// Computed pour déterminer si le bouton d'estimation est activé
+const canLaunchEstimation = computed(() => {
+  // Toujours vérifier la validation
+  return validateEstimationParams();
+});
+
+// Créer un objet avec les valeurs des paramètres d'estimation (ex: { alpha: { value: 20, enabled: true, min: 0, max: 50, pas: 50 }, ... })
 const buildParamsEstimPayload = () =>
   Object.fromEntries(
     configEstimation.map((item) => [
@@ -129,12 +162,9 @@ const buildParamsEstimPayload = () =>
 // Envoi à App.vue l'information que le bouton "Lancer l'estimation des paramètres" ou "Lancer le modèle" ont été cliqué
 const emit = defineEmits(["launch-estimation", "launch-model"]);
 
-// TODO desactiver le bouton si aucune case cochée et afficher un message d'erreur si clique quand aucune case cochée
+// Lancer l'estimation avec validation
 const emitLaunchEstimation = () => {
-  // Vérifier qu'au moins un paramètre est coché
-  const hasEnabledParam = configEstimation.some((item) => item.enabled);
-  if (!hasEnabledParam) {
-    errorMessage.value = 'Veuillez cocher au moins un paramètre à estimer';
+  if (!validateEstimationParams()) {
     return;
   }
   
@@ -215,7 +245,7 @@ defineExpose({ setParamsEstim });
         <BaseButton
           variant="btn btn-primary"
           size="lg"
-          :disabled="isEstimating"
+          :disabled="isEstimating || !canLaunchEstimation"
           @click.prevent="emitLaunchEstimation"
         >
           Lancer l'estimation des paramètres
