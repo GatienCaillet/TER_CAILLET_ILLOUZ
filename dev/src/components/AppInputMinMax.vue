@@ -34,14 +34,14 @@ defineEmits([
         type="checkbox"
         class="form-check-input"
         :checked="enabled"
+        @click.stop
         @change="$emit('update:enabled', $event.target.checked)"
       />
 
       <fieldset
-        :disabled="!enabled"
-        @click="isEnabled = true"
+        @click="!enabled && $emit('update:enabled', true)"
         class="d-flex flex-row gap-2 align-items-center border-3 p-0 m-0"
-        :class="{ 'opacity-50': !isEnabled, 'cursor-pointer': !isEnabled }"
+        :class="{ 'opacity-50': !enabled, 'cursor-pointer': !enabled }"
       >
         <label class="flex-shrink-0">Min :</label>
         <div class="">
@@ -50,6 +50,7 @@ defineEmits([
             class="form-control"
             :id="id"
             :value="min"
+            @focus="!enabled && $emit('update:enabled', true)"
             @input="$emit('update:min', $event.target.valueAsNumber)"
           />
         </div>
@@ -61,6 +62,7 @@ defineEmits([
             class="form-control"
             :id="id"
             :value="max"
+            @focus="!enabled && $emit('update:enabled', true)"
             @input="$emit('update:max', $event.target.valueAsNumber)"
           />
         </div>
@@ -71,6 +73,7 @@ defineEmits([
             class="form-control"
             :id="id"
             :value="pas"
+            @focus="!enabled && $emit('update:enabled', true)"
             @input="$emit('update:pas', $event.target.valueAsNumber)"
           />
         </div>
