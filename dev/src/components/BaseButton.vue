@@ -30,4 +30,8 @@ defineProps({
     default: false
   }
 });
+
+// Déclare explicitement l'événement pour éviter le double déclenchement
+// (émission manuelle + fallthrough natif sur l'élément racine).
+defineEmits(['click']);
 </script>

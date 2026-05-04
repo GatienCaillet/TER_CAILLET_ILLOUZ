@@ -57,32 +57,52 @@ function normalizeNumericParams(source, defaults) {
  * @returns {Object}
  */
 function normalizeEstimSearchSpace(source, defaults) {
+  const EPS = 1e-9;
   return Object.fromEntries(
     Object.entries(defaults).map(([key, defaultValue]) => {
       const descriptor = source?.[key];
 
       // Si le paramètre n'est pas activé, on le fige à une seule valeur.
       if (!isParameterDescriptor(descriptor) || !descriptor.enabled) {
-        return [key, [Number(isParameterDescriptor(descriptor) ? descriptor.value ?? defaultValue : descriptor ?? defaultValue)]];
+        return [
+          key,
+          [
+            Number(
+              isParameterDescriptor(descriptor) ? descriptor.value ?? defaultValue : descriptor ?? defaultValue,
+            ),
+          ],
+        ];
       }
 
-      const minValue = Number(descriptor.min ?? defaultValue);
-      const maxValue = Number(descriptor.max ?? defaultValue);
-      const stepValue = Math.abs(Number(descriptor.pas ?? 1)) || 1;
+      let minValue = Number(descriptor.min ?? defaultValue);
+      let maxValue = Number(descriptor.max ?? defaultValue);
+      const rawStep = Number(descriptor.pas ?? 1);
+      const stepValue = Math.max(1, Math.abs(rawStep) || 1);
+
+      // Si min > max, on inverse
+      if (minValue > maxValue) {
+        const t = minValue;
+        minValue = maxValue;
+        maxValue = t;
+      }
+
+      const span = maxValue - minValue;
+      const count = Math.max(1, Math.floor(span / stepValue + EPS) + 1);
       const values = [];
 
-      // On parcourt min jusqu'à max avec le pas spécifié .
-      for (let current = minValue; current <= maxValue; current += stepValue) {
-        values.push(Number(current.toFixed(10)));
+      for (let i = 0; i < count; i++) {
+        const v = Number((minValue + i * stepValue).toFixed(10));
+        values.push(v);
       }
 
-      if (!values.length) {
-        values.push(Number(descriptor.value ?? defaultValue));
-      } else if (values[values.length - 1] !== maxValue) {
-        values.push(maxValue);
+      // garantir inclusion du max (éviter les erreurs de float)
+      if (values[values.length - 1] < maxValue - EPS) {
+        values.push(Number(maxValue));
       }
 
-      return [key, values];
+      // dédupliquer si nécessaire
+      const dedup = values.filter((v, idx) => idx === 0 || Math.abs(v - values[idx - 1]) > EPS);
+      return [key, dedup];
     }),
   );
 }
@@ -228,10 +248,17 @@ export class Model {
    * @returns {number}
    */
   countGridSearchCombinations() {
-    return Object.values(this.paramsEstimSearchSpace).reduce(
-      (product, values) => product * Math.max(1, values.length),
-      1,
-    );
+    const entries = Object.entries(this.paramsEstimSearchSpace || {});
+    const product = entries.reduce((p, [, values]) => p * Math.max(1, (values || []).length), 1);
+
+    // Si le nombre de combinaisons est trop grand, on évite de les générer pour ne pas bloquer le navigateur.
+    const SAFETY_LIMIT = 100000; // seuil arbitraire à ajuster selon les performances souhaitées
+    if (product <= SAFETY_LIMIT) {
+      const candidates = cartesianProduct(entries);
+      return candidates.length;
+    }
+
+    return product;
   }
 
   /**

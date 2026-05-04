@@ -48,33 +48,34 @@ const paramsForm = ref(null);
 
 // Logique pour lancer l'estimation des paramètres
 const handleLaunchEstimation = ({ paramsInit, paramsEstim }) => {
-  // Empêcher les appels simultanés
-  if (isEstimating.value) {
+  if (!data.value.length) {
+    console.warn('Aucun stimulus importé. Importez des équations avant de lancer l estimation des paramètres.')
+    dataResults.value = []
     return;
   }
 
-  if (!data.value.length) {
-    console.warn('Aucun stimulus importé. Importez des équations avant de lancer l estimation.')
-    return
+  // Empêcher les appels simultanés: verrouiller immédiatement pour éviter une double popup confirm
+  if (isEstimating.value) {
+    return;
   }
-
-  const stimuli = buildStimuli()
-  const model = new Model(paramsInit, paramsEstim, stimuli)
-
-  // Avertir si trop de combinaisons
-  const combCount = model.countGridSearchCombinations();
-  const MAX_COMBINATIONS = 10000;
-  if (combCount > MAX_COMBINATIONS) {
-    const confirmed = window.confirm(
-      `Attention : ${combCount} combinaisons à évaluer. Cela peut prendre du temps. Continuer ?`
-    );
-    if (!confirmed) {
-      return;
-    }
-  }
-
   isEstimating.value = true
+
   try {
+    const stimuli = buildStimuli()
+    const model = new Model(paramsInit, paramsEstim, stimuli)
+
+    // Avertir si trop de combinaisons
+    const combCount = model.countGridSearchCombinations();
+    const MAX_COMBINATIONS = 10000;
+    if (combCount > MAX_COMBINATIONS) {
+      const confirmed = window.confirm(
+        `Attention : ${combCount} combinaisons à évaluer. Cela peut prendre du temps. Continuer ?`
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
     // On transmet la structure complète (descripteurs) au modèle pour l'estimation
     const bestParams = model.estimateBestParams(data.value)
 
@@ -97,7 +98,7 @@ const handleLaunchModel = ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
     console.warn('Aucun stimulus importé. Importez des équations avant de lancer le modèle.')
     dataResults.value = []
-    return
+    return;
   }
 
   try {

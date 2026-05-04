@@ -72,9 +72,11 @@ defineEmits([
             type="number"
             class="form-control"
             :id="id"
+            min="1"
+            step="1"
             :value="pas"
             @focus="!enabled && $emit('update:enabled', true)"
-            @input="$emit('update:pas', $event.target.valueAsNumber)"
+            @input="$emit('update:pas', Math.max(1, Number.isFinite($event.target.valueAsNumber) ? $event.target.valueAsNumber : 1))"
           />
         </div>
       </fieldset>
