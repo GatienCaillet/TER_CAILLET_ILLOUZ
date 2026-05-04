@@ -1,8 +1,20 @@
 <script setup>
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import AppInput from "./AppInput.vue";
 import AppInputMinMax from "./AppInputMinMax.vue";
 import BaseButton from "./BaseButton.vue";
+
+// Prop pour recevoir le résultat de l'estimation du parent
+defineProps({
+  bestEstimatedParams: {
+    type: Object,
+    default: null,
+  },
+  isEstimating: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 // Les valeurs par défaut des paramètres d'initialisation
 const params = ref({
@@ -39,7 +51,7 @@ const paramsEstimation = ref({
 });
 
 // La configuration des champs pour les inputs des paramètres d'estimation (components/AppInputMinMax.vue) du formulaire
-const configEstimation = [
+const configEstimation = reactive([
   {
     id: "alpha",
     label: "α : Temps de calcul entre chaque lettre (ms)",
@@ -47,6 +59,7 @@ const configEstimation = [
     min: 20,
     max: 50,
     pas: 50,
+    enabled: false,
   },
   {
     id: "beta",
@@ -55,6 +68,7 @@ const configEstimation = [
     min: 50,
     max: 50,
     pas: 50,
+    enabled: false,
   },
   {
     id: "delta",
@@ -63,6 +77,7 @@ const configEstimation = [
     min: 200,
     max: 1200,
     pas: 50,
+    enabled: false,
   },
   {
     id: "eta",
@@ -71,6 +86,7 @@ const configEstimation = [
     min: 100,
     max: 250,
     pas: 50,
+    enabled: false,
   },
   {
     id: "tau",
@@ -79,6 +95,7 @@ const configEstimation = [
     min: 3500,
     max: 5000,
     pas: 50,
+    enabled: false,
   },
   {
     id: "rho",
@@ -87,25 +104,72 @@ const configEstimation = [
     min: 50,
     max: 100,
     pas: 25,
+    enabled: false,
   },
-];
+]);
+
+// Ref pour afficher les messages d'erreur
+const errorMessage = ref('');
+
+// Créer un objet avec les valeurs des paramètres d'estimation (ex: { alpha: { value: 20, enabled: true, min: 20, max: 50, pas: 50 }, ... })
+const buildParamsEstimPayload = () =>
+  Object.fromEntries(
+    configEstimation.map((item) => [
+      item.key,
+      {
+        value: paramsEstimation.value[item.key],
+        enabled: item.enabled,
+        min: item.min,
+        max: item.max,
+        pas: item.pas,
+      },
+    ]),
+  );
 
 // Envoi à App.vue l'information que le bouton "Lancer l'estimation des paramètres" ou "Lancer le modèle" ont été cliqué
 const emit = defineEmits(["launch-estimation", "launch-model"]);
 
+// TODO desactiver le bouton si aucune case cochée et afficher un message d'erreur si clique quand aucune case cochée
 const emitLaunchEstimation = () => {
+  // Vérifier qu'au moins un paramètre est coché
+  const hasEnabledParam = configEstimation.some((item) => item.enabled);
+  if (!hasEnabledParam) {
+    errorMessage.value = 'Veuillez cocher au moins un paramètre à estimer';
+    return;
+  }
+  
+  errorMessage.value = ''; // Réinitialiser l'erreur
   emit("launch-estimation", {
     paramsInit: { ...params.value },
-    paramsEstim: { ...paramsEstimation.value },
+    paramsEstim: buildParamsEstimPayload(),
   });
 };
 
 const emitLaunchModel = () => {
   emit("launch-model", {
     paramsInit: { ...params.value },
-    paramsEstim: { ...paramsEstimation.value },
+    paramsEstim: buildParamsEstimPayload(),
   });
 };
+
+// Permet au parent (App.vue) de remplacer les paramètres d'estimation
+// après une estimation
+const setParamsEstim = (newParams) => {
+  // newParams attendu sous la forme { alpha: 20, beta: 1000, ... }
+  Object.entries(newParams || {}).forEach(([key, value]) => {
+    if (key in paramsEstimation.value) {
+      paramsEstimation.value[key] = Number(value);
+    }
+    // Mettre à jour aussi la configuration si besoin pour garder l'UI cohérente
+    const cfg = configEstimation.find((it) => it.key === key);
+    if (cfg) {
+      cfg.min = cfg.min ?? cfg.min;
+      cfg.max = cfg.max ?? cfg.max;
+    }
+  });
+};
+
+defineExpose({ setParamsEstim });
 </script>
 
 <template>
@@ -135,26 +199,45 @@ const emitLaunchModel = () => {
             :max="item.max"
             :pas="item.pas"
             v-model="paramsEstimation[item.key]"
+            v-model:enabled="item.enabled"
+            v-model:min="item.min"
+            v-model:max="item.max"
+            v-model:pas="item.pas"
           />
         </div>
       </div>
+      <!-- Affichage des erreurs -->
+      <div v-if="errorMessage" class="alert alert-danger mt-3 w-75">
+        {{ errorMessage }}
+      </div>
+      
       <div class="d-flex flex-column align-items-center gap-3">
         <BaseButton
           variant="btn btn-primary"
           size="lg"
-          :disabled="false"
+          :disabled="isEstimating"
           @click.prevent="emitLaunchEstimation"
         >
-          Lancer l'estimation des paramètres (environ X minutes)
+          Lancer l'estimation des paramètres
         </BaseButton>
         <BaseButton
           variant="btn btn-primary"
           size="lg"
-          :disabled="false"
+          :disabled="isEstimating"
           @click.prevent="emitLaunchModel"
         >
           Lancer le modèle
         </BaseButton>
+        
+        <!-- Affichage de la meilleure configuration estimée -->
+        <div v-if="bestEstimatedParams" class="alert alert-success mt-3 w-75">
+          <strong>✓ Estimation complète !</strong>
+          <div class="mt-2">
+            <div v-for="(value, key) in bestEstimatedParams" :key="key" class="small">
+              <strong>{{ key }}:</strong> {{ Number(value) }}
+            </div>
+          </div>
+        </div>
       </div>
     </form>
   </div>

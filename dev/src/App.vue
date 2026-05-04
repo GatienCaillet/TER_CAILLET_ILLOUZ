@@ -24,7 +24,9 @@ const dataCols = [
 // Définition des ref pour les équations et les données
 const equations = ref([])
 const data = ref([]) 
-const dataResults = ref([]) 
+const dataResults = ref([])
+const bestEstimatedParams = ref(null) // Stocke les meilleurs paramètres estimés pour les transmettre au formulaire
+const isEstimating = ref(false) // Flag pour éviter les appels simultanés
 
 // Récupération des fonctions depuis le composable (composables/useDataImporter.js)
 const { importEquations, importData } = useDataImporter()
@@ -33,12 +35,64 @@ const { importEquations, importData } = useDataImporter()
 const handleImportEquations = () => importEquations(equations)
 const handleImportData = () => importData(data)
 
-// Logique pour lancer l'estimation des paramètres (à implémenter)
-const handleLaunchEstimation = () => {
-  console.log('Btn lancer estimation des paramètres clicked')
+const buildStimuli = () =>
+  data.value.map((equation) => ({
+    augend: String(equation.augend ?? '').trim(),
+    addend: Number(equation.addend),
+    result: String(equation.result ?? '').trim(),
+    session: Number(equation.session ?? 1)
+  }))
+
+// Référence au composant formulaire pour pouvoir lui demander de mettre à jour les valeurs affichées
+const paramsForm = ref(null);
+
+// Logique pour lancer l'estimation des paramètres
+const handleLaunchEstimation = ({ paramsInit, paramsEstim }) => {
+  // Empêcher les appels simultanés
+  if (isEstimating.value) {
+    return;
+  }
+
+  if (!data.value.length) {
+    console.warn('Aucun stimulus importé. Importez des équations avant de lancer l estimation.')
+    return
+  }
+
+  const stimuli = buildStimuli()
+  const model = new Model(paramsInit, paramsEstim, stimuli)
+
+  // Avertir si trop de combinaisons
+  const combCount = model.countGridSearchCombinations();
+  const MAX_COMBINATIONS = 10000;
+  if (combCount > MAX_COMBINATIONS) {
+    const confirmed = window.confirm(
+      `Attention : ${combCount} combinaisons à évaluer. Cela peut prendre du temps. Continuer ?`
+    );
+    if (!confirmed) {
+      return;
+    }
+  }
+
+  isEstimating.value = true
+  try {
+    // On transmet la structure complète (descripteurs) au modèle pour l'estimation
+    const bestParams = model.estimateBestParams(data.value)
+
+    // Met à jour le formulaire si possible avec les nouvelles valeurs estimées
+    if (paramsForm.value && typeof paramsForm.value.setParamsEstim === 'function') {
+      paramsForm.value.setParamsEstim(bestParams)
+    }
+    
+    // Stocke le résultat pour affichage dans l'interface
+    bestEstimatedParams.value = bestParams
+  } catch (error) {
+    console.error('Impossible de lancer l estimation des paramètres:', error)
+  } finally {
+    isEstimating.value = false
+  }
 }
 
-// Logique pour lancer le modèle (à implémenter)
+// Logique pour lancer le modèle : le Model lit directement les descriptors ou les valeurs simples
 const handleLaunchModel = ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
     console.warn('Aucun stimulus importé. Importez des équations avant de lancer le modèle.')
@@ -48,14 +102,10 @@ const handleLaunchModel = ({ paramsInit, paramsEstim }) => {
 
   try {
     // Mapping des lignes du tableau vers le format attendu par Model.js
-    const stimuli = data.value.map((equation) => ({
-      augend: String(equation.augend ?? '').trim(),
-      addend: Number(equation.addend),
-      result: String(equation.result ?? '').trim(),
-      session: Number(equation.session ?? 1)
-    }))
+    const stimuli = buildStimuli()
 
     const model = new Model(paramsInit, paramsEstim, stimuli)
+
     model.calculEveryStimulusTime(stimuli)
 
     // Mapping inverse pour afficher les résultats dans la table de l'UI
@@ -67,8 +117,6 @@ const handleLaunchModel = ({ paramsInit, paramsEstim }) => {
       time: Math.round(result.temps),
       session: result.session
     }))
-
-    console.log('Modèle exécuté. Résultats générés :', dataResults.value)
   } catch (error) {
     console.error('Impossible de lancer le modèle:', error)
     dataResults.value = []
@@ -104,6 +152,9 @@ const handleSaveResults = () => {
 
     <!-- Formulaire des paramètres d'initialisation et d'estimation -->
     <ParametersForm
+      ref="paramsForm"
+      :best-estimated-params="bestEstimatedParams"
+      :is-estimating="isEstimating"
       @launch-estimation="handleLaunchEstimation"
       @launch-model="handleLaunchModel"
     />

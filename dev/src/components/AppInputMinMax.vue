@@ -1,6 +1,5 @@
 <script setup>
 import AppInput from "./AppInput.vue";
-import { ref } from "vue";
 
 defineProps({
   label: String,
@@ -8,14 +7,18 @@ defineProps({
   min: Number,
   max: Number,
   pas: Number,
+  enabled: Boolean,
   modelValue: Number, // La valeur transmise par le parent
 });
 
 // Envoi à components/ParametersForm.vue l'information que les inputs ont été modifiés
-defineEmits(["update:modelValue", "update:min", "update:max", "update:pas"]);
-
-// Par défaut, la partie "min" "max" et "pas" est désactivée (false)
-const isEnabled = ref(false);
+defineEmits([
+  "update:modelValue",
+  "update:min",
+  "update:max",
+  "update:pas",
+  "update:enabled",
+]);
 </script>
 
 <template>
@@ -27,10 +30,15 @@ const isEnabled = ref(false);
       @update:modelValue="$emit('update:modelValue', $event)"
     />
     <div class="d-flex flex-row gap-2 align-items-center">
-      <input type="checkbox" class="form-check-input" v-model="isEnabled" />
+      <input
+        type="checkbox"
+        class="form-check-input"
+        :checked="enabled"
+        @change="$emit('update:enabled', $event.target.checked)"
+      />
 
       <fieldset
-        :disabled="!isEnabled"
+        :disabled="!enabled"
         class="d-flex flex-row gap-2 align-items-center border-0 p-0 m-0"
       >
         <label class="flex-shrink-0">Min :</label>

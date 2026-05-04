@@ -1,5 +1,3 @@
-// @ts-check
-
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 const DEFAULT_PARAMS_INIT = {
@@ -18,13 +16,100 @@ const DEFAULT_PARAMS_ESTIM = {
   rho: 50,
 };
 
+// TODO
+/**
+ * Vérifie si une valeur est un descripteur de paramètre avec les propriétés attendues (enabled, value, min, max, pas).
+ * Cette fonction est utilisée pour différencier les paramètres simples des paramètres d'estimation 
+ * qui peuvent être activés pour la recherche en grille.
+ * @param {any} value
+ * @returns {boolean}
+ */
+function isParameterDescriptor(value) {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    ('enabled' in value || 'value' in value || 'min' in value || 'max' in value || 'pas' in value)
+  );
+}
+
+// TODO
+/**
+ * Transforme un objet de paramètres en nombres et applique les valeurs par défaut si besoin.
+ * @param {Object} source
+ * @param {Object} defaults
+ * @returns {Object}
+ */
 function normalizeNumericParams(source, defaults) {
   return Object.fromEntries(
     Object.entries(defaults).map(([key, defaultValue]) => [
       key,
-      Number(source?.[key] ?? defaultValue),
+      Number(isParameterDescriptor(source?.[key]) ? source?.[key]?.value ?? defaultValue : source?.[key] ?? defaultValue),
     ]),
   );
+}
+
+// TODO
+/**
+ * Prépare les paramètres d'estimation sous forme de plages à tester ou de valeurs fixes.
+ * Quand un paramètre n'est pas activé, il reste figé sur une seule valeur.
+ * @param {Object} source
+ * @param {Object} defaults
+ * @returns {Object}
+ */
+function normalizeEstimSearchSpace(source, defaults) {
+  return Object.fromEntries(
+    Object.entries(defaults).map(([key, defaultValue]) => {
+      const descriptor = source?.[key];
+
+      // Si le paramètre n'est pas activé, on le fige à une seule valeur.
+      if (!isParameterDescriptor(descriptor) || !descriptor.enabled) {
+        return [key, [Number(isParameterDescriptor(descriptor) ? descriptor.value ?? defaultValue : descriptor ?? defaultValue)]];
+      }
+
+      const minValue = Number(descriptor.min ?? defaultValue);
+      const maxValue = Number(descriptor.max ?? defaultValue);
+      const stepValue = Math.abs(Number(descriptor.pas ?? 1)) || 1;
+      const values = [];
+
+      // On parcourt min jusqu'à max avec le pas spécifié .
+      for (let current = minValue; current <= maxValue; current += stepValue) {
+        values.push(Number(current.toFixed(10)));
+      }
+
+      if (!values.length) {
+        values.push(Number(descriptor.value ?? defaultValue));
+      } else if (values[values.length - 1] !== maxValue) {
+        values.push(maxValue);
+      }
+
+      return [key, values];
+    }),
+  );
+}
+
+/**
+ * Construit toutes les combinaisons possibles à partir d'une liste de couples [clé, valeurs].
+ * Cette fonction sert au grid search pour tester chaque configuration activée.
+ * @param {Array} entries
+ * @param {number} index
+ * @param {Object} current
+ * @param {Array} output
+ * @returns {Array}
+ */
+function cartesianProduct(entries, index = 0, current = {}, output = []) {
+  if (index >= entries.length) {
+    output.push({ ...current });
+    return output;
+  }
+
+  const [key, values] = entries[index];
+
+  values.forEach((value) => {
+    current[key] = value;
+    cartesianProduct(entries, index + 1, current, output);
+  });
+
+  return output;
 }
 
 /**
@@ -102,6 +187,7 @@ export class Model {
   ) {
     this.paramsInit = normalizeNumericParams(paramsInit, DEFAULT_PARAMS_INIT);
     this.paramsEstim = normalizeNumericParams(paramsEstim, DEFAULT_PARAMS_ESTIM);
+    this.paramsEstimSearchSpace = normalizeEstimSearchSpace(paramsEstim, DEFAULT_PARAMS_ESTIM);
     this.stimuli = stimuli;
 
     const baseInitTime =
@@ -126,6 +212,125 @@ export class Model {
     // Resultats calculés pour chaque stimulus
     /** @type {Resultats} */
     this.results = [];
+  }
+
+  // TODO
+  /**
+   * Indique si au moins un paramètre d'estimation doit être exploré en grille.
+   * @returns {boolean}
+   */
+  hasGridSearchConfiguration() {
+    return Object.values(this.paramsEstimSearchSpace).some((values) => values.length > 1);
+  }
+
+  /**
+   * Retourne le nombre total de combinaisons à tester pour la grille.
+   * @returns {number}
+   */
+  countGridSearchCombinations() {
+    return Object.values(this.paramsEstimSearchSpace).reduce(
+      (product, values) => product * Math.max(1, values.length),
+      1,
+    );
+  }
+
+  /**
+   * Réinitialise l'état interne du modèle avant un nouveau calcul.
+   * @returns {void}
+   */
+  resetState() {
+    /** @type {PracticeMap} */
+    this.practice = {};
+
+    for (let lettre of ALPHABET) {
+      this.practice[lettre] = 0;
+    }
+
+    /** @type {AssociationMap} */
+    this.associations = {};
+    /** @type {Resultats} */
+    this.results = [];
+  }
+
+  /**
+   * Crée une nouvelle instance du modèle avec un autre jeu de paramètres d'estimation.
+   * @param {ParamsEstim} paramsEstim
+   * @returns {Model}
+   */
+  cloneWithParams(paramsEstim) {
+    // Chaque essai de grille repart d'un modèle neuf pour éviter de mélanger les états internes.
+    return new Model(this.paramsInit, paramsEstim, this.stimuli);
+  }
+
+  // TODO : il faut comparer a celle du participant ans les imports et pas celle du model
+  /**
+   * Évalue un jeu de paramètres en comparant les temps simulés aux temps observés.
+   * @param {Stimuli} stimuli
+   * @param {ParamsEstim} paramsEstim
+   * @returns {{score: number, paramsEstim: ParamsEstim}}
+   */
+  evaluateParamsSet(stimuli, paramsEstim) {
+    const candidateModel = this.cloneWithParams(paramsEstim);
+    
+    // TODO ici le probleme
+    candidateModel.calculEveryStimulusTime(stimuli);
+
+    let errorSum = 0;
+
+    // On mesure l'erreur quadratique moyenne entre le temps simulé et le temps observé.
+    candidateModel.results.forEach((result, index) => {
+      const observedTime = Number(stimuli[index]?.time);
+      if (!Number.isFinite(observedTime)) {
+        throw new Error('Les données importées doivent contenir une colonne time numérique pour l estimation.');
+      }
+
+      const delta = result.temps - observedTime;
+      errorSum += delta * delta;
+    });
+
+    return {
+      score: errorSum / candidateModel.results.length,
+      paramsEstim,
+    };
+  }
+
+  /**
+   * Lance une recherche en grille et conserve la configuration qui minimise l'erreur.
+   * @param {Stimuli} stimuli
+   * @returns {ParamsEstim}
+   */
+  estimateBestParams(stimuli = this.stimuli) {
+    const searchEntries = Object.entries(this.paramsEstimSearchSpace);
+
+    if (!searchEntries.length || !this.hasGridSearchConfiguration()) {
+      return this.paramsEstim;
+    }
+
+    // On génère toutes les combinaisons des paramètres cochés, puis on garde celle qui minimise l'erreur.
+    const candidates = cartesianProduct(searchEntries);
+    let bestCandidate = null;
+
+    candidates.forEach((candidate) => {
+      const mergedParams = {
+        ...this.paramsEstim,
+        ...candidate,
+      };
+      const evaluation = this.evaluateParamsSet(stimuli, mergedParams);
+
+      if (!bestCandidate || evaluation.score < bestCandidate.score) {
+        bestCandidate = evaluation;
+      }
+    });
+
+    this.paramsEstim = {
+      ...this.paramsEstim,
+      ...(bestCandidate?.paramsEstim ?? {}),
+    };
+
+    // TODO verifier que c'est utile
+    this.paramsEstimSearchSpace = normalizeEstimSearchSpace(this.paramsEstim, DEFAULT_PARAMS_ESTIM);
+
+    return this.paramsEstim;
   }
 
   /**
@@ -253,10 +458,13 @@ export class Model {
    * @returns {void} results - Renvoie un tableau d'objets résultats
    */
   calculEveryStimulusTime(stimuli) {
+    // Avant de calculer les temps, on réinitialise l'état du modèle pour éviter 
+    // que les résultats d'une estimation précédente n'influencent les calculs actuels.
+    this.resetState();
+
     this.results = [];
 
     stimuli.forEach((stimulus) => {
-      
       // On vérifie que le stimulus est valide pour éviter les erreurs de calcul
       this.validateStimulus(stimulus);
 
@@ -266,9 +474,9 @@ export class Model {
       this.results.push({
         augend: stimulus.augend,
         addend: stimulus.addend,
-          result: stimulus.result,
+        result: stimulus.result,
         temps: calculTime,
-        session: stimulus.session
+        session: stimulus.session,
       });
     });
   }
