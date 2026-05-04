@@ -39,7 +39,9 @@ defineEmits([
 
       <fieldset
         :disabled="!enabled"
-        class="d-flex flex-row gap-2 align-items-center border-0 p-0 m-0"
+        @click="isEnabled = true"
+        class="d-flex flex-row gap-2 align-items-center border-3 p-0 m-0"
+        :class="{ 'opacity-50': !isEnabled, 'cursor-pointer': !isEnabled }"
       >
         <label class="flex-shrink-0">Min :</label>
         <div class="">
