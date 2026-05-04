@@ -2,6 +2,31 @@
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+const DEFAULT_PARAMS_INIT = {
+  encodingTime: 80,
+  comparisonTime: 200,
+  commandTime: 300,
+  errorRate: 5,
+};
+
+const DEFAULT_PARAMS_ESTIM = {
+  alpha: 20,
+  beta: 1260,
+  delta: 340,
+  eta: 270,
+  tau: 4800,
+  rho: 50,
+};
+
+function normalizeNumericParams(source, defaults) {
+  return Object.fromEntries(
+    Object.entries(defaults).map(([key, defaultValue]) => [
+      key,
+      Number(source?.[key] ?? defaultValue),
+    ]),
+  );
+}
+
 /**
  * Paramètres d'initialisation du modèle.
  * @typedef {Object} ParamsInit
@@ -71,30 +96,20 @@ export class Model {
    * @param {Stimuli} stimuli
    */
   constructor(
-    paramsInit = {
-      encodingTime: 80,
-      comparisonTime: 200,
-      commandTime: 300,
-      errorRate: 5,
-    },
-    paramsEstim = {
-      alpha: 20,
-      beta: 1260,
-      delta: 340,
-      eta: 270,
-      tau: 4800,
-      rho: 50,
-    },
+    paramsInit = DEFAULT_PARAMS_INIT,
+    paramsEstim = DEFAULT_PARAMS_ESTIM,
     stimuli = [],
   ) {
-    this.paramsInit = paramsInit;
-    this.paramsEstim = paramsEstim;
+    this.paramsInit = normalizeNumericParams(paramsInit, DEFAULT_PARAMS_INIT);
+    this.paramsEstim = normalizeNumericParams(paramsEstim, DEFAULT_PARAMS_ESTIM);
     this.stimuli = stimuli;
 
-    this.initTime =
+    const baseInitTime =
       this.paramsInit.encodingTime +
       this.paramsInit.comparisonTime +
       this.paramsInit.commandTime;
+
+    this.initTime = baseInitTime * (1 + this.paramsInit.errorRate / 100);
 
     // Initialisation du dictionnaire de pratique : { "A": 0, "B": 0, ... }
     /** @type {PracticeMap} */
