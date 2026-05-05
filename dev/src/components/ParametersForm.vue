@@ -116,9 +116,14 @@ const validateEstimationParams = () => {
   // Vérifier qu'au moins un paramètre est coché
   const enabledParams = configEstimation.filter((item) => item.enabled);
   if (enabledParams.length === 0) {
-    errorMessage.value = 'Veuillez cocher au moins un paramètre à estimer';
+    errorMessage.value = 'Veuillez cocher au moins un paramètre pour lancer l\'estimation des paramètres';
     return false;
+  } 
+  else {
+    errorMessage.value = 'Veuillez lancer l\'estimation des paramètres avant de lancer le modèle'; 
   }
+
+
 
   // Vérifier chaque paramètre coché
   for (const item of enabledParams) {
@@ -253,7 +258,7 @@ defineExpose({ setParamsEstim });
         <BaseButton
           variant="btn btn-primary"
           size="lg"
-          :disabled="isEstimating"
+          :disabled="isEstimating || canLaunchEstimation"
           @click.prevent="emitLaunchModel"
         >
           Lancer le modèle
