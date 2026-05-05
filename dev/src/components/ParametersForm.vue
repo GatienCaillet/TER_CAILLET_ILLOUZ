@@ -21,7 +21,7 @@ const params = ref({
   encodingTime: 80,
   comparisonTime: 200,
   commandTime: 300,
-  errorRate: 5
+  errorRate: 5,
 });
 
 // La configuration des champs pour les inputs  des paramètres d'initialisation (components/AppInput.vue) du formulaire
@@ -72,7 +72,8 @@ const configEstimation = reactive([
   },
   {
     id: "delta",
-    label: "δ : Taux de la diminution de la durée de réponse selon l'entrainement",
+    label:
+      "δ : Taux de la diminution de la durée de réponse selon l'entrainement",
     key: "delta",
     min: 200,
     max: 1200,
@@ -99,7 +100,8 @@ const configEstimation = reactive([
   },
   {
     id: "rho",
-    label: "ρ : Taux de la diminution du temps de récupération selon la force de l'association",
+    label:
+      "ρ : Taux de la diminution du temps de récupération selon la force de l'association",
     key: "rho",
     min: 50,
     max: 100,
@@ -109,21 +111,26 @@ const configEstimation = reactive([
 ]);
 
 // Ref pour afficher les messages d'erreur
-const errorMessage = ref('');
+const errorMessage = ref("");
+const alertMessage = ref("");
+const alertMessageModel = ref("");
 
 // Validation complète des paramètres d'estimation
 const validateEstimationParams = () => {
   // Vérifier qu'au moins un paramètre est coché
   const enabledParams = configEstimation.filter((item) => item.enabled);
   if (enabledParams.length === 0) {
-    errorMessage.value = 'Veuillez cocher au moins un paramètre pour lancer l\'estimation des paramètres';
+    alertMessage.value =
+      "Veuillez cocher au moins un paramètre pour lancer l'estimation des paramètres";
+    alertMessageModel.value =
+      "";
+    errorMessage.value = ""; // Réinitialiser l'erreur si tout est bon pour ce paramètre
     return false;
-  } 
-  else {
-    errorMessage.value = 'Veuillez lancer l\'estimation des paramètres avant de lancer le modèle'; 
+  } else {
+    alertMessage.value = "";
+    alertMessageModel.value =
+      "Veuillez lancer l'estimation des paramètres avant de lancer le modèle";
   }
-
-
 
   // Vérifier chaque paramètre coché
   for (const item of enabledParams) {
@@ -139,7 +146,7 @@ const validateEstimationParams = () => {
       return false;
     }
   }
-
+  errorMessage.value = ""; // Réinitialiser l'erreur si tout est bon pour ce paramètre
   return true;
 };
 
@@ -172,8 +179,9 @@ const emitLaunchEstimation = () => {
   if (!validateEstimationParams()) {
     return;
   }
-  
-  errorMessage.value = ''; // Réinitialiser l'erreur
+  alertMessage.value = ""; // Réinitialiser l'alerte
+  alertMessageModel.value = ""; // Réinitialiser l'alerte du modèle
+  errorMessage.value = ""; // Réinitialiser l'erreur
   emit("launch-estimation", {
     paramsInit: { ...params.value },
     paramsEstim: buildParamsEstimPayload(),
@@ -181,6 +189,7 @@ const emitLaunchEstimation = () => {
 };
 
 const emitLaunchModel = () => {
+  alertMessageModel.value = ""; // Réinitialiser l'alerte du modèle
   emit("launch-model", {
     paramsInit: { ...params.value },
     paramsEstim: buildParamsEstimPayload(),
@@ -208,7 +217,7 @@ defineExpose({ setParamsEstim });
 </script>
 
 <template>
-  <div class="container mt-4">
+  <div class="container mt-4 border border-1 border-black rounded-4 p-3">
     <form>
       <div id="initialization" class="d-flex flex-column mb-4">
         <div class="ms-5 fw-bold">Paramètres d'initialisation :</div>
@@ -222,39 +231,51 @@ defineExpose({ setParamsEstim });
           />
         </div>
       </div>
-      <div id="estimation" class="d-flex flex-column mb-4">
-        <div class="ms-5 fw-bold">Paramètres d'estimation :</div>
-        <div class="d-flex flex-row justify-content-around flex-wrap">
-          <AppInputMinMax
-            v-for="item in configEstimation"
-            :key="item.id"
-            :id="item.id"
-            :label="item.label"
-            :min="item.min"
-            :max="item.max"
-            :pas="item.pas"
-            v-model="paramsEstimation[item.key]"
-            v-model:enabled="item.enabled"
-            v-model:min="item.min"
-            v-model:max="item.max"
-            v-model:pas="item.pas"
-          />
+      <div class="container mt-4 border border-1 rounded-4 p-3 mb-3">
+        <div id="estimation" class="d-flex flex-column mb-4">
+          <div class="ms-5 fw-bold">Paramètres d'estimation :</div>
+          <div class="d-flex flex-row justify-content-around flex-wrap">
+            <AppInputMinMax
+              v-for="item in configEstimation"
+              :key="item.id"
+              :id="item.id"
+              :label="item.label"
+              :min="item.min"
+              :max="item.max"
+              :pas="item.pas"
+              v-model="paramsEstimation[item.key]"
+              v-model:enabled="item.enabled"
+              v-model:min="item.min"
+              v-model:max="item.max"
+              v-model:pas="item.pas"
+            />
+          </div>
+        </div>
+
+        <div class="d-flex flex-column align-items-center gap-3">
+          <!-- Affichage des erreurs -->
+          <div v-if="errorMessage" class="alert alert-danger mt-3">
+            {{ errorMessage }}
+          </div>
+          <!-- Affichage des alertes -->
+          <div v-if="alertMessage" class="alert alert-light mt-3">
+            {{ alertMessage }}
+          </div>
+          <BaseButton
+            variant="btn btn-primary"
+            size="lg"
+            :disabled="isEstimating || !canLaunchEstimation"
+            @click.prevent="emitLaunchEstimation"
+          >
+            Lancer l'estimation des paramètres
+          </BaseButton>
         </div>
       </div>
-      <!-- Affichage des erreurs -->
-      <div v-if="errorMessage" class="alert alert-danger mt-3 w-75">
-        {{ errorMessage }}
-      </div>
-      
       <div class="d-flex flex-column align-items-center gap-3">
-        <BaseButton
-          variant="btn btn-primary"
-          size="lg"
-          :disabled="isEstimating || !canLaunchEstimation"
-          @click.prevent="emitLaunchEstimation"
-        >
-          Lancer l'estimation des paramètres
-        </BaseButton>
+        <!-- Affichage des erreurs -->
+        <div v-if="alertMessageModel" class="alert alert-light mt-3">
+          {{ alertMessageModel }}
+        </div>
         <BaseButton
           variant="btn btn-primary"
           size="lg"
@@ -263,12 +284,16 @@ defineExpose({ setParamsEstim });
         >
           Lancer le modèle
         </BaseButton>
-        
+
         <!-- Affichage de la meilleure configuration estimée -->
         <div v-if="bestEstimatedParams" class="alert alert-success mt-3 w-75">
           <strong>✓ Estimation complète !</strong>
           <div class="mt-2">
-            <div v-for="(value, key) in bestEstimatedParams" :key="key" class="small">
+            <div
+              v-for="(value, key) in bestEstimatedParams"
+              :key="key"
+              class="small"
+            >
               <strong>{{ key }}:</strong> {{ Number(value) }}
             </div>
           </div>
