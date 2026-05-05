@@ -5,7 +5,7 @@ import AppInputMinMax from "./AppInputMinMax.vue";
 import BaseButton from "./BaseButton.vue";
 
 // Prop pour recevoir le résultat de l'estimation du parent
-defineProps({
+const props = defineProps({
   bestEstimatedParams: {
     type: Object,
     default: null,
@@ -13,6 +13,10 @@ defineProps({
   isEstimating: {
     type: Boolean,
     default: false,
+  },
+  dataImported: {
+    type: Array,
+    default: () => [],
   },
 });
 
@@ -115,8 +119,17 @@ const errorMessage = ref("");
 const alertMessage = ref("");
 const alertMessageModel = ref("");
 
+const hasImportedData = computed(() => props.dataImported.length > 0);
+
 // Validation complète des paramètres d'estimation
 const validateEstimationParams = () => {
+  if (!hasImportedData.value) {
+    errorMessage.value = '';
+    alertMessage.value = 'Aucune donnée importée. Veuillez en importer avant de lancer l\'estimation des paramètres ou le modèle.';
+    alertMessageModel.value = '';
+    return false;
+  }
+
   // Vérifier qu'au moins un paramètre est coché
   const enabledParams = configEstimation.filter((item) => item.enabled);
   if (enabledParams.length === 0) {
@@ -257,6 +270,9 @@ defineExpose({ setParamsEstim });
           <div v-if="errorMessage" class="alert alert-danger mt-3">
             {{ errorMessage }}
           </div>
+          <div v-if="!hasImportedData" class="alert alert-danger mt-3">
+            Aucune donnée importée. Veuillez en importer avant de lancer l'estimation des paramètres ou le modèle.
+          </div>
           <!-- Affichage des alertes -->
           <div v-if="alertMessage" class="alert alert-light mt-3">
             {{ alertMessage }}
@@ -264,7 +280,7 @@ defineExpose({ setParamsEstim });
           <BaseButton
             variant="btn btn-primary"
             size="lg"
-            :disabled="isEstimating || !canLaunchEstimation"
+            :disabled="isEstimating || !canLaunchEstimation || !hasImportedData"
             @click.prevent="emitLaunchEstimation"
           >
             Lancer l'estimation des paramètres
@@ -276,10 +292,13 @@ defineExpose({ setParamsEstim });
         <div v-if="alertMessageModel" class="alert alert-light mt-3">
           {{ alertMessageModel }}
         </div>
+        <div v-if="!hasImportedData" class="alert alert-danger mt-3">
+          Aucune donnée importée. Veuillez en importer avant de lancer le modèle.
+        </div>
         <BaseButton
           variant="btn btn-primary"
           size="lg"
-          :disabled="isEstimating || canLaunchEstimation"
+          :disabled="isEstimating || canLaunchEstimation || !hasImportedData"
           @click.prevent="emitLaunchModel"
         >
           Lancer le modèle

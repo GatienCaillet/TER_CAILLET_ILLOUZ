@@ -220,6 +220,7 @@ const handleSaveResults = () => {
       ref="paramsForm"
       :best-estimated-params="bestEstimatedParams"
       :is-estimating="isEstimating"
+      :data-imported="data"
       @launch-estimation="handleLaunchEstimation"
       @launch-model="handleLaunchModel"
     />
