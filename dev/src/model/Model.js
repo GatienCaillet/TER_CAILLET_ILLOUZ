@@ -324,9 +324,10 @@ export class Model {
   /**
    * Lance une recherche en grille et conserve la configuration qui minimise l'erreur.
    * @param {Stimuli} stimuli
+   * @param {Function|null} onProgress
    * @returns {ParamsEstim}
    */
-  estimateBestParams(stimuli = this.stimuli) {
+  async estimateBestParams(stimuli = this.stimuli, onProgress = null) {
     const searchEntries = Object.entries(this.paramsEstimSearchSpace);
 
     if (!searchEntries.length || !this.hasGridSearchConfiguration()) {
@@ -336,8 +337,11 @@ export class Model {
     // On génère toutes les combinaisons des paramètres cochés, puis on garde celle qui minimise l'erreur.
     const candidates = cartesianProduct(searchEntries);
     let bestCandidate = null;
+    let processedCount = 0;
+    const yieldEvery = Math.max(1, Math.floor(candidates.length / 80));
 
-    candidates.forEach((candidate) => {
+    for (let index = 0; index < candidates.length; index += 1) {
+      const candidate = candidates[index];
       const mergedParams = {
         ...this.paramsEstim,
         ...candidate,
@@ -347,14 +351,22 @@ export class Model {
       if (!bestCandidate || evaluation.score < bestCandidate.score) {
         bestCandidate = evaluation;
       }
-    });
+
+      processedCount += 1;
+      if (typeof onProgress === 'function') {
+        onProgress(processedCount, candidates.length);
+      }
+
+      if (processedCount % yieldEvery === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
 
     this.paramsEstim = {
       ...this.paramsEstim,
       ...(bestCandidate?.paramsEstim ?? {}),
     };
 
-    // TODO verifier que c'est utile
     this.paramsEstimSearchSpace = normalizeEstimSearchSpace(this.paramsEstim, DEFAULT_PARAMS_ESTIM);
 
     return this.paramsEstim;

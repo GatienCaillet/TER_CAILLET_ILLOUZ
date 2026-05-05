@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import BaseDataTable from './components/BaseDataTable.vue'
 import ParametersForm from './components/ParametersForm.vue'
 import GraphicsResult from './components/GraphicsResult.vue'
@@ -27,6 +27,9 @@ const data = ref([])
 const dataResults = ref([])
 const bestEstimatedParams = ref(null) // Stocke les meilleurs paramètres estimés pour les transmettre au formulaire
 const isEstimating = ref(false) // Flag pour éviter les appels simultanés
+const estimationProgress = ref({ current: 0, total: 0 }) // Suivi de la progression de l'estimation
+const loadingStartedAt = ref(0)
+const MIN_LOADING_DURATION_MS = 700
 
 // Récupération des fonctions depuis le composable (composables/useDataImporter.js)
 const { importEquations, importData } = useDataImporter()
@@ -47,7 +50,7 @@ const buildStimuli = () =>
 const paramsForm = ref(null);
 
 // Logique pour lancer l'estimation des paramètres
-const handleLaunchEstimation = ({ paramsInit, paramsEstim }) => {
+const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
     console.warn('Aucun stimulus importé. Importez des équations avant de lancer l estimation des paramètres.')
     dataResults.value = []
@@ -72,12 +75,30 @@ const handleLaunchEstimation = ({ paramsInit, paramsEstim }) => {
         `Attention : ${combCount} combinaisons à évaluer. Cela peut prendre du temps. Continuer ?`
       );
       if (!confirmed) {
+        isEstimating.value = false
         return;
       }
     }
 
-    // On transmet la structure complète (descripteurs) au modèle pour l'estimation
-    const bestParams = model.estimateBestParams(data.value)
+    // Initialiser la progression
+    estimationProgress.value = { current: 0, total: combCount }
+    loadingStartedAt.value = performance.now()
+
+    // Laisser Vue rendre l'indicateur avant de lancer le calcul bloquant
+    await nextTick()
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    // Créer une callback de progression pour le modèle
+    const onProgress = (current, total) => {
+      estimationProgress.value = {
+        current,
+        total: total ?? combCount,
+      }
+    }
+
+    // On transmet les données brutes, car l'estimation compare les temps observés
+    const bestParams = await model.estimateBestParams(data.value, onProgress)
 
     // Met à jour le formulaire si possible avec les nouvelles valeurs estimées
     if (paramsForm.value && typeof paramsForm.value.setParamsEstim === 'function') {
@@ -89,7 +110,13 @@ const handleLaunchEstimation = ({ paramsInit, paramsEstim }) => {
   } catch (error) {
     console.error('Impossible de lancer l estimation des paramètres:', error)
   } finally {
+    const elapsed = performance.now() - loadingStartedAt.value
+    if (elapsed < MIN_LOADING_DURATION_MS) {
+      await new Promise((resolve) => setTimeout(resolve, MIN_LOADING_DURATION_MS - elapsed))
+    }
     isEstimating.value = false
+    estimationProgress.value = { current: 0, total: 0 }
+    loadingStartedAt.value = 0
   }
 }
 
@@ -130,6 +157,43 @@ const handleSaveResults = () => {
 }
 </script>
 
+<style scoped>
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.loading-panel {
+  min-height: 160px;
+  min-width: 280px;
+  padding: 1.5rem 2rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.loading-spinner {
+  width: 72px;
+  height: 72px;
+  border: 8px solid rgba(13, 110, 253, 0.16);
+  border-top-color: #0d6efd;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
+
 <template>
   <main>
     <h1 class="text-center my-4">Modélisation de l'apprentissage arithmétique</h1>
@@ -159,6 +223,21 @@ const handleSaveResults = () => {
       @launch-estimation="handleLaunchEstimation"
       @launch-model="handleLaunchModel"
     />
+
+    <!-- Barre de progression lors de l'estimation -->
+    <div v-if="isEstimating" class="loading-overlay" aria-live="polite" aria-busy="true">
+      <div class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3">
+        <div class="loading-spinner" role="status" aria-label="Estimation en cours"></div>
+        <p class="text-center mb-0 small text-muted">
+          <span v-if="estimationProgress.total > 0">
+            {{ estimationProgress.current }} / {{ estimationProgress.total }} combinaisons traitées
+          </span>
+          <span v-else>
+            Estimation en cours...
+          </span>
+        </p>
+      </div>
+    </div>
 
     <hr/>
     
