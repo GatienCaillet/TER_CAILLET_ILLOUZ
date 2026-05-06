@@ -230,7 +230,7 @@ defineExpose({ setParamsEstim });
 </script>
 
 <template>
-  <div class="container mt-4 border border-1 border-black rounded-4 p-3">
+  <div class="container">
     <form>
       <div id="initialisation" class="d-flex flex-column">
         <div class="ms-5 fw-bold">Paramètres d'initialisation :</div>

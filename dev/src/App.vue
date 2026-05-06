@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import BaseDataTable from "./components/BaseDataTable.vue";
 import ParametersForm from "./components/ParametersForm.vue";
 import GraphicsResult from "./components/GraphicsResult.vue";
@@ -30,6 +30,9 @@ const isEstimating = ref(false); // Flag pour éviter les appels simultanés
 const estimationProgress = ref({ current: 0, total: 0 }); // Suivi de la progression de l'estimation
 const loadingStartedAt = ref(0);
 const MIN_LOADING_DURATION_MS = 700;
+const mainScrollRef = ref(null);
+const currentSectionIndex = ref(0);
+const totalSections = 3;
 
 // Récupération des fonctions depuis le composable (composables/useDataImporter.js)
 const { importEquations, importData } = useDataImporter();
@@ -48,6 +51,55 @@ const buildStimuli = () =>
 
 // Référence au composant formulaire pour pouvoir lui demander de mettre à jour les valeurs affichées
 const paramsForm = ref(null);
+
+const clampSectionIndex = (index) => Math.min(totalSections - 1, Math.max(0, index));
+
+const updateCurrentSectionIndex = () => {
+  const container = mainScrollRef.value;
+
+  if (!container) {
+    return;
+  }
+
+  const sections = Array.from(container.querySelectorAll(".snap-section"));
+  if (!sections.length) {
+    return;
+  }
+
+  const targetTop = container.scrollTop + container.clientHeight * 0.5;
+  let bestIndex = 0;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  sections.forEach((section, index) => {
+    const sectionOffset = section.offsetTop;
+    const distance = Math.abs(sectionOffset - targetTop);
+
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestIndex = index;
+    }
+  });
+
+  currentSectionIndex.value = clampSectionIndex(bestIndex);
+};
+
+const goToSection = async (index) => {
+  const container = mainScrollRef.value;
+  const targetIndex = clampSectionIndex(index);
+  const targetSection = container?.querySelectorAll(".snap-section")?.[targetIndex];
+
+  if (!container || !targetSection) {
+    return;
+  }
+
+  container.scrollTo({
+    top: targetSection.offsetTop,
+    behavior: "smooth",
+  });
+};
+
+const canGoUp = computed(() => currentSectionIndex.value > 0);
+const canGoDown = computed(() => currentSectionIndex.value < totalSections - 1);
 
 // Logique pour lancer l'estimation des paramètres
 const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
@@ -166,6 +218,19 @@ const handleLaunchModel = ({ paramsInit, paramsEstim }) => {
 const handleSaveResults = () => {
   console.log("Btn sauvegarder résultats clicked");
 };
+
+onMounted(() => {
+  updateCurrentSectionIndex();
+  mainScrollRef.value?.addEventListener("scroll", updateCurrentSectionIndex, {
+    passive: true,
+  });
+  window.addEventListener("resize", updateCurrentSectionIndex, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  mainScrollRef.value?.removeEventListener("scroll", updateCurrentSectionIndex);
+  window.removeEventListener("resize", updateCurrentSectionIndex);
+});
 </script>
 
 <style scoped>
@@ -173,6 +238,28 @@ const handleSaveResults = () => {
   scroll-snap-type: y mandatory;
   overflow-y: auto;
   height: 100vh;
+  scroll-behavior: smooth;
+}
+
+.scroll-nav {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.scroll-nav button {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+}
+
+.scroll-nav button:disabled {
+  opacity: 0.35;
 }
 
 .snap-section {
@@ -242,14 +329,34 @@ const handleSaveResults = () => {
 </style>
 
 <template>
-  <main class="y-mandatory-scroll-snapping">
+  <main ref="mainScrollRef" class="y-mandatory-scroll-snapping">
+    <div class="scroll-nav me-3" aria-label="Navigation du scroll">
+      <button
+        v-if="canGoUp"
+        type="button"
+        class="btn btn-primary"
+        aria-label="Aller à la page précédente"
+        @click="goToSection(currentSectionIndex - 1)"
+      >
+        ↑
+      </button>
+      <button
+        v-if="canGoDown"
+        type="button"
+        class="btn btn-primary"
+        aria-label="Aller à la page suivante"
+        @click="goToSection(currentSectionIndex + 1)"
+      >
+        ↓
+      </button>
+    </div>
     <section class="snap-section">
       <div class="snap-section-inner container-lg">
         <h1 class="text-center section-title">
           Modélisation de l'apprentissage arithmétique
         </h1>
         <div class="section-card">
-          <div class="d-flex flex-column flex-lg-row gap-4 justify-content-around">
+          <div class="d-flex flex-column flex-lg-row justify-content-around">
             <BaseDataTable
               title="Aperçu des équations"
               buttonLabel="Importer les équations"
