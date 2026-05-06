@@ -59,7 +59,7 @@ const aggregateData = (rawData) => {
     const row = { session }
     addends.forEach(addend => {
       const times = grouped[addend][session] || []
-      row[`addend_${addend}`] = times.length > 0 ? Math.round(d3.mean(times)) : '-'
+      row[`addend_${addend}`] = times.length > 0 ? d3.mean(times).toFixed(2) : '-'
     })
     return row
   })
@@ -74,6 +74,22 @@ const drawChart = () => {
   const { lineData, addends, sessions } = aggregateData(props.data)
 
   if (!lineData.length || !addends.length) return
+
+  // Supprimer les tooltips existants
+  d3.select("body").selectAll(".d3-tooltip").remove()
+
+  // Créer le tooltip
+  const tooltip = d3.select("body").append("div")
+    .attr("class", "d3-tooltip")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .style("background", "rgba(0, 0, 0, 0.8)")
+    .style("color", "white")
+    .style("padding", "5px 10px")
+    .style("border-radius", "4px")
+    .style("font-size", "12px")
+    .style("pointer-events", "none")
+    .style("z-index", "1000")
 
   // Dimensions du graphique
   const margin = { top: 20, right: 30, bottom: 50, left: 60 }
@@ -97,7 +113,7 @@ const drawChart = () => {
     .padding(0.5)
 
   const yScale = d3.scaleLinear()
-    .domain([0, d3.max(lineData, line => d3.max(line.values, d => d.avgTime)) * 1.1])
+    .domain([d3.min(lineData, line => d3.min(line.values, d => d.avgTime))/1.1, d3.max(lineData, line => d3.max(line.values, d => d.avgTime)) * 1.1])
     .range([height, 0])
 
   // Couleurs pour les différentes sessions
@@ -141,7 +157,7 @@ const drawChart = () => {
       .attr('d', line)
 
     // Ajouter les points
-    svg.selectAll(`.dot-${lineItem.session}`)
+    svg.selectAll(null)
       .data(lineItem.values)
       .enter()
       .append('circle')
@@ -149,7 +165,21 @@ const drawChart = () => {
       .attr('cy', d => yScale(d.avgTime))
       .attr('r', 4)
       .attr('fill', colorScale(lineItem.session))
+      .style('cursor', 'pointer')
+      .on("mouseover", function(event, d) {
+        tooltip.style("visibility", "visible")
+               .text(`${d.avgTime.toFixed(2)} ms`)
+      })
+      .on("mousemove", function(event) {
+        tooltip.style("top", (event.pageY + 10) + "px")
+               .style("left", (event.pageX + 10) + "px")
+      })
+      .on("mouseout", function() {
+        tooltip.style("visibility", "hidden")
+      })
   })
+
+  
 
   // Ajouter une légende
   const legend = svg.selectAll('.legend')
