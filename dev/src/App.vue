@@ -113,7 +113,7 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
     return;
   }
 
-  // Empêcher les appels simultanés: verrouiller immédiatement pour éviter une double popup confirm
+  // Empêcher les appels simultanés du long calcul d'estimation
   if (isEstimating.value) {
     return;
   }
