@@ -16,7 +16,6 @@ const DEFAULT_PARAMS_ESTIM = {
   rho: 50,
 };
 
-// TODO
 /**
  * Vérifie si une valeur est un descripteur de paramètre avec les propriétés attendues (enabled, value, min, max, pas).
  * Cette fonction est utilisée pour différencier les paramètres simples des paramètres d'estimation 
@@ -32,7 +31,6 @@ function isParameterDescriptor(value) {
   );
 }
 
-// TODO
 /**
  * Transforme un objet de paramètres en nombres et applique les valeurs par défaut si besoin.
  * @param {Object} source
@@ -48,7 +46,6 @@ function normalizeNumericParams(source, defaults) {
   );
 }
 
-// TODO
 /**
  * Prépare les paramètres d'estimation sous forme de plages à tester ou de valeurs fixes.
  * Quand un paramètre n'est pas activé, il reste figé sur une seule valeur.
@@ -233,8 +230,7 @@ export class Model {
     /** @type {Resultats} */
     this.results = [];
   }
-
-  // TODO
+ 
   /**
    * Indique si au moins un paramètre d'estimation doit être exploré en grille.
    * @returns {boolean}
@@ -289,7 +285,7 @@ export class Model {
     return new Model(this.paramsInit, paramsEstim, this.stimuli);
   }
 
-  // TODO : il faut comparer a celle du participant ans les imports et pas celle du model
+  // TODO : il faut comparer a celle du participant dans les imports et pas celle du model
   /**
    * Évalue un jeu de paramètres en comparant les temps simulés aux temps observés.
    * @param {Stimuli} stimuli
