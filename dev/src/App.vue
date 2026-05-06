@@ -32,7 +32,9 @@ const loadingStartedAt = ref(0);
 const MIN_LOADING_DURATION_MS = 700;
 const mainScrollRef = ref(null);
 const currentSectionIndex = ref(0);
-const totalSections = 3;
+
+const hasResults = computed(() => dataResults.value.length > 0);
+const totalSections = computed(() => (hasResults.value ? 3 : 2));
 
 // Récupération des fonctions depuis le composable (composables/useDataImporter.js)
 const { importEquations, importData } = useDataImporter();
@@ -52,7 +54,7 @@ const buildStimuli = () =>
 // Référence au composant formulaire pour pouvoir lui demander de mettre à jour les valeurs affichées
 const paramsForm = ref(null);
 
-const clampSectionIndex = (index) => Math.min(totalSections - 1, Math.max(0, index));
+const clampSectionIndex = (index) => Math.min(totalSections.value - 1, Math.max(0, index));
 
 const updateCurrentSectionIndex = () => {
   const container = mainScrollRef.value;
@@ -182,7 +184,7 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
 };
 
 // Logique pour lancer le modèle : le Model lit directement les descriptors ou les valeurs simples
-const handleLaunchModel = ({ paramsInit, paramsEstim }) => {
+const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
     console.warn(
       "Aucun stimulus importé. Importez des équations avant de lancer le modèle.",
@@ -208,6 +210,10 @@ const handleLaunchModel = ({ paramsInit, paramsEstim }) => {
       time: Math.round(result.temps),
       session: result.session,
     }));
+
+    // Scroll automatique vers la section des résultats
+    await nextTick();
+    goToSection(2); // Section des résultats (index 2)
   } catch (error) {
     console.error("Impossible de lancer le modèle:", error);
     dataResults.value = [];
@@ -360,6 +366,10 @@ onBeforeUnmount(() => {
         <h1 class="text-center section-title">
           Modélisation de l'apprentissage arithmétique
         </h1>
+        <h2 class="text-center section-title small">
+          Cette application vous permet, à partir de données de participants, 
+          d'optimiser les paramètres d'estimation et de générer les temps de réponse du modèle avec leur représentation graphique.
+        </h2>
         <div class="section-card">
           <div class="d-flex flex-column flex-lg-row justify-content-around">
             <BaseDataTable
@@ -423,7 +433,7 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <section class="snap-section results-section">
+    <section v-if="hasResults" class="snap-section results-section">
       <div class="snap-section-inner container-lg">
         <div class="section-card">
           <BaseDataTable

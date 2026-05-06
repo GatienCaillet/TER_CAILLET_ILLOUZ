@@ -9,7 +9,7 @@
       {{ buttonLabel }}
     </BaseButton>
     <div>{{ title }} :</div>
-    <div class="table-responsive" style="overflow-y: scroll; max-height: 250px">
+    <div class="table-responsive" style="overflow-y: scroll; max-height: calc(100vh - 20rem)">
       <table class="table table-striped table-bordered">
         <thead class="sticky-top">
           <tr>
