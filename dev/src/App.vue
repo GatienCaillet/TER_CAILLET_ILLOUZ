@@ -101,7 +101,7 @@ const goToSection = async (index) => {
 };
 
 const canGoUp = computed(() => currentSectionIndex.value > 0);
-const canGoDown = computed(() => currentSectionIndex.value < totalSections - 1);
+const canGoDown = computed(() => currentSectionIndex.value < totalSections.value - 1);
 
 // Logique pour lancer l'estimation des paramètres
 const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
