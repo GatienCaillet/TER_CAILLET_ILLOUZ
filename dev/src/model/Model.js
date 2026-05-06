@@ -150,11 +150,12 @@ function cartesianProduct(entries, index = 0, current = {}, output = []) {
  */
 
 /**
- * Stimulus : Augend, Addend et Résultat.
+ * Stimulus : Augend, Addend, Result, Time et Session.
  * @typedef {Object} Stimulus
  * @property {string} augend - Lettre à gauche de l'équation
  * @property {number} addend - Chiffre à droite de l'équation
  * @property {string} result - Résultat de l'équation
+ * @property {number} time - Temps de réponse (ms)
  * @property {number} session - Session d'entraînement
  */
 
@@ -177,12 +178,12 @@ function cartesianProduct(entries, index = 0, current = {}, output = []) {
 
 /**
  * Resultats calculés pour chaque stimulus.
- * Chaque objet contient : Augend, Addend, Result, Temps, Session.
+ * Chaque objet contient : Augend, Addend, Result, Time, Session.
  * @typedef {Object} Resultat
  * @property {string} augend
  * @property {number} addend
  * @property {string} result
- * @property {number} temps
+ * @property {number} time
  * @property {number} session
  */
 
@@ -288,7 +289,6 @@ export class Model {
     return new Model(this.paramsInit, paramsEstim, this.stimuli);
   }
 
-  // TODO : il faut comparer a celle du participant dans les imports et pas celle du model
   /**
    * Évalue un jeu de paramètres en comparant les temps simulés aux temps observés.
    * @param {Stimuli} stimuli
@@ -298,7 +298,7 @@ export class Model {
   evaluateParamsSet(stimuli, paramsEstim) {
     const candidateModel = this.cloneWithParams(paramsEstim);
     
-    // TODO ici le probleme
+    // Vu que c'est un nouveau modele, on peut calculer les temps sans modifier le modèle original
     candidateModel.calculEveryStimulusTime(stimuli);
 
     let errorSum = 0;
@@ -307,9 +307,10 @@ export class Model {
     candidateModel.results.forEach((result, index) => {
       const observedTime = Number(stimuli[index]?.time);
       if (!Number.isFinite(observedTime)) {
-        throw new Error('Les données importées doivent contenir une colonne time numérique pour l estimation.');
+        throw new Error('Les données importées doivent contenir une colonne Temps numérique pour l\'estimation.');
       }
 
+      // TODO voir la vrai formule de l'erreur quadratique moyenne
       const delta = result.temps - observedTime;
       errorSum += delta * delta;
     });
