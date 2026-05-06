@@ -229,6 +229,9 @@ export class Model {
     // Resultats calculés pour chaque stimulus
     /** @type {Resultats} */
     this.results = [];
+
+    // Flag pour interrompre l'estimation en cours
+    this.shouldAbort = false;
   }
  
   /**
@@ -337,6 +340,11 @@ export class Model {
     const yieldEvery = Math.max(1, Math.floor(candidates.length / 80));
 
     for (let index = 0; index < candidates.length; index += 1) {
+      // Vérifier si l'estimation doit être interrompue
+      if (this.shouldAbort) {
+        throw new Error('Estimation aborted by user');
+      }
+
       const candidate = candidates[index];
       const mergedParams = {
         ...this.paramsEstim,

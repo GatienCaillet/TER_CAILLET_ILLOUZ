@@ -29,6 +29,7 @@ const bestEstimatedParams = ref(null); // Stocke les meilleurs paramètres estim
 const isEstimating = ref(false); // Flag pour éviter les appels simultanés
 const estimationProgress = ref({ current: 0, total: 0 }); // Suivi de la progression de l'estimation
 const loadingStartedAt = ref(0);
+const currentEstimationModel = ref(null); // Référence au modèle en cours d'estimation pour pouvoir l'interrompre
 const MIN_LOADING_DURATION_MS = 700;
 const mainScrollRef = ref(null);
 const currentSectionIndex = ref(0);
@@ -122,6 +123,7 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
   try {
     const stimuli = buildStimuli();
     const model = new Model(paramsInit, paramsEstim, stimuli);
+    currentEstimationModel.value = model; // Stocker la référence pour pouvoir l'interrompre
 
     // Avertir si trop de combinaisons
     const combCount = model.countGridSearchCombinations();
@@ -169,7 +171,10 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
     // Stocke le résultat pour affichage dans l'interface
     bestEstimatedParams.value = bestParams;
   } catch (error) {
-    console.error("Impossible de lancer l estimation des paramètres:", error);
+    // Ne pas afficher d'erreur si l'estimation a été interrompue par l'utilisateur
+    if (error.message !== 'Estimation aborted by user') {
+      console.error("Impossible de lancer l estimation des paramètres:", error);
+    }
   } finally {
     const elapsed = performance.now() - loadingStartedAt.value;
     if (elapsed < MIN_LOADING_DURATION_MS) {
@@ -180,7 +185,19 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
     isEstimating.value = false;
     estimationProgress.value = { current: 0, total: 0 };
     loadingStartedAt.value = 0;
+    currentEstimationModel.value = null; // Nettoyer la référence
   }
+};
+
+const handleCloseLoadingOverlay = () => {
+  // Arrêter le calcul d'estimation en cours
+  if (currentEstimationModel.value) {
+    currentEstimationModel.value.shouldAbort = true;
+  }
+  isEstimating.value = false;
+  estimationProgress.value = { current: 0, total: 0 };
+  loadingStartedAt.value = 0;
+  currentEstimationModel.value = null;
 };
 
 // Logique pour lancer le modèle : le Model lit directement les descriptors ou les valeurs simples
@@ -413,8 +430,14 @@ onBeforeUnmount(() => {
             aria-busy="true"
           >
             <div
-              class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3"
+              class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative"
             >
+                      <button
+            type="button"
+            class="btn-close position-absolute top-0 end-0 m-2"
+            aria-label="Fermer"
+            @click="handleCloseLoadingOverlay"
+          ></button>
               <div
                 class="loading-spinner"
                 role="status"
