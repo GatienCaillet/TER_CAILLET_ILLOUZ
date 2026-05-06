@@ -125,7 +125,7 @@ const hasImportedData = computed(() => props.dataImported.length > 0);
 const validateEstimationParams = () => {
   if (!hasImportedData.value) {
     errorMessage.value = '';
-    alertMessage.value = 'Aucune donnée importée. Veuillez en importer avant de lancer l\'estimation des paramètres ou le modèle.';
+    alertMessage.value = '';
     alertMessageModel.value = '';
     return false;
   }

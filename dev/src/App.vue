@@ -239,6 +239,7 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   height: 100vh;
   scroll-behavior: smooth;
+  overscroll-behavior-y: none;
 }
 
 .scroll-nav {
@@ -274,6 +275,7 @@ onBeforeUnmount(() => {
 
 .snap-section-inner {
   width: 100%;
+  min-height: 0;
 }
 
 .section-title {
@@ -284,7 +286,10 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.92);
   border-radius: 1.25rem;
   padding: 1.25rem;
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 
 .results-section {
