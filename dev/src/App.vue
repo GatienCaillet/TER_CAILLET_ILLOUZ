@@ -242,6 +242,10 @@ const handleSaveResults = () => {
   console.log("Btn sauvegarder résultats clicked");
 };
 
+const labelImportData = computed(() =>
+  data.value.length > 0 ? "Remplacer les données existantes" : "Importer les données existantes",
+);
+
 onMounted(() => {
   updateCurrentSectionIndex();
   mainScrollRef.value?.addEventListener("scroll", updateCurrentSectionIndex, {
@@ -399,7 +403,7 @@ onBeforeUnmount(() => {
 
             <BaseDataTable
               title="Aperçu de vos données"
-              buttonLabel="Importer les données existantes"
+              :buttonLabel="labelImportData"
               :rows="data"
               :columns="dataCols"
               @import="handleImportData"
