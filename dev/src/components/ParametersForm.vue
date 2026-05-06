@@ -232,7 +232,7 @@ defineExpose({ setParamsEstim });
 <template>
   <div class="container mt-4 border border-1 border-black rounded-4 p-3">
     <form>
-      <div id="initialization" class="d-flex flex-column mb-4">
+      <div id="initialisation" class="d-flex flex-column">
         <div class="ms-5 fw-bold">Paramètres d'initialisation :</div>
         <div class="d-flex flex-row justify-content-around flex-wrap">
           <AppInput
@@ -244,7 +244,7 @@ defineExpose({ setParamsEstim });
           />
         </div>
       </div>
-      <div class="container mt-4 border border-1 rounded-4 p-3 mb-3">
+      <div class="container border border-1 rounded-4 p-3 mb-3">
         <div id="estimation" class="d-flex flex-column mb-4">
           <div class="ms-5 fw-bold">Paramètres d'estimation :</div>
           <div class="d-flex flex-row justify-content-around flex-wrap">
@@ -265,16 +265,30 @@ defineExpose({ setParamsEstim });
           </div>
         </div>
 
-        <div class="d-flex flex-column align-items-center gap-3">
+        <!-- Affichage de la meilleure configuration estimée -->
+        <div v-if="bestEstimatedParams" class="alert alert-success w-75">
+          <strong>✓ Estimation complète !</strong>
+          <div class="mt-2">
+            <div
+              v-for="(value, key) in bestEstimatedParams"
+              :key="key"
+              class="small"
+            >
+              <strong>{{ key }}:</strong> {{ Number(value) }}
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-column align-items-center">
           <!-- Affichage des erreurs -->
-          <div v-if="errorMessage" class="alert alert-danger mt-3">
+          <div v-if="errorMessage" class="alert alert-danger">
             {{ errorMessage }}
           </div>
-          <div v-if="!hasImportedData" class="alert alert-danger mt-3">
+          <div v-if="!hasImportedData" class="alert alert-danger">
             Aucune donnée importée. Veuillez en importer avant de lancer l'estimation des paramètres ou le modèle.
           </div>
           <!-- Affichage des alertes -->
-          <div v-if="alertMessage" class="alert alert-light mt-3">
+          <div v-if="alertMessage" class="alert alert-light">
             {{ alertMessage }}
           </div>
           <BaseButton
@@ -287,12 +301,12 @@ defineExpose({ setParamsEstim });
           </BaseButton>
         </div>
       </div>
-      <div class="d-flex flex-column align-items-center gap-3">
+      <div class="d-flex flex-column align-items-center">
         <!-- Affichage des erreurs -->
-        <div v-if="alertMessageModel" class="alert alert-light mt-3">
+        <div v-if="alertMessageModel" class="alert alert-light">
           {{ alertMessageModel }}
         </div>
-        <div v-if="!hasImportedData" class="alert alert-danger mt-3">
+        <div v-if="!hasImportedData" class="alert alert-danger">
           Aucune donnée importée. Veuillez en importer avant de lancer le modèle.
         </div>
         <BaseButton
@@ -303,20 +317,6 @@ defineExpose({ setParamsEstim });
         >
           Lancer le modèle
         </BaseButton>
-
-        <!-- Affichage de la meilleure configuration estimée -->
-        <div v-if="bestEstimatedParams" class="alert alert-success mt-3 w-75">
-          <strong>✓ Estimation complète !</strong>
-          <div class="mt-2">
-            <div
-              v-for="(value, key) in bestEstimatedParams"
-              :key="key"
-              class="small"
-            >
-              <strong>{{ key }}:</strong> {{ Number(value) }}
-            </div>
-          </div>
-        </div>
       </div>
     </form>
   </div>
