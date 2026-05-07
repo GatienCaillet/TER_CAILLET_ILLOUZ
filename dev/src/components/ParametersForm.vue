@@ -53,6 +53,7 @@ const paramsEstimation = ref({
   tau: 4800,
   rho: 50,
 });
+const previousParamsEstimation = ref(null);
 
 // La configuration des champs pour les inputs des paramètres d'estimation (components/AppInputMinMax.vue) du formulaire
 const configEstimation = reactive([
@@ -61,17 +62,17 @@ const configEstimation = reactive([
     label: "α : Temps de calcul entre chaque lettre (ms)",
     key: "alpha",
     min: 0,
-    max: 50,
-    pas: 50,
+    max: 60,
+    pas: 20,
     enabled: false,
   },
   {
     id: "beta",
     label: "β : Facteur de durée de comptage",
     key: "beta",
-    min: 0,
-    max: 50,
-    pas: 50,
+    min: 1000,
+    max: 2000,
+    pas: 100,
     enabled: false,
   },
   {
@@ -81,7 +82,7 @@ const configEstimation = reactive([
     key: "delta",
     min: 200,
     max: 1200,
-    pas: 50,
+    pas: 100,
     enabled: false,
   },
   {
@@ -89,7 +90,7 @@ const configEstimation = reactive([
     label: "η : Temps de récupération en mémoire (ms)",
     key: "eta",
     min: 100,
-    max: 250,
+    max: 500,
     pas: 50,
     enabled: false,
   },
@@ -98,8 +99,8 @@ const configEstimation = reactive([
     label: "τ : Facteur de récupération en mémoire",
     key: "tau",
     min: 3500,
-    max: 5000,
-    pas: 50,
+    max: 6000,
+    pas: 100,
     enabled: false,
   },
   {
@@ -107,8 +108,8 @@ const configEstimation = reactive([
     label:
       "ρ : Taux de la diminution du temps de récupération selon la force de l'association",
     key: "rho",
-    min: 50,
-    max: 100,
+    min: 0,
+    max: 200,
     pas: 25,
     enabled: false,
   },
@@ -142,7 +143,7 @@ const validateEstimationParams = () => {
   } else {
     alertMessage.value = "";
     alertMessageModel.value =
-      "Veuillez lancer l'estimation des paramètres avant de lancer le modèle";
+      "Des paramètres d'estimation sont sélectionnés pour une estimation de paramètres. Veuillez les déselectionner ou lancer l'estimation des paramètres avant de lancer le modèle.";
   }
 
   // Vérifier chaque paramètre coché
@@ -212,6 +213,7 @@ const emitLaunchModel = () => {
 // Permet au parent (App.vue) de remplacer les paramètres d'estimation
 // après une estimation
 const setParamsEstim = (newParams) => {
+  previousParamsEstimation.value = { ...paramsEstimation.value };
   // newParams attendu sous la forme { alpha: 20, beta: 1000, ... }
   Object.entries(newParams || {}).forEach(([key, value]) => {
     if (key in paramsEstimation.value) {
@@ -266,15 +268,19 @@ defineExpose({ setParamsEstim });
         </div>
 
         <!-- Affichage de la meilleure configuration estimée -->
-        <div v-if="bestEstimatedParams" class="alert alert-success w-75">
-          <strong>✓ Estimation complète !</strong>
-          <div class="mt-2">
-            <div
-              v-for="(value, key) in bestEstimatedParams"
-              :key="key"
-              class="small"
-            >
-              <strong>{{ key }}:</strong> {{ Number(value) }}
+        <div v-if="bestEstimatedParams" class="d-flex justify-content-center">
+          <div class="alert alert-success text-center w-auto d-inline-block">
+            <strong>✓ Estimation finie, les paramètres d'estimation ont été remplacés par les nouveaux :</strong>
+            <div class="mt-2">
+              <div
+                v-for="(value, key) in bestEstimatedParams"
+                :key="key"
+                class="small"
+              >
+                <strong>{{ key }} :</strong>
+                {{ Number(previousParamsEstimation?.[key] ?? 0) }}
+                → {{ Number(value) }}
+              </div>
             </div>
           </div>
         </div>
@@ -312,7 +318,7 @@ defineExpose({ setParamsEstim });
         <BaseButton
           variant="btn btn-primary"
           size="lg"
-          :disabled="isEstimating || canLaunchEstimation || !hasImportedData"
+          :disabled="isEstimating || alertMessageModel || !hasImportedData"
           @click.prevent="emitLaunchModel"
         >
           Lancer le modèle

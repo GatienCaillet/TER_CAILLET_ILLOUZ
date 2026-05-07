@@ -30,6 +30,8 @@ const isEstimating = ref(false); // Flag pour éviter les appels simultanés
 const estimationProgress = ref({ current: 0, total: 0 }); // Suivi de la progression de l'estimation
 const loadingStartedAt = ref(0);
 const currentEstimationModel = ref(null); // Référence au modèle en cours d'estimation pour pouvoir l'interrompre
+const isImportingEquations = ref(false);
+const isImportingData = ref(false);
 const MIN_LOADING_DURATION_MS = 700;
 const mainScrollRef = ref(null);
 const currentSectionIndex = ref(0);
@@ -41,8 +43,24 @@ const totalSections = computed(() => (hasResults.value ? 3 : 2));
 const { importEquations, importData } = useDataImporter();
 
 // Handlers qui appellent la logique du composable
-const handleImportEquations = () => importEquations(equations);
-const handleImportData = () => importData(data);
+const handleImportEquations = () =>
+  importEquations(equations, {
+    onStart: () => {
+      isImportingEquations.value = true;
+    },
+    onDone: () => {
+      isImportingEquations.value = false;
+    },
+  });
+const handleImportData = () =>
+  importData(data, {
+    onStart: () => {
+      isImportingData.value = true;
+    },
+    onDone: () => {
+      isImportingData.value = false;
+    },
+  });
 
 const buildStimuli = () =>
   data.value.map((equation) => ({
@@ -224,7 +242,7 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
       augend: result.augend,
       addend: result.addend,
       result: result.result,
-      time: Math.round(result.temps),
+      time: Math.round(result.time),
       session: result.session,
     }));
 
@@ -316,7 +334,6 @@ onBeforeUnmount(() => {
   max-height: 90vh;
   overflow-y: auto;
   overflow-x: hidden;
-  overscroll-behavior: contain;
 }
 
 .results-section {
@@ -398,6 +415,7 @@ onBeforeUnmount(() => {
               buttonLabel="Importer les équations"
               :rows="equations"
               :columns="equationCols"
+              :is-loading="isImportingEquations"
               @import="handleImportEquations"
             />
 
@@ -406,6 +424,7 @@ onBeforeUnmount(() => {
               :buttonLabel="labelImportData"
               :rows="data"
               :columns="dataCols"
+              :is-loading="isImportingData"
               @import="handleImportData"
             />
           </div>

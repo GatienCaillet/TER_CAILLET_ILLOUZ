@@ -3,13 +3,28 @@
     <BaseButton
       variant="btn btn-outline-primary"
       size="lg"
-      :disabled="false"
+      :disabled="isLoading"
       @click="$emit('import')"
     >
       {{ buttonLabel }}
     </BaseButton>
-    <div>{{ title }} :</div>
-    <div class="table-responsive" style="overflow-y: scroll; max-height: calc(100vh - 20rem)">
+    <div v-if="title && rows.length">{{ title }} :</div>
+    <div
+      v-if="isLoading"
+      class="d-flex align-items-center justify-content-center border rounded-2 py-4 mt-2"
+    >
+      <span
+        class="spinner-border text-primary me-2"
+        role="status"
+        aria-hidden="true"
+      ></span>
+      <span class="text-muted">Import en cours...</span>
+    </div>
+    <div
+      v-else-if="rows.length"
+      class="table-responsive"
+      style="overflow-y: scroll; max-height: calc(100vh - 20rem)"
+    >
       <table class="table table-striped table-bordered">
         <thead class="sticky-top">
           <tr>
@@ -38,6 +53,7 @@ defineProps({
   buttonLabel: String,
   rows: { type: Array, default: () => [] },
   columns: { type: Array, required: true },
+  isLoading: { type: Boolean, default: false },
 });
 
 // Envoi à components/ParametersForm.vue l'information que les inputs ont été modifiés
