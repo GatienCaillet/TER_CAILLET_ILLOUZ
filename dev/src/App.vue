@@ -26,6 +26,7 @@ const equations = ref([]);
 const data = ref([]);
 const dataResults = ref([]);
 const bestEstimatedParams = ref(null); // Stocke les meilleurs paramètres estimés pour les transmettre au formulaire
+const estimationResultsRows = ref([]); // Stocke les résultats complets de l'estimation (combinaisons + RMSE)
 const isEstimating = ref(false); // Flag pour éviter les appels simultanés
 const estimationProgress = ref({ current: 0, total: 0 }); // Suivi de la progression de l'estimation
 const loadingStartedAt = ref(0);
@@ -122,6 +123,19 @@ const goToSection = async (index) => {
 const canGoUp = computed(() => currentSectionIndex.value > 0);
 const canGoDown = computed(() => currentSectionIndex.value < totalSections.value - 1);
 
+const mapEstimationResultsRows = (evaluations) =>
+  (evaluations || [])
+    .map(({ score, paramsEstim }) => ({
+      alpha: paramsEstim.alpha,
+      beta: paramsEstim.beta,
+      delta: paramsEstim.delta,
+      eta: paramsEstim.eta,
+      tau: paramsEstim.tau,
+      rho: paramsEstim.rho,
+      rmse: Number.isFinite(score) ? Number(score.toFixed(4)) : score,
+    }))
+    .sort((a, b) => (a.rmse ?? Number.POSITIVE_INFINITY) - (b.rmse ?? Number.POSITIVE_INFINITY));
+
 // Logique pour lancer l'estimation des paramètres
 const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
@@ -129,6 +143,7 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
       "Aucun stimulus importé. Importez des équations avant de lancer l estimation des paramètres.",
     );
     dataResults.value = [];
+    estimationResultsRows.value = [];
     return;
   }
 
@@ -137,6 +152,7 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
     return;
   }
   isEstimating.value = true;
+  estimationResultsRows.value = [];
 
   try {
     const stimuli = buildStimuli();
@@ -176,7 +192,10 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
     };
 
     // On transmet les données brutes, car l'estimation compare les temps observés
-    const bestParams = await model.estimateBestParams(data.value, onProgress);
+    const { bestParams, evaluations } = await model.estimateBestParamsWithScores(
+      data.value,
+      onProgress,
+    );
 
     // Met à jour le formulaire si possible avec les nouvelles valeurs estimées
     if (
@@ -188,11 +207,13 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
 
     // Stocke le résultat pour affichage dans l'interface
     bestEstimatedParams.value = bestParams;
+    estimationResultsRows.value = mapEstimationResultsRows(evaluations);
   } catch (error) {
     // Ne pas afficher d'erreur si l'estimation a été interrompue par l'utilisateur
     if (error.message !== 'Estimation aborted by user') {
       console.error("Impossible de lancer l estimation des paramètres:", error);
     }
+    estimationResultsRows.value = [];
   } finally {
     const elapsed = performance.now() - loadingStartedAt.value;
     if (elapsed < MIN_LOADING_DURATION_MS) {
@@ -439,6 +460,7 @@ onBeforeUnmount(() => {
           <ParametersForm
             ref="paramsForm"
             :best-estimated-params="bestEstimatedParams"
+            :estimation-results-rows="estimationResultsRows"
             :is-estimating="isEstimating"
             :data-imported="data"
             @launch-estimation="handleLaunchEstimation"

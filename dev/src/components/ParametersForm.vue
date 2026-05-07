@@ -3,12 +3,17 @@ import { reactive, ref, computed } from "vue";
 import AppInput from "./AppInput.vue";
 import AppInputMinMax from "./AppInputMinMax.vue";
 import BaseButton from "./BaseButton.vue";
+import BaseDataTable from "./BaseDataTable.vue";
 
 // Prop pour recevoir le résultat de l'estimation du parent
 const props = defineProps({
   bestEstimatedParams: {
     type: Object,
     default: null,
+  },
+  estimationResultsRows: {
+    type: Array,
+    default: () => [],
   },
   isEstimating: {
     type: Boolean,
@@ -114,6 +119,17 @@ const configEstimation = reactive([
     enabled: false,
   },
 ]);
+
+// Les colonnes du tableau d'affichage des résultats de l'estimation
+const estimationResultCols = [
+  { key: "alpha", label: "α" },
+  { key: "beta", label: "β" },
+  { key: "delta", label: "δ" },
+  { key: "eta", label: "η" },
+  { key: "tau", label: "τ" },
+  { key: "rho", label: "ρ" },
+  { key: "rmse", label: "RMSE" },
+];
 
 // Ref pour afficher les messages d'erreur
 const errorMessage = ref("");
@@ -301,6 +317,14 @@ defineExpose({ setParamsEstim });
           </div>
         </div>
 
+        <BaseDataTable
+              title="RMSE de chaque combinaison des paramètres d'estimation"
+              buttonLabel="Exporter les résultats de l'estimation"
+              :rows="estimationResultsRows"
+              :columns="estimationResultCols"
+            :hide-button-when-empty="true"
+            />
+
         <div class="d-flex flex-column align-items-center">
           <!-- Affichage des erreurs -->
           <div v-if="errorMessage" class="alert alert-danger">
@@ -314,7 +338,7 @@ defineExpose({ setParamsEstim });
             {{ alertMessage }}
           </div>
           <BaseButton
-            variant="btn btn-primary"
+            variant="btn btn-primary mt-3"
             size="lg"
             :disabled="isEstimating || !canLaunchEstimation || !hasImportedData"
             @click.prevent="emitLaunchEstimation"

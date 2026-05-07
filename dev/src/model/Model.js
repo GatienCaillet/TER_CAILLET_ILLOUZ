@@ -325,13 +325,18 @@ export class Model {
    * Lance une recherche en grille et conserve la configuration qui minimise l'erreur.
    * @param {Stimuli} stimuli
    * @param {Function|null} onProgress
-   * @returns {ParamsEstim}
+   * @param {boolean} collectResults
+   * @returns {{bestParams: ParamsEstim, evaluations: Array<{score: number, paramsEstim: ParamsEstim}>}}
    */
-  async estimateBestParams(stimuli = this.stimuli, onProgress = null) {
+  async estimateParamsGrid(stimuli = this.stimuli, onProgress = null, collectResults = false) {
     const searchEntries = Object.entries(this.paramsEstimSearchSpace);
 
     if (!searchEntries.length || !this.hasGridSearchConfiguration()) {
-      return this.paramsEstim;
+      if (collectResults) {
+        const evaluation = this.evaluateParamsSet(stimuli, this.paramsEstim);
+        return { bestParams: this.paramsEstim, evaluations: [evaluation] };
+      }
+      return { bestParams: this.paramsEstim, evaluations: [] };
     }
 
     // On génère toutes les combinaisons des paramètres cochés, puis on garde celle qui minimise l'erreur.
@@ -339,6 +344,7 @@ export class Model {
     let bestCandidate = null;
     let processedCount = 0;
     const yieldEvery = Math.max(1, Math.floor(candidates.length / 80));
+    const evaluations = collectResults ? [] : null;
 
     for (let index = 0; index < candidates.length; index += 1) {
       // Vérifier si l'estimation doit être interrompue
@@ -352,6 +358,9 @@ export class Model {
         ...candidate,
       };
       const evaluation = this.evaluateParamsSet(stimuli, mergedParams);
+      if (evaluations) {
+        evaluations.push(evaluation);
+      }
 
       if (!bestCandidate || evaluation.score < bestCandidate.score) {
         bestCandidate = evaluation;
@@ -374,7 +383,28 @@ export class Model {
 
     this.paramsEstimSearchSpace = normalizeEstimSearchSpace(this.paramsEstim, DEFAULT_PARAMS_ESTIM);
 
-    return this.paramsEstim;
+    return { bestParams: this.paramsEstim, evaluations: evaluations ?? [] };
+  }
+
+  /**
+   * Lance une recherche en grille et conserve la configuration qui minimise l'erreur.
+   * @param {Stimuli} stimuli
+   * @param {Function|null} onProgress
+   * @returns {ParamsEstim}
+   */
+  async estimateBestParams(stimuli = this.stimuli, onProgress = null) {
+    const { bestParams } = await this.estimateParamsGrid(stimuli, onProgress, false);
+    return bestParams;
+  }
+
+  /**
+   * Lance une recherche en grille et retourne aussi le RMSE pour chaque combinaison.
+   * @param {Stimuli} stimuli
+   * @param {Function|null} onProgress
+   * @returns {{bestParams: ParamsEstim, evaluations: Array<{score: number, paramsEstim: ParamsEstim}>}}
+   */
+  async estimateBestParamsWithScores(stimuli = this.stimuli, onProgress = null) {
+    return this.estimateParamsGrid(stimuli, onProgress, true);
   }
 
   /**

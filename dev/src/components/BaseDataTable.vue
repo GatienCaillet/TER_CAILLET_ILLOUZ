@@ -1,6 +1,7 @@
 <template>
   <div class="table-wrapper">
     <BaseButton
+      v-if="!hideButtonWhenEmpty || rows.length"
       variant="btn btn-outline-primary"
       size="lg"
       :disabled="isLoading"
@@ -54,6 +55,7 @@ defineProps({
   rows: { type: Array, default: () => [] },
   columns: { type: Array, required: true },
   isLoading: { type: Boolean, default: false },
+  hideButtonWhenEmpty: { type: Boolean, default: false },
 });
 
 // Envoi à components/ParametersForm.vue l'information que les inputs ont été modifiés
