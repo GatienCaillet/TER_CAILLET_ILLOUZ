@@ -53,6 +53,7 @@ const paramsEstimation = ref({
   tau: 4800,
   rho: 50,
 });
+const previousParamsEstimation = ref(null);
 
 // La configuration des champs pour les inputs des paramètres d'estimation (components/AppInputMinMax.vue) du formulaire
 const configEstimation = reactive([
@@ -212,6 +213,7 @@ const emitLaunchModel = () => {
 // Permet au parent (App.vue) de remplacer les paramètres d'estimation
 // après une estimation
 const setParamsEstim = (newParams) => {
+  previousParamsEstimation.value = { ...paramsEstimation.value };
   // newParams attendu sous la forme { alpha: 20, beta: 1000, ... }
   Object.entries(newParams || {}).forEach(([key, value]) => {
     if (key in paramsEstimation.value) {
@@ -266,15 +268,19 @@ defineExpose({ setParamsEstim });
         </div>
 
         <!-- Affichage de la meilleure configuration estimée -->
-        <div v-if="bestEstimatedParams" class="alert alert-success w-75">
-          <strong>✓ Estimation complète !</strong>
-          <div class="mt-2">
-            <div
-              v-for="(value, key) in bestEstimatedParams"
-              :key="key"
-              class="small"
-            >
-              <strong>{{ key }}:</strong> {{ Number(value) }}
+        <div v-if="bestEstimatedParams" class="d-flex justify-content-center">
+          <div class="alert alert-success text-center w-auto d-inline-block">
+            <strong>✓ Estimation finie, les paramètres d'estimation ont été remplacés par les nouveaux :</strong>
+            <div class="mt-2">
+              <div
+                v-for="(value, key) in bestEstimatedParams"
+                :key="key"
+                class="small"
+              >
+                <strong>{{ key }} :</strong>
+                {{ Number(previousParamsEstimation?.[key] ?? 0) }}
+                → {{ Number(value) }}
+              </div>
             </div>
           </div>
         </div>

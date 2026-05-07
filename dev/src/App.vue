@@ -334,7 +334,6 @@ onBeforeUnmount(() => {
   max-height: 90vh;
   overflow-y: auto;
   overflow-x: hidden;
-  overscroll-behavior: contain;
 }
 
 .results-section {
