@@ -316,7 +316,7 @@ export class Model {
     });
 
     return {
-      score: errorSum / candidateModel.results.length,
+      score: Math.sqrt(errorSum / candidateModel.results.length),
       paramsEstim,
     };
   }
