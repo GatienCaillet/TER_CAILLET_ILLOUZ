@@ -385,6 +385,9 @@ defineExpose({ setParamsEstim });
             :rows="estimationResultsDisplayRows"
               :columns="estimationResultCols"
             :hide-button-when-empty="true"
+            :sortable="true"
+            initial-sort-key="rmse"
+            initial-sort-direction="asc"
             />
 
         <div class="d-flex flex-column align-items-center">
