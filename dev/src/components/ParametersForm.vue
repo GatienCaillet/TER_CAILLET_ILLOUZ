@@ -249,6 +249,22 @@ defineExpose({ setParamsEstim });
       <div class="container border border-1 rounded-4 p-3 mb-3">
         <div id="estimation" class="d-flex flex-column mb-4">
           <div class="ms-5 fw-bold">Paramètres d'estimation :</div>
+          <div class="gap-2 d-flex ms-5 mt-2">
+              <BaseButton
+            variant="btn btn-primary"
+            size="md"
+            @click.prevent="configEstimation.forEach(item => item.enabled = true)"
+          >
+            Tout sélectionner
+          </BaseButton>
+          <BaseButton
+            variant="btn btn-outline-primary"
+            size="md"
+            @click.prevent="configEstimation.forEach(item => item.enabled = false)"
+          >
+            Tout désélectionner
+          </BaseButton>
+          </div>
           <div class="d-flex flex-row justify-content-around flex-wrap">
             <AppInputMinMax
               v-for="item in configEstimation"
