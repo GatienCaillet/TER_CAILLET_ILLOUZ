@@ -143,7 +143,7 @@ const validateEstimationParams = () => {
   } else {
     alertMessage.value = "";
     alertMessageModel.value =
-      "Veuillez lancer l'estimation des paramètres avant de lancer le modèle";
+      "Des paramètres d'estimation sont sélectionnés pour une estimation de paramètres. Veuillez les déselectionner ou lancer l'estimation des paramètres avant de lancer le modèle.";
   }
 
   // Vérifier chaque paramètre coché
@@ -318,7 +318,7 @@ defineExpose({ setParamsEstim });
         <BaseButton
           variant="btn btn-primary"
           size="lg"
-          :disabled="isEstimating || canLaunchEstimation || !hasImportedData"
+          :disabled="isEstimating || alertMessageModel || !hasImportedData"
           @click.prevent="emitLaunchModel"
         >
           Lancer le modèle
