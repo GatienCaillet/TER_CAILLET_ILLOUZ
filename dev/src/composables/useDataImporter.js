@@ -113,8 +113,10 @@ const parseSpreadsheetRows = async (file) => {
 
 // TODO : dictionnaire des stimuli possibles
 export function useDataImporter() {
-  const importEquations = (targetRef) => {
+  const importEquations = (targetRef, callbacks = {}) => {
+    const { onStart, onDone } = callbacks;
     console.log("Logique d'importation des équations en cours...");
+    onStart?.();
     // Simulation : on remplit la ref avec des données après un délai
     setTimeout(() => {
       targetRef.value = [
@@ -122,11 +124,13 @@ export function useDataImporter() {
         { id: 2, augend: "B", addend: 4, result: "E" },
         { id: 3, augend: "C", addend: 2, result: "E" },
       ];
+      onDone?.();
     }, 500);
   };
 
   // Import des données à partir d'un fichier Excel ou JSON
-  const importData = async (targetRef) => {
+  const importData = async (targetRef, callbacks = {}) => {
+    const { onStart, onDone } = callbacks;
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".xlsx,.xls,.csv,.json";
@@ -135,8 +139,11 @@ export function useDataImporter() {
       const file = event.target.files?.[0];
 
       if (!file) {
+        onDone?.();
         return;
       }
+
+      onStart?.();
 
       // On vérifie l'extension du fichier pour déterminer comment le lire
       const extension = file.name.split(".").pop()?.toLowerCase();
@@ -149,10 +156,12 @@ export function useDataImporter() {
           rows = await parseSpreadsheetRows(file);
         } else {
           console.warn("Format non supporté. Utilisez .xlsx, .xls, .csv ou .json.");
+          onDone?.();
           return;
         }
       } catch (error) {
         console.error("Erreur pendant la lecture du fichier importé:", error);
+        onDone?.();
         return;
       }
 
@@ -165,10 +174,12 @@ export function useDataImporter() {
         console.warn(
           "Aucune ligne valide trouvée. Colonnes requises: augend, addend, result, time, session.",
         );
+        onDone?.();
         return;
       }
 
       targetRef.value = mappedRows;
+      onDone?.();
     };
 
     input.click();

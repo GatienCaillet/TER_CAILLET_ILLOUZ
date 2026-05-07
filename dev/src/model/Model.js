@@ -311,7 +311,7 @@ export class Model {
       }
 
       // TODO voir la vrai formule de l'erreur quadratique moyenne
-      const delta = result.temps - observedTime;
+      const delta = result.time - observedTime;
       errorSum += delta * delta;
     });
 
@@ -412,7 +412,7 @@ export class Model {
     // parcourir les stimuli précédents pour trouver le dernier stimulus avec le même addend
     for (let i = this.results.length - 1; i >= 0; i--) {
       if (this.results[i].addend === stimulus.addend) {
-        countingTimeEstimated = this.results[i].temps;
+        countingTimeEstimated = this.results[i].time;
         break;
       }
     }
@@ -519,7 +519,7 @@ export class Model {
         augend: stimulus.augend,
         addend: stimulus.addend,
         result: stimulus.result,
-        temps: calculTime,
+        time: calculTime,
         session: stimulus.session,
       });
     });
