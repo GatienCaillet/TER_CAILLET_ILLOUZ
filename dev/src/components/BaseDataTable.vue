@@ -36,7 +36,11 @@
         </thead>
         <tbody class="table-group-divider">
           <tr v-for="(row, index) in rows" :key="index">
-            <td v-for="col in columns" :key="col.key">
+            <td
+              v-for="col in columns"
+              :key="col.key"
+              :class="row.__cellClasses?.[col.key]"
+            >
               {{ row[col.key] }}
             </td>
           </tr>

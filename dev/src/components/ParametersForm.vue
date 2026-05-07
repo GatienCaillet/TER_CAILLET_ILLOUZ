@@ -138,6 +138,68 @@ const alertMessageModel = ref("");
 
 const hasImportedData = computed(() => props.dataImported.length > 0);
 
+const estimationResultsDisplayRows = computed(() => {
+  const rows = props.estimationResultsRows || [];
+  if (!rows.length) {
+    return [];
+  }
+
+  const EPS = 1e-9;
+  const bestRow = rows.reduce((best, row) => {
+    const currentRmse = Number(row.rmse);
+    if (!Number.isFinite(currentRmse)) {
+      return best;
+    }
+    if (!best) {
+      return row;
+    }
+    const bestRmse = Number(best.rmse);
+    if (!Number.isFinite(bestRmse)) {
+      return row;
+    }
+    return currentRmse < bestRmse ? row : best;
+  }, null);
+
+  if (!bestRow) {
+    return rows;
+  }
+
+  const configByKey = Object.fromEntries(
+    configEstimation.map((item) => [item.key, item]),
+  );
+
+  return rows.map((row) => {
+    if (row !== bestRow) {
+      return row;
+    }
+
+    const tagged = { ...row, __cellClasses: { ...(row.__cellClasses || {}) } };
+    Object.entries(configByKey).forEach(([key, cfg]) => {
+      if (!(key in tagged)) {
+        return;
+      }
+      const value = Number(tagged[key]);
+      if (!Number.isFinite(value)) {
+        return;
+      }
+      const isMin = Math.abs(value - Number(cfg.min)) <= EPS;
+      const isMax = Math.abs(value - Number(cfg.max)) <= EPS;
+      if (isMin && isMax) {
+        tagged[key] = `${value} (min/max)`;
+        tagged.__cellClasses[key] = "text-danger";
+      } else if (isMin) {
+        tagged[key] = `${value} (min)`;
+        tagged.__cellClasses[key] = "text-danger";
+      } else if (isMax) {
+        tagged[key] = `${value} (max)`;
+        tagged.__cellClasses[key] = "text-danger";
+      }
+    });
+
+    return tagged;
+  });
+});
+
 // Validation complète des paramètres d'estimation
 const validateEstimationParams = () => {
   if (!hasImportedData.value) {
@@ -320,7 +382,7 @@ defineExpose({ setParamsEstim });
         <BaseDataTable
               title="RMSE de chaque combinaison des paramètres d'estimation"
               buttonLabel="Exporter les résultats de l'estimation"
-              :rows="estimationResultsRows"
+            :rows="estimationResultsDisplayRows"
               :columns="estimationResultCols"
             :hide-button-when-empty="true"
             />
