@@ -619,7 +619,7 @@ defineExpose({ setParamsEstim });
       @click.self="closeSettings"
     >
       <div class="settings-modal">
-        <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="settings-modal-header d-flex align-items-center justify-content-between mb-3">
           <h5 class="mb-0">Paramètres par défaut</h5>
           <button
             type="button"
@@ -629,69 +629,71 @@ defineExpose({ setParamsEstim });
           ></button>
         </div>
 
-        <div class="settings-section">
-          <div class="fw-bold mb-2">Initialisation</div>
-          <div class="row g-3">
-            <div
-              v-for="item in configInitialisation"
-              :key="`default-${item.id}`"
-              class="col-6"
-            >
-              <label :for="`default-${item.id}`" class="form-label small">
-                {{ item.label }}
-              </label>
-              <input
-                :id="`default-${item.id}`"
-                v-model.number="settingsDraft.paramsInit[item.key]"
-                class="form-control"
-                type="number"
-              />
+        <div class="grow overflow-auto pt-3 px-4 pb-4">
+          <div class="settings-section">
+            <div class="fw-bold mb-2">Initialisation</div>
+            <div class="row g-3">
+              <div
+                v-for="item in configInitialisation"
+                :key="`default-${item.id}`"
+                class="col-6"
+              >
+                <label :for="`default-${item.id}`" class="form-label small">
+                  {{ item.label }}
+                </label>
+                <input
+                  :id="`default-${item.id}`"
+                  v-model.number="settingsDraft.paramsInit[item.key]"
+                  class="form-control"
+                  type="number"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="settings-section mt-4">
-          <div class="fw-bold mb-2">Estimation</div>
-          <div class="row g-3">
-            <div
-              v-for="item in configEstimation"
-              :key="`default-${item.id}-estim`"
-              class="col-12"
-            >
-              <div class="border rounded-3 p-3">
-                <div class="fw-semibold small">{{ item.label }}</div>
-                <div class="row g-2 mt-1">
-                  <div class="col-6 col-lg-3">
-                    <label class="form-label small">Valeur</label>
-                    <input
-                      v-model.number="settingsDraft.paramsEstim[item.key]"
-                      class="form-control form-control-sm"
-                      type="number"
-                    />
-                  </div>
-                  <div class="col-6 col-lg-3">
-                    <label class="form-label small">Min</label>
-                    <input
-                      v-model.number="settingsDraft.ranges[item.key].min"
-                      class="form-control form-control-sm"
-                      type="number"
-                    />
-                  </div>
-                  <div class="col-6 col-lg-3">
-                    <label class="form-label small">Max</label>
-                    <input
-                      v-model.number="settingsDraft.ranges[item.key].max"
-                      class="form-control form-control-sm"
-                      type="number"
-                    />
-                  </div>
-                  <div class="col-6 col-lg-3">
-                    <label class="form-label small">Pas</label>
-                    <input
-                      v-model.number="settingsDraft.ranges[item.key].pas"
-                      class="form-control form-control-sm"
-                      type="number"
-                    />
+          <div class="settings-section mt-4">
+            <div class="fw-bold mb-2">Estimation</div>
+            <div class="row g-3">
+              <div
+                v-for="item in configEstimation"
+                :key="`default-${item.id}-estim`"
+                class="col-12"
+              >
+                <div class="border rounded-3 p-3">
+                  <div class="fw-semibold small">{{ item.label }}</div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-6 col-lg-3">
+                      <label class="form-label small">Valeur</label>
+                      <input
+                        v-model.number="settingsDraft.paramsEstim[item.key]"
+                        class="form-control form-control-sm"
+                        type="number"
+                      />
+                    </div>
+                    <div class="col-6 col-lg-3">
+                      <label class="form-label small">Min</label>
+                      <input
+                        v-model.number="settingsDraft.ranges[item.key].min"
+                        class="form-control form-control-sm"
+                        type="number"
+                      />
+                    </div>
+                    <div class="col-6 col-lg-3">
+                      <label class="form-label small">Max</label>
+                      <input
+                        v-model.number="settingsDraft.ranges[item.key].max"
+                        class="form-control form-control-sm"
+                        type="number"
+                      />
+                    </div>
+                    <div class="col-6 col-lg-3">
+                      <label class="form-label small">Pas</label>
+                      <input
+                        v-model.number="settingsDraft.ranges[item.key].pas"
+                        class="form-control form-control-sm"
+                        type="number"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -699,7 +701,7 @@ defineExpose({ setParamsEstim });
           </div>
         </div>
 
-        <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+        <div class="settings-modal-footer d-flex flex-wrap justify-content-end gap-2 mt-4">
           <button
             type="button"
             class="btn btn-outline-secondary"
@@ -742,10 +744,27 @@ defineExpose({ setParamsEstim });
 .settings-modal {
   width: min(960px, 100%);
   max-height: 90vh;
-  overflow-y: auto;
   background: #fff;
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 0;
   box-shadow: 0 18px 50px rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-modal-header,
+.settings-modal-footer {
+  background: #fff;
+  flex: 0 0 auto;
+  padding: 1.5rem;
+}
+
+.settings-modal-header {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.settings-modal-footer {
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 </style>
