@@ -263,6 +263,14 @@ const validateEstimationParams = () => {
 // Validation calculée à la demande pour garder l'interface réactive
 const canLaunchEstimation = computed(() => validateEstimationParams());
 
+const rhoModelError = computed(() => {
+  const rhoValue = Number(paramsEstimation.value.rho);
+  if (!Number.isFinite(rhoValue) || rhoValue <= 0) {
+    return "La valeur de ρ : Taux de la diminution du temps de récupération selon la force de l'association doit être strictement positive.";
+  }
+  return "";
+});
+
 // Transforme la configuration en objet directement exploitable par App.vue
 const buildParamsEstimPayload = () =>
   Object.fromEntries(
@@ -297,7 +305,7 @@ const emitLaunchEstimation = () => {
 };
 
 // Déclenche le modèle avec tous les paramètres d'estimation et d'initialisation, même ceux non sélectionnés
-const emitLaunchModel = () => {
+const emitLaunchModel = () => {  
   alertMessageModel.value = "";
 
   emit("launch-model", {
@@ -436,6 +444,10 @@ defineExpose({ setParamsEstim });
       </div>
 
       <div class="d-flex flex-column align-items-center">
+        <div v-if="rhoModelError" class="alert alert-danger">
+          {{ rhoModelError }}
+        </div>
+
         <div v-if="alertMessageModel" class="alert alert-light">
           {{ alertMessageModel }}
         </div>
@@ -447,7 +459,7 @@ defineExpose({ setParamsEstim });
         <BaseButton
           size="lg"
           variant="btn btn-primary"
-          :disabled="isEstimating || alertMessageModel || !hasImportedData"
+          :disabled="isEstimating || rhoModelError || alertMessageModel || !hasImportedData"
           @click.prevent="emitLaunchModel"
         >
           Lancer le modèle
