@@ -48,7 +48,7 @@ const DEFAULT_RANGES = {
   delta: { min: 200, max: 1200, pas: 100 },
   eta: { min: 100, max: 500, pas: 50 },
   tau: { min: 3500, max: 6000, pas: 100 },
-  rho: { min: 0, max: 200, pas: 25 },
+  rho: { min: 25, max: 200, pas: 25 },
 };
 
 const DEFAULT_MAX_COMBINATIONS = 10000;
