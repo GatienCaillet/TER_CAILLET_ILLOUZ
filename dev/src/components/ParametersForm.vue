@@ -24,13 +24,94 @@ const props = defineProps({
   },
 });
 
-// Paramètres d'initialisation affichés dans la première partie du formulaire
-const params = ref({
+const STORAGE_KEY = "ter-default-params";
+
+const DEFAULT_PARAMS_INIT = {
   encodingTime: 80,
   comparisonTime: 200,
   commandTime: 300,
   errorRate: 5,
-});
+};
+
+const DEFAULT_PARAMS_ESTIM = {
+  alpha: 20,
+  beta: 1260,
+  delta: 340,
+  eta: 270,
+  tau: 4800,
+  rho: 50,
+};
+
+const DEFAULT_RANGES = {
+  alpha: { min: 0, max: 60, pas: 20 },
+  beta: { min: 1000, max: 2000, pas: 100 },
+  delta: { min: 200, max: 1200, pas: 100 },
+  eta: { min: 100, max: 500, pas: 50 },
+  tau: { min: 3500, max: 6000, pas: 100 },
+  rho: { min: 0, max: 200, pas: 25 },
+};
+
+const toNumber = (value, fallback) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
+
+const cloneRanges = (ranges) =>
+  Object.fromEntries(
+    Object.entries(ranges).map(([key, range]) => [key, { ...range }]),
+  );
+
+const loadDefaults = () => {
+  const defaults = {
+    paramsInit: { ...DEFAULT_PARAMS_INIT },
+    paramsEstim: { ...DEFAULT_PARAMS_ESTIM },
+    ranges: cloneRanges(DEFAULT_RANGES),
+  };
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return defaults;
+    }
+
+    const parsed = JSON.parse(raw);
+    Object.keys(defaults.paramsInit).forEach((key) => {
+      if (key in (parsed?.paramsInit || {})) {
+        defaults.paramsInit[key] = toNumber(
+          parsed.paramsInit[key],
+          defaults.paramsInit[key],
+        );
+      }
+    });
+
+    Object.keys(defaults.paramsEstim).forEach((key) => {
+      if (key in (parsed?.paramsEstim || {})) {
+        defaults.paramsEstim[key] = toNumber(
+          parsed.paramsEstim[key],
+          defaults.paramsEstim[key],
+        );
+      }
+    });
+
+    Object.keys(defaults.ranges).forEach((key) => {
+      const range = parsed?.ranges?.[key] || {};
+      defaults.ranges[key] = {
+        min: toNumber(range.min, defaults.ranges[key].min),
+        max: toNumber(range.max, defaults.ranges[key].max),
+        pas: toNumber(range.pas, defaults.ranges[key].pas),
+      };
+    });
+  } catch (error) {
+    console.warn("Impossible de lire les paramètres sauvegardés:", error);
+  }
+
+  return defaults;
+};
+
+const savedDefaults = loadDefaults();
+
+// Paramètres d'initialisation affichés dans la première partie du formulaire
+const params = ref({ ...savedDefaults.paramsInit });
 
 const configInitialisation = [
   { id: "encoding-time", label: "Temps d'encodage (ms)", key: "encodingTime" },
@@ -48,14 +129,7 @@ const configInitialisation = [
 ];
 
 // Paramètres d'estimation affichés dans la deuxième partie du formulaire
-const paramsEstimation = ref({
-  alpha: 20,
-  beta: 1260,
-  delta: 340,
-  eta: 270,
-  tau: 4800,
-  rho: 50,
-});
+const paramsEstimation = ref({ ...savedDefaults.paramsEstim });
 const previousParamsEstimation = ref(null);
 
 // Chaque entrée définit un paramètre d'estimation et sa plage possible
@@ -64,18 +138,18 @@ const configEstimation = reactive([
     id: "alpha",
     label: "α : Temps de calcul entre chaque lettre (ms)",
     key: "alpha",
-    min: 0,
-    max: 60,
-    pas: 20,
+    min: savedDefaults.ranges.alpha.min,
+    max: savedDefaults.ranges.alpha.max,
+    pas: savedDefaults.ranges.alpha.pas,
     enabled: false,
   },
   {
     id: "beta",
     label: "β : Facteur de durée de comptage",
     key: "beta",
-    min: 1000,
-    max: 2000,
-    pas: 100,
+    min: savedDefaults.ranges.beta.min,
+    max: savedDefaults.ranges.beta.max,
+    pas: savedDefaults.ranges.beta.pas,
     enabled: false,
   },
   {
@@ -83,27 +157,27 @@ const configEstimation = reactive([
     label:
       "δ : Taux de la diminution de la durée de réponse selon l'entrainement",
     key: "delta",
-    min: 200,
-    max: 1200,
-    pas: 100,
+    min: savedDefaults.ranges.delta.min,
+    max: savedDefaults.ranges.delta.max,
+    pas: savedDefaults.ranges.delta.pas,
     enabled: false,
   },
   {
     id: "eta",
     label: "η : Temps de récupération en mémoire (ms)",
     key: "eta",
-    min: 100,
-    max: 500,
-    pas: 50,
+    min: savedDefaults.ranges.eta.min,
+    max: savedDefaults.ranges.eta.max,
+    pas: savedDefaults.ranges.eta.pas,
     enabled: false,
   },
   {
     id: "tau",
     label: "τ : Facteur de récupération en mémoire",
     key: "tau",
-    min: 3500,
-    max: 6000,
-    pas: 100,
+    min: savedDefaults.ranges.tau.min,
+    max: savedDefaults.ranges.tau.max,
+    pas: savedDefaults.ranges.tau.pas,
     enabled: false,
   },
   {
@@ -111,9 +185,9 @@ const configEstimation = reactive([
     label:
       "ρ : Taux de la diminution du temps de récupération selon la force de l'association",
     key: "rho",
-    min: 0,
-    max: 200,
-    pas: 25,
+    min: savedDefaults.ranges.rho.min,
+    max: savedDefaults.ranges.rho.max,
+    pas: savedDefaults.ranges.rho.pas,
     enabled: false,
   },
 ]);
@@ -266,6 +340,90 @@ const buildParamsEstimPayload = () =>
 
 const emit = defineEmits(["launch-estimation", "launch-model"]);
 
+const isSettingsOpen = ref(false);
+const settingsDraft = ref({
+  paramsInit: { ...savedDefaults.paramsInit },
+  paramsEstim: { ...savedDefaults.paramsEstim },
+  ranges: cloneRanges(savedDefaults.ranges),
+});
+
+const buildDefaultsSnapshot = () => ({
+  paramsInit: { ...params.value },
+  paramsEstim: { ...paramsEstimation.value },
+  ranges: Object.fromEntries(
+    configEstimation.map((item) => [item.key, {
+      min: item.min,
+      max: item.max,
+      pas: item.pas,
+    }]),
+  ),
+});
+
+const openSettings = () => {
+  settingsDraft.value = buildDefaultsSnapshot();
+  isSettingsOpen.value = true;
+};
+
+const closeSettings = () => {
+  isSettingsOpen.value = false;
+};
+
+const persistDefaults = (payload) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    console.warn("Impossible de sauvegarder les paramètres:", error);
+  }
+};
+
+const applyDefaults = (payload) => {
+  Object.keys(DEFAULT_PARAMS_INIT).forEach((key) => {
+    params.value[key] = toNumber(payload.paramsInit[key], DEFAULT_PARAMS_INIT[key]);
+  });
+
+  Object.keys(DEFAULT_PARAMS_ESTIM).forEach((key) => {
+    paramsEstimation.value[key] = toNumber(
+      payload.paramsEstim[key],
+      DEFAULT_PARAMS_ESTIM[key],
+    );
+  });
+
+  configEstimation.forEach((item) => {
+    const range = payload.ranges?.[item.key] || {};
+    item.min = toNumber(range.min, DEFAULT_RANGES[item.key].min);
+    item.max = toNumber(range.max, DEFAULT_RANGES[item.key].max);
+    item.pas = toNumber(range.pas, DEFAULT_RANGES[item.key].pas);
+  });
+};
+
+const saveSettings = () => {
+  const payload = {
+    paramsInit: { ...settingsDraft.value.paramsInit },
+    paramsEstim: { ...settingsDraft.value.paramsEstim },
+    ranges: { ...settingsDraft.value.ranges },
+  };
+
+  applyDefaults(payload);
+  persistDefaults(payload);
+  closeSettings();
+};
+
+const resetSettings = () => {
+  const payload = {
+    paramsInit: { ...DEFAULT_PARAMS_INIT },
+    paramsEstim: { ...DEFAULT_PARAMS_ESTIM },
+    ranges: cloneRanges(DEFAULT_RANGES),
+  };
+
+  settingsDraft.value = {
+    paramsInit: { ...payload.paramsInit },
+    paramsEstim: { ...payload.paramsEstim },
+    ranges: cloneRanges(payload.ranges),
+  };
+  applyDefaults(payload);
+  persistDefaults(payload);
+};
+
 // Déclenche une estimation avec les paramètres d'estimation sélectionnés et les paramètres d'initialisation
 const emitLaunchEstimation = () => {
   if (!validateEstimationParams()) {
@@ -316,7 +474,18 @@ defineExpose({ setParamsEstim });
   <div class="container">
     <form>
       <div id="initialisation" class="d-flex flex-column">
-        <div class="ms-5 fw-bold">Paramètres d'initialisation :</div>
+        <div class="d-flex align-items-center justify-content-between ms-5 me-3">
+          <div class="fw-bold">Paramètres d'initialisation :</div>
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
+            aria-label="Ouvrir les paramètres par défaut"
+            @click="openSettings"
+          >
+            <i class="bi bi-gear" aria-hidden="true"></i>
+            Par défaut
+          </button>
+        </div>
         <div class="d-flex flex-row justify-content-around flex-wrap">
           <ParameterField
             v-for="item in configInitialisation"
@@ -440,5 +609,143 @@ defineExpose({ setParamsEstim });
         </BaseButton>
       </div>
     </form>
+
+    <div
+      v-if="isSettingsOpen"
+      class="settings-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Paramètres par défaut"
+      @click.self="closeSettings"
+    >
+      <div class="settings-modal">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 class="mb-0">Paramètres par défaut</h5>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Fermer"
+            @click="closeSettings"
+          ></button>
+        </div>
+
+        <div class="settings-section">
+          <div class="fw-bold mb-2">Initialisation</div>
+          <div class="row g-3">
+            <div
+              v-for="item in configInitialisation"
+              :key="`default-${item.id}`"
+              class="col-6"
+            >
+              <label :for="`default-${item.id}`" class="form-label small">
+                {{ item.label }}
+              </label>
+              <input
+                :id="`default-${item.id}`"
+                v-model.number="settingsDraft.paramsInit[item.key]"
+                class="form-control"
+                type="number"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section mt-4">
+          <div class="fw-bold mb-2">Estimation</div>
+          <div class="row g-3">
+            <div
+              v-for="item in configEstimation"
+              :key="`default-${item.id}-estim`"
+              class="col-12"
+            >
+              <div class="border rounded-3 p-3">
+                <div class="fw-semibold small">{{ item.label }}</div>
+                <div class="row g-2 mt-1">
+                  <div class="col-6 col-lg-3">
+                    <label class="form-label small">Valeur</label>
+                    <input
+                      v-model.number="settingsDraft.paramsEstim[item.key]"
+                      class="form-control form-control-sm"
+                      type="number"
+                    />
+                  </div>
+                  <div class="col-6 col-lg-3">
+                    <label class="form-label small">Min</label>
+                    <input
+                      v-model.number="settingsDraft.ranges[item.key].min"
+                      class="form-control form-control-sm"
+                      type="number"
+                    />
+                  </div>
+                  <div class="col-6 col-lg-3">
+                    <label class="form-label small">Max</label>
+                    <input
+                      v-model.number="settingsDraft.ranges[item.key].max"
+                      class="form-control form-control-sm"
+                      type="number"
+                    />
+                  </div>
+                  <div class="col-6 col-lg-3">
+                    <label class="form-label small">Pas</label>
+                    <input
+                      v-model.number="settingsDraft.ranges[item.key].pas"
+                      class="form-control form-control-sm"
+                      type="number"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            @click="resetSettings"
+          >
+            Réinitialiser
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-primary"
+            @click="closeSettings"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="saveSettings"
+          >
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.settings-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.settings-modal {
+  width: min(960px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.35);
+}
+</style>
