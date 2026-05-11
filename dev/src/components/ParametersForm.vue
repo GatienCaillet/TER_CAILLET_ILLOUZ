@@ -51,6 +51,8 @@ const DEFAULT_RANGES = {
   rho: { min: 0, max: 200, pas: 25 },
 };
 
+const DEFAULT_MAX_COMBINATIONS = 10000;
+
 const toNumber = (value, fallback) => {
   const num = Number(value);
   return Number.isFinite(num) ? num : fallback;
@@ -66,6 +68,7 @@ const loadDefaults = () => {
     paramsInit: { ...DEFAULT_PARAMS_INIT },
     paramsEstim: { ...DEFAULT_PARAMS_ESTIM },
     ranges: cloneRanges(DEFAULT_RANGES),
+    maxCombinations: DEFAULT_MAX_COMBINATIONS,
   };
 
   try {
@@ -101,6 +104,13 @@ const loadDefaults = () => {
         pas: toNumber(range.pas, defaults.ranges[key].pas),
       };
     });
+
+    if (parsed?.maxCombinations !== undefined) {
+      defaults.maxCombinations = toNumber(
+        parsed.maxCombinations,
+        defaults.maxCombinations,
+      );
+    }
   } catch (error) {
     console.warn("Impossible de lire les paramètres sauvegardés:", error);
   }
@@ -131,6 +141,7 @@ const configInitialisation = [
 // Paramètres d'estimation affichés dans la deuxième partie du formulaire
 const paramsEstimation = ref({ ...savedDefaults.paramsEstim });
 const previousParamsEstimation = ref(null);
+const maxCombinations = ref(savedDefaults.maxCombinations);
 
 // Chaque entrée définit un paramètre d'estimation et sa plage possible
 const configEstimation = reactive([
@@ -345,6 +356,7 @@ const settingsDraft = ref({
   paramsInit: { ...savedDefaults.paramsInit },
   paramsEstim: { ...savedDefaults.paramsEstim },
   ranges: cloneRanges(savedDefaults.ranges),
+  maxCombinations: savedDefaults.maxCombinations,
 });
 
 const buildDefaultsSnapshot = () => ({
@@ -357,6 +369,7 @@ const buildDefaultsSnapshot = () => ({
       pas: item.pas,
     }]),
   ),
+  maxCombinations: maxCombinations.value,
 });
 
 const openSettings = () => {
@@ -394,6 +407,11 @@ const applyDefaults = (payload) => {
     item.max = toNumber(range.max, DEFAULT_RANGES[item.key].max);
     item.pas = toNumber(range.pas, DEFAULT_RANGES[item.key].pas);
   });
+
+  maxCombinations.value = toNumber(
+    payload.maxCombinations,
+    DEFAULT_MAX_COMBINATIONS,
+  );
 };
 
 const saveSettings = () => {
@@ -401,6 +419,7 @@ const saveSettings = () => {
     paramsInit: { ...settingsDraft.value.paramsInit },
     paramsEstim: { ...settingsDraft.value.paramsEstim },
     ranges: { ...settingsDraft.value.ranges },
+    maxCombinations: settingsDraft.value.maxCombinations,
   };
 
   applyDefaults(payload);
@@ -413,12 +432,14 @@ const resetSettings = () => {
     paramsInit: { ...DEFAULT_PARAMS_INIT },
     paramsEstim: { ...DEFAULT_PARAMS_ESTIM },
     ranges: cloneRanges(DEFAULT_RANGES),
+    maxCombinations: DEFAULT_MAX_COMBINATIONS,
   };
 
   settingsDraft.value = {
     paramsInit: { ...payload.paramsInit },
     paramsEstim: { ...payload.paramsEstim },
     ranges: cloneRanges(payload.ranges),
+    maxCombinations: payload.maxCombinations,
   };
   applyDefaults(payload);
   persistDefaults(payload);
@@ -437,6 +458,7 @@ const emitLaunchEstimation = () => {
   emit("launch-estimation", {
     paramsInit: { ...params.value },
     paramsEstim: buildParamsEstimPayload(),
+    maxCombinations: maxCombinations.value,
   });
 };
 
@@ -447,6 +469,7 @@ const emitLaunchModel = () => {
   emit("launch-model", {
     paramsInit: { ...params.value },
     paramsEstim: buildParamsEstimPayload(),
+    maxCombinations: maxCombinations.value,
   });
 };
 
@@ -695,6 +718,29 @@ defineExpose({ setParamsEstim });
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section mt-4">
+            <div class="fw-bold mb-2">Sécurité du calcul</div>
+            <div class="row g-3">
+              <div class="col-12 col-lg-6">
+                <label for="default-max-combinations" class="form-label small">
+                  Nombre maximum de combinaisons évaluées
+                </label>
+                <input
+                  id="default-max-combinations"
+                  v-model.number="settingsDraft.maxCombinations"
+                  class="form-control"
+                  type="number"
+                  min="1"
+                />
+                <div class="form-text">
+                  Limite de sécurité pour éviter un calcul trop long. Si le nombre
+                  de combinaisons à tester dépasse cette valeur, un message de
+                  confirmation s'affiche avant de lancer l'estimation.
                 </div>
               </div>
             </div>

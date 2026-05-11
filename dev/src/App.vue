@@ -165,7 +165,11 @@ const mapEstimationResultsRows = (evaluations) =>
     );
 
 // Lance l'estimation des paramètres et garde l'interface réactive pendant le calcul
-const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
+const handleLaunchEstimation = async ({
+  paramsInit,
+  paramsEstim,
+  maxCombinations,
+}) => {
   if (!data.value.length) {
     console.warn(
       "Aucun stimulus importé. Importez des équations avant de lancer l estimation des paramètres.",
@@ -188,10 +192,12 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
     currentEstimationModel.value = model;
 
     const combCount = model.countGridSearchCombinations();
-    // TODO : mettre cette valeur dans un fichier de config 
-    const MAX_COMBINATIONS = 10000;
+    const maxCombinationsSafe =
+      Number.isFinite(maxCombinations) && maxCombinations > 0
+        ? Math.floor(maxCombinations)
+        : 10000;
 
-    if (combCount > MAX_COMBINATIONS) {
+    if (combCount > maxCombinationsSafe) {
       const confirmed = window.confirm(
         `Attention : ${combCount} combinaisons à évaluer. Cela peut prendre du temps. Continuer ?`,
       );
