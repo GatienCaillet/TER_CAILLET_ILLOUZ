@@ -111,7 +111,7 @@ const configEstimation = reactive([
     label:
       "ρ : Taux de la diminution du temps de récupération selon la force de l'association",
     key: "rho",
-    min: 0,
+    min: 25,
     max: 200,
     pas: 25,
     enabled: false,
@@ -239,6 +239,20 @@ const validateEstimationParams = () => {
     if (item.min > item.max) {
       errorMessage.value = `"${item.label}" : min (${item.min}) est supérieur à max (${item.max})`;
       return false;
+    }
+
+    if (item.key === "rho") {
+      const rhoValue = Number(paramsEstimation.value[item.key]);
+      if (
+        !Number.isFinite(rhoValue) ||
+        rhoValue <= 0 ||
+        item.min <= 0 ||
+        item.max <= 0
+      ) {
+        errorMessage.value =
+          `"${item.label}" : ρ doit être strictement positif (valeur, min et max)`;
+        return false;
+      }
     }
   }
 
