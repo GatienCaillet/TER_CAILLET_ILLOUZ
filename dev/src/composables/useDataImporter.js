@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 
-// Detection des noms des colonnes pour les données importées
+// Noms de colonnes acceptés pour reconnaître les données importées
 const COLUMN_ALIASES = {
   augend: ["augend"],
   addend: ["addend"],
@@ -9,7 +9,7 @@ const COLUMN_ALIASES = {
   session: ["session"],
 };
 
-// On normalise les clés pour faciliter la détection (ex: "Augend ", "augend", "AUGEND" seront tous reconnus comme "augend")
+// Normalise une clé pour faciliter la détection, peu importe la casse ou les accents
 const normalizeKey = (key) =>
   String(key)
     .trim()
@@ -17,7 +17,7 @@ const normalizeKey = (key) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-    // Recuperation des données en fonction des alias des colonnes
+// Récupère une valeur dans une ligne en cherchant un nom de colonne connu
 const getValueByAliases = (row, aliases) => {
   const rowEntries = Object.entries(row);
 
@@ -30,7 +30,7 @@ const getValueByAliases = (row, aliases) => {
   return undefined;
 };
 
-// Organisation des données importées dans le format du tableau attendu par le modèle
+// Transforme une ligne brute en format exploitable par le modèle
 const mapRowToImportedData = (row, index) => {
   const augend = getValueByAliases(row, COLUMN_ALIASES.augend);
   const addend = getValueByAliases(row, COLUMN_ALIASES.addend);
@@ -58,7 +58,7 @@ const mapRowToImportedData = (row, index) => {
   };
 };
 
-// Import JSON
+// Lit un fichier JSON et extrait les données sous forme de tableau d'objets
 const parseJsonRows = async (file) => {
   const raw = await file.text();
   const parsed = JSON.parse(raw);
@@ -74,7 +74,7 @@ const parseJsonRows = async (file) => {
   return [];
 };
 
-// Import Excel/CSV
+// Lit un fichier Excel ou CSV et extrait les données de la première feuille sous forme de tableau d'objets
 const parseSpreadsheetRows = async (file) => {
   const buffer = await file.arrayBuffer();
   const workbook = new ExcelJS.Workbook();
@@ -88,16 +88,18 @@ const parseSpreadsheetRows = async (file) => {
   const rows = [];
   const headerRow = firstWorksheet.getRow(1);
   const headers = [];
-  
-  // Extraction des entêtes
+
+  // La première ligne est traitée comme les en-têtes de colonnes
   headerRow.eachCell((cell) => {
     headers.push(cell.value);
   });
 
-  // Conversion des lignes en objets
+  // Chaque ligne du tableur est convertie en objet JavaScript.
   firstWorksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return; // Ignorer la première ligne (entêtes)
-    
+    if (rowNumber === 1) {
+      return;
+    }
+
     const rowObject = {};
     row.eachCell((cell, colNumber) => {
       const header = headers[colNumber - 1];
@@ -111,13 +113,14 @@ const parseSpreadsheetRows = async (file) => {
   return rows;
 };
 
-// TODO : dictionnaire des stimuli possibles
+// Service d'import utilisé par l'application principale
 export function useDataImporter() {
   const importEquations = (targetRef, callbacks = {}) => {
     const { onStart, onDone } = callbacks;
     console.log("Logique d'importation des équations en cours...");
     onStart?.();
-    // Simulation : on remplit la ref avec des données après un délai
+
+    // TODO : Implémenter la logique d'importation réelle ici
     setTimeout(() => {
       targetRef.value = [
         { id: 1, augend: "A", addend: 2, result: "C" },
@@ -128,7 +131,7 @@ export function useDataImporter() {
     }, 500);
   };
 
-  // Import des données à partir d'un fichier Excel ou JSON
+  // Ouvre un sélecteur de fichier puis lit les données importées et les transforme pour correspondre au modèle de l'application
   const importData = async (targetRef, callbacks = {}) => {
     const { onStart, onDone } = callbacks;
     const input = document.createElement("input");
@@ -145,7 +148,7 @@ export function useDataImporter() {
 
       onStart?.();
 
-      // On vérifie l'extension du fichier pour déterminer comment le lire
+      // Le type de fichier détermine le lecteur à utiliser
       const extension = file.name.split(".").pop()?.toLowerCase();
       let rows = [];
 
@@ -165,7 +168,7 @@ export function useDataImporter() {
         return;
       }
 
-      // On mappe les lignes importées pour les organiser dans le format attendu par le modèle
+      // Les lignes brutes sont normalisées pour correspondre au modèle
       const mappedRows = rows
         .map((row, index) => mapRowToImportedData(row, index))
         .filter((row) => row !== null);

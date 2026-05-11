@@ -1,13 +1,13 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import BaseDataTable from "./components/BaseDataTable.vue";
-import ParametersForm from "./components/ParametersForm.vue";
 import GraphicsResult from "./components/GraphicsResult.vue";
+import ParametersForm from "./components/ParametersForm.vue";
 import { useDataImporter } from "./composables/useDataImporter.js";
 import { Model } from "./model/Model";
 import BaseButton from "./components/BaseButton.vue";
 
-// Définition des colonnes pour le tableau des équations à donner au modèle
+// Colonnes communes aux tableaux d'équations et de résultats
 const equationCols = [
   { key: "id", label: "#" },
   { key: "augend", label: "Augend" },
@@ -15,23 +15,23 @@ const equationCols = [
   { key: "result", label: "Résultat" },
 ];
 
-// Définition des colonnes pour les données existantes (en reprenant les colonnes des équations + des colonnes supplémentaires)
+// Les données importées reprennent ces colonnes avec deux champs supplémentaires
 const dataCols = [
-  ...equationCols, // On reprend la structure précédente
+  ...equationCols,
   { key: "time", label: "Temps" },
   { key: "session", label: "Session" },
 ];
 
-// Définition des ref pour les équations et les données
+// État principal de l'application.
 const equations = ref([]);
 const data = ref([]);
 const dataResults = ref([]);
-const bestEstimatedParams = ref(null); // Stocke les meilleurs paramètres estimés pour les transmettre au formulaire
-const estimationResultsRows = ref([]); // Stocke les résultats complets de l'estimation (combinaisons + RMSE)
-const isEstimating = ref(false); // Flag pour éviter les appels simultanés
-const estimationProgress = ref({ current: 0, total: 0 }); // Suivi de la progression de l'estimation
+const bestEstimatedParams = ref(null);
+const estimationResultsRows = ref([]);
+const isEstimating = ref(false);
+const estimationProgress = ref({ current: 0, total: 0 });
 const loadingStartedAt = ref(0);
-const currentEstimationModel = ref(null); // Référence au modèle en cours d'estimation pour pouvoir l'interrompre
+const currentEstimationModel = ref(null);
 const isImportingEquations = ref(false);
 const isImportingData = ref(false);
 const MIN_LOADING_DURATION_MS = 700;
@@ -44,10 +44,12 @@ const showEquationLists = ref(false);
 const hasResults = computed(() => dataResults.value.length > 0);
 const totalSections = computed(() => (hasResults.value ? 3 : 2));
 
-// Récupération des fonctions depuis le composable (composables/useDataImporter.js)
+// === Import des donnees ===
+
+// Import centralisé des données depuis le composable.
 const { importEquations, importData } = useDataImporter();
 
-// Handlers qui appellent la logique du composable
+// Gère le bouton "Importer les équations"
 const handleImportEquations = () =>
   importEquations(equations, {
     onStart: () => {
@@ -57,6 +59,8 @@ const handleImportEquations = () =>
       isImportingEquations.value = false;
     },
   });
+
+// Gère le bouton "Importer les données existantes"
 const handleImportData = () =>
   importData(data, {
     onStart: () => {
@@ -67,7 +71,9 @@ const handleImportData = () =>
     },
   });
 
-const buildStimuli = () =>
+// Transforme les lignes importees en stimuli pour le modèle
+// Le temps n’est pas inclus car le modèle doit le prédire
+  const buildStimuli = () =>
   data.value.map((equation) => ({
     augend: String(equation.augend ?? "").trim(),
     addend: Number(equation.addend),
@@ -75,11 +81,23 @@ const buildStimuli = () =>
     session: Number(equation.session ?? 1),
   }));
 
-// Référence au composant formulaire pour pouvoir lui demander de mettre à jour les valeurs affichées
+// Label dynamique du bouton d'import de données selon qu'il y a déjà des données importées ou pas
+const labelImportData = computed(() =>
+  data.value.length > 0
+    ? "Remplacer les données existantes"
+    : "Importer les données existantes",
+);
+
+// === Parametrage et lancement ===
+
+// Référence au formulaire pour lui renvoyer les paramètres estimés
 const paramsForm = ref(null);
 
-const clampSectionIndex = (index) => Math.min(totalSections.value - 1, Math.max(0, index));
+// Limite l'index de section à une valeur valide pour éviter les erreurs de scroll
+const clampSectionIndex = (index) =>
+  Math.min(totalSections.value - 1, Math.max(0, index));
 
+// Détecte la section la plus proche du centre de l'écran
 const updateCurrentSectionIndex = () => {
   const container = mainScrollRef.value;
 
@@ -94,6 +112,7 @@ const updateCurrentSectionIndex = () => {
 
   const targetTop = container.scrollTop + container.clientHeight * 0.5;
   let bestIndex = 0;
+  // On part d'une distance infinie pour trouver la section la plus proche
   let bestDistance = Number.POSITIVE_INFINITY;
 
   sections.forEach((section, index) => {
@@ -109,6 +128,7 @@ const updateCurrentSectionIndex = () => {
   currentSectionIndex.value = clampSectionIndex(bestIndex);
 };
 
+// Fait défiler la page jusqu'à la section demandée
 const goToSection = async (index) => {
   const container = mainScrollRef.value;
   const targetIndex = clampSectionIndex(index);
@@ -127,6 +147,10 @@ const goToSection = async (index) => {
 const canGoUp = computed(() => currentSectionIndex.value > 0);
 const canGoDown = computed(() => currentSectionIndex.value < totalSections.value - 1);
 
+// === Affichage des resultats ===
+
+// Reformate les scores du modèle pour le tableau de l'interface
+// Tri du tableau par RMSE croissant (meilleur score en premier)
 const mapEstimationResultsRows = (evaluations) =>
   (evaluations || [])
     .map(({ score, paramsEstim }) => ({
@@ -138,9 +162,13 @@ const mapEstimationResultsRows = (evaluations) =>
       rho: paramsEstim.rho,
       rmse: Number.isFinite(score) ? Number(score.toFixed(4)) : score,
     }))
-    .sort((a, b) => (a.rmse ?? Number.POSITIVE_INFINITY) - (b.rmse ?? Number.POSITIVE_INFINITY));
+    .sort(
+      (a, b) =>
+        (a.rmse ?? Number.POSITIVE_INFINITY) -
+        (b.rmse ?? Number.POSITIVE_INFINITY),
+    );
 
-// Logique pour lancer l'estimation des paramètres
+// Lance l'estimation des paramètres et garde l'interface réactive pendant le calcul
 const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
     console.warn(
@@ -151,43 +179,45 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
     return;
   }
 
-  // Empêcher les appels simultanés du long calcul d'estimation
   if (isEstimating.value) {
     return;
   }
+
   isEstimating.value = true;
   estimationResultsRows.value = [];
 
   try {
     const stimuli = buildStimuli();
     const model = new Model(paramsInit, paramsEstim, stimuli);
-    currentEstimationModel.value = model; // Stocker la référence pour pouvoir l'interrompre
+    currentEstimationModel.value = model;
 
-    // Avertir si trop de combinaisons
     const combCount = model.countGridSearchCombinations();
+    // TODO : mettre cette valeur dans un fichier de config 
     const MAX_COMBINATIONS = 10000;
+
     if (combCount > MAX_COMBINATIONS) {
       const confirmed = window.confirm(
         `Attention : ${combCount} combinaisons à évaluer. Cela peut prendre du temps. Continuer ?`,
       );
+
       if (!confirmed) {
         isEstimating.value = false;
         return;
       }
     }
 
-    // Initialiser la progression
+    // Initialiser la progression à 0 avant de laisser le temps à l'interface de se mettre à jour
     estimationProgress.value = { current: 0, total: combCount };
     loadingStartedAt.value = performance.now();
 
-    // Laisser Vue rendre l'indicateur avant de lancer le calcul bloquant
+    // Permettre à l'interface de se mettre à jour avant de lancer le calcul intensif
     await nextTick();
     await new Promise((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(resolve)),
     );
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    // Créer une callback de progression pour le modèle
+    // Fonction de callback pour mettre à jour la progression depuis le modèle pendant l'estimation
     const onProgress = (current, total) => {
       estimationProgress.value = {
         current,
@@ -195,13 +225,14 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
       };
     };
 
-    // On transmet les données brutes, car l'estimation compare les temps observés
+    // Lancer l'estimation des paramètres avec le modèle
+    // C'est la partie la plus longue du processus
     const { bestParams, evaluations } = await model.estimateBestParamsWithScores(
       data.value,
       onProgress,
     );
 
-    // Met à jour le formulaire si possible avec les nouvelles valeurs estimées
+    // Envoyer les meilleurs paramètres estimés au formulaire pour qu'il puisse les afficher
     if (
       paramsForm.value &&
       typeof paramsForm.value.setParamsEstim === "function"
@@ -209,12 +240,11 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
       paramsForm.value.setParamsEstim(bestParams);
     }
 
-    // Stocke le résultat pour affichage dans l'interface
+    // Mettre à jour le tableau des résultats d'estimation dans l'interface
     bestEstimatedParams.value = bestParams;
     estimationResultsRows.value = mapEstimationResultsRows(evaluations);
   } catch (error) {
-    // Ne pas afficher d'erreur si l'estimation a été interrompue par l'utilisateur
-    if (error.message !== 'Estimation aborted by user') {
+    if (error.message !== "Estimation aborted by user") {
       console.error("Impossible de lancer l estimation des paramètres:", error);
     }
     estimationResultsRows.value = [];
@@ -225,18 +255,20 @@ const handleLaunchEstimation = async ({ paramsInit, paramsEstim }) => {
         setTimeout(resolve, MIN_LOADING_DURATION_MS - elapsed),
       );
     }
+
     isEstimating.value = false;
     estimationProgress.value = { current: 0, total: 0 };
     loadingStartedAt.value = 0;
-    currentEstimationModel.value = null; // Nettoyer la référence
+    currentEstimationModel.value = null;
   }
 };
 
+// Permet d'interrompre le calcul long depuis l'interface en cliquant sur la croix du panneau de chargement
 const handleCloseLoadingOverlay = () => {
-  // Arrêter le calcul d'estimation en cours
   if (currentEstimationModel.value) {
     currentEstimationModel.value.shouldAbort = true;
   }
+
   isEstimating.value = false;
   estimationProgress.value = { current: 0, total: 0 };
   loadingStartedAt.value = 0;
@@ -247,7 +279,7 @@ const handleGenerateEquationList = () => {
   showEquationLists.value = !showEquationLists.value;
 };
 
-// Logique pour lancer le modèle : le Model lit directement les descriptors ou les valeurs simples
+// Lance le modèle de calcul sur les données importées
 const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
     console.warn(
@@ -258,14 +290,14 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
   }
 
   try {
-    // Mapping des lignes du tableau vers le format attendu par Model.js
+    // Construire les stimuli à partir des données importées pour les passer au modèle
     const stimuli = buildStimuli();
-
+    // Lancer le modèle avec les paramètres d'initialisation et d'estimation fournis
     const model = new Model(paramsInit, paramsEstim, stimuli);
 
+    // Le modèle calcule les temps de réponse pour chaque stimulus
     model.calculEveryStimulusTime(stimuli);
 
-    // Mapping inverse pour afficher les résultats dans la table de l'UI
     dataResults.value = model.results.map((result, index) => ({
       id: index + 1,
       augend: result.augend,
@@ -275,23 +307,19 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
       session: result.session,
     }));
 
-    // Scroll automatique vers la section des résultats
+    // Scroll automatique vers la section des résultats après le lancement du modèle
     await nextTick();
-    goToSection(2); // Section des résultats (index 2)
+    goToSection(2);
   } catch (error) {
     console.error("Impossible de lancer le modèle:", error);
     dataResults.value = [];
   }
 };
 
-// Logique pour sauvegarder les résultats (à implémenter)
+// TODO : implémenter la sauvegarde des résultats dans un fichier
 const handleSaveResults = () => {
-  console.log("Btn sauvegarder résultats clicked");
+  console.log("Btn sauvegarder résultats cliqué");
 };
-
-const labelImportData = computed(() =>
-  data.value.length > 0 ? "Remplacer les données existantes" : "Importer les données existantes",
-);
 
 onMounted(() => {
   updateCurrentSectionIndex();
@@ -443,13 +471,14 @@ onBeforeUnmount(() => {
         ↓
       </button>
     </div>
+    <!-- === Import des donnees === -->
     <section class="snap-section">
       <div class="snap-section-inner container-lg">
         <h1 class="text-center section-title">
           Modélisation de l'apprentissage arithmétique
         </h1>
         <h2 class="text-center section-title small">
-          Cette application vous permet, à partir de données de participants, 
+          Cette application vous permet, à partir de données de participants,
           d'optimiser les paramètres d'estimation et de générer les temps de réponse du modèle avec leur représentation graphique.
         </h2>
         <div class="section-card">
@@ -521,6 +550,7 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
+    <!-- === Parametrage et lancement === -->
     <section class="snap-section">
       <div class="snap-section-inner container-lg">
         <div class="section-card">
@@ -545,12 +575,12 @@ onBeforeUnmount(() => {
             <div
               class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative"
             >
-                      <button
-            type="button"
-            class="btn-close position-absolute top-0 end-0 m-2"
-            aria-label="Fermer"
-            @click="handleCloseLoadingOverlay"
-          ></button>
+              <button
+                type="button"
+                class="btn-close position-absolute top-0 end-0 m-2"
+                aria-label="Fermer"
+                @click="handleCloseLoadingOverlay"
+              ></button>
               <div
                 class="loading-spinner"
                 role="status"
@@ -569,6 +599,7 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
+    <!-- === Affichage des resultats === -->
     <section v-if="hasResults" class="snap-section results-section">
       <div class="snap-section-inner container-lg">
         <div class="section-card">

@@ -1,67 +1,8 @@
-<template>
-  <div class="table-wrapper">
-    <BaseButton
-      v-if="!hideButtonWhenEmpty || rows.length"
-      variant="btn btn-outline-primary"
-      size="lg"
-      :disabled="isLoading"
-      @click="$emit('import')"
-    >
-      {{ buttonLabel }}
-    </BaseButton>
-    <div v-if="title && rows.length">{{ title }} :</div>
-    <div
-      v-if="isLoading"
-      class="d-flex align-items-center justify-content-center border rounded-2 py-4 mt-2"
-    >
-      <span
-        class="spinner-border text-primary me-2"
-        role="status"
-        aria-hidden="true"
-      ></span>
-      <span class="text-muted">Import en cours...</span>
-    </div>
-    <div
-      v-else-if="rows.length"
-      class="table-responsive"
-      style="overflow-y: scroll; max-height: calc(100vh - 20rem)"
-    >
-      <table class="table table-striped table-bordered">
-        <thead class="sticky-top">
-          <tr>
-            <th v-for="col in columns" :key="col.key" scope="col">
-              <button
-                v-if="sortable"
-                type="button"
-                class="btn btn-link p-0 text-decoration-none"
-                @click="handleSort(col.key)"
-              >
-                {{ col.label }}{{ sortIndicator(col.key) }}
-              </button>
-              <span v-else>{{ col.label }}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody class="table-group-divider">
-          <tr v-for="(row, index) in sortedRows" :key="index">
-            <td
-              v-for="col in columns"
-              :key="col.key"
-              :class="row.__cellClasses?.[col.key]"
-            >
-              {{ row[col.key] }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { computed, ref } from "vue";
 import BaseButton from "./BaseButton.vue";
 
+// Tableau réutilisable pour afficher des données, avec chargement et tri optionnel
 const props = defineProps({
   title: String,
   buttonLabel: String,
@@ -78,6 +19,7 @@ const normalizeDirection = (value) => (value === "desc" ? "desc" : "asc");
 const sortKey = ref(props.initialSortKey);
 const sortDirection = ref(normalizeDirection(props.initialSortDirection));
 
+// Convertit une cellule en valeur comparable, quelle que soit sa forme d'origine
 const toSortableValue = (value) => {
   if (value === null || value === undefined) {
     return null;
@@ -127,6 +69,7 @@ const sortedRows = computed(() => {
   });
 });
 
+// Gère le clic sur un en-tête de colonne pour changer le tri
 const handleSort = (key) => {
   if (!props.sortable) {
     return;
@@ -139,6 +82,7 @@ const handleSort = (key) => {
   }
 };
 
+// Affiche une petite flèche à côté de la colonne triée
 const sortIndicator = (key) => {
   if (!props.sortable || sortKey.value !== key) {
     return "";
@@ -146,6 +90,69 @@ const sortIndicator = (key) => {
   return sortDirection.value === "asc" ? " ▲" : " ▼";
 };
 
-// Envoi à components/ParametersForm.vue l'information que les inputs ont été modifiés
+// Le parent déclenche l'import via cet événement
 defineEmits(["import"]);
 </script>
+
+<template>
+  <div class="table-wrapper">
+    <BaseButton
+      v-if="!hideButtonWhenEmpty || rows.length"
+      :disabled="isLoading"
+      size="lg"
+      variant="btn btn-outline-primary"
+      @click="$emit('import')"
+    >
+      {{ buttonLabel }}
+    </BaseButton>
+
+    <div v-if="title && rows.length">{{ title }} :</div>
+
+    <div
+      v-if="isLoading"
+      class="d-flex align-items-center justify-content-center border rounded-2 py-4 mt-2"
+    >
+      <span
+        aria-hidden="true"
+        class="spinner-border text-primary me-2"
+        role="status"
+      ></span>
+      <span class="text-muted">Import en cours...</span>
+    </div>
+
+    <div
+      v-else-if="rows.length"
+      class="table-responsive"
+      style="overflow-y: scroll; max-height: calc(100vh - 20rem)"
+    >
+      <table class="table table-striped table-bordered">
+        <thead class="sticky-top">
+          <tr>
+            <th v-for="col in columns" :key="col.key" scope="col">
+              <button
+                v-if="sortable"
+                class="btn btn-link p-0 text-decoration-none"
+                type="button"
+                @click="handleSort(col.key)"
+              >
+                {{ col.label }}{{ sortIndicator(col.key) }}
+              </button>
+              <span v-else>{{ col.label }}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          <tr v-for="(row, index) in sortedRows" :key="index">
+            <td
+              v-for="col in columns"
+              :key="col.key"
+              :class="row.__cellClasses?.[col.key]"
+            >
+              {{ row[col.key] }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</template>
