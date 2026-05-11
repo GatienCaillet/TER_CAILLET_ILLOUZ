@@ -1,11 +1,10 @@
 <script setup>
-import { reactive, ref, computed } from "vue";
-import AppInput from "./AppInput.vue";
-import AppInputMinMax from "./AppInputMinMax.vue";
+import { computed, reactive, ref } from "vue";
+import ParameterField from "./ParameterField.vue";
 import BaseButton from "./BaseButton.vue";
 import BaseDataTable from "./BaseDataTable.vue";
 
-// Prop pour recevoir le résultat de l'estimation du parent
+// Formulaire qui regroupe les différents paramètres et les actions de lancement de l'estimation et du modèle 
 const props = defineProps({
   bestEstimatedParams: {
     type: Object,
@@ -25,7 +24,7 @@ const props = defineProps({
   },
 });
 
-// Les valeurs par défaut des paramètres d'initialisation
+// Paramètres d'initialisation affichés dans la première partie du formulaire
 const params = ref({
   encodingTime: 80,
   comparisonTime: 200,
@@ -33,7 +32,6 @@ const params = ref({
   errorRate: 5,
 });
 
-// La configuration des champs pour les inputs  des paramètres d'initialisation (components/AppInput.vue) du formulaire
 const configInitialisation = [
   { id: "encoding-time", label: "Temps d'encodage (ms)", key: "encodingTime" },
   {
@@ -49,7 +47,7 @@ const configInitialisation = [
   { id: "error-rate", label: "Taux d'erreur (%)", key: "errorRate" },
 ];
 
-// Les valeurs par défaut des paramètres d'estimation
+// Paramètres d'estimation affichés dans la deuxième partie du formulaire
 const paramsEstimation = ref({
   alpha: 20,
   beta: 1260,
@@ -60,7 +58,7 @@ const paramsEstimation = ref({
 });
 const previousParamsEstimation = ref(null);
 
-// La configuration des champs pour les inputs des paramètres d'estimation (components/AppInputMinMax.vue) du formulaire
+// Chaque entrée définit un paramètre d'estimation et sa plage possible
 const configEstimation = reactive([
   {
     id: "alpha",
@@ -120,7 +118,6 @@ const configEstimation = reactive([
   },
 ]);
 
-// Les colonnes du tableau d'affichage des résultats de l'estimation
 const estimationResultCols = [
   { key: "alpha", label: "α" },
   { key: "beta", label: "β" },
@@ -131,15 +128,17 @@ const estimationResultCols = [
   { key: "rmse", label: "RMSE" },
 ];
 
-// Ref pour afficher les messages d'erreur
+// Messages visibles par l'utilisateur
 const errorMessage = ref("");
 const alertMessage = ref("");
 const alertMessageModel = ref("");
 
 const hasImportedData = computed(() => props.dataImported.length > 0);
 
+// Met en évidence les valeurs extrêmes dans les résultats 
 const estimationResultsDisplayRows = computed(() => {
   const rows = props.estimationResultsRows || [];
+
   if (!rows.length) {
     return [];
   }
@@ -147,16 +146,20 @@ const estimationResultsDisplayRows = computed(() => {
   const EPS = 1e-9;
   const bestRow = rows.reduce((best, row) => {
     const currentRmse = Number(row.rmse);
+
     if (!Number.isFinite(currentRmse)) {
       return best;
     }
+
     if (!best) {
       return row;
     }
+
     const bestRmse = Number(best.rmse);
     if (!Number.isFinite(bestRmse)) {
       return row;
     }
+
     return currentRmse < bestRmse ? row : best;
   }, null);
 
@@ -174,16 +177,20 @@ const estimationResultsDisplayRows = computed(() => {
     }
 
     const tagged = { ...row, __cellClasses: { ...(row.__cellClasses || {}) } };
+
     Object.entries(configByKey).forEach(([key, cfg]) => {
       if (!(key in tagged)) {
         return;
       }
+
       const value = Number(tagged[key]);
       if (!Number.isFinite(value)) {
         return;
       }
+
       const isMin = Math.abs(value - Number(cfg.min)) <= EPS;
       const isMax = Math.abs(value - Number(cfg.max)) <= EPS;
+
       if (isMin && isMax) {
         tagged[key] = `${value} (min/max)`;
         tagged.__cellClasses[key] = "text-danger";
@@ -200,55 +207,49 @@ const estimationResultsDisplayRows = computed(() => {
   });
 });
 
-// Validation complète des paramètres d'estimation
+// Vérifie que le formulaire est cohérent avant de lancer l'estimation
 const validateEstimationParams = () => {
   if (!hasImportedData.value) {
-    errorMessage.value = '';
-    alertMessage.value = '';
-    alertMessageModel.value = '';
+    errorMessage.value = "";
+    alertMessage.value = "";
+    alertMessageModel.value = "";
     return false;
   }
 
-  // Vérifier qu'au moins un paramètre est coché
   const enabledParams = configEstimation.filter((item) => item.enabled);
+
   if (enabledParams.length === 0) {
     alertMessage.value =
       "Veuillez cocher au moins un paramètre pour lancer l'estimation des paramètres";
-    alertMessageModel.value =
-      "";
-    errorMessage.value = ""; // Réinitialiser l'erreur si tout est bon pour ce paramètre
+    alertMessageModel.value = "";
+    errorMessage.value = "";
     return false;
-  } else {
-    alertMessage.value = "";
-    alertMessageModel.value =
-      "Des paramètres d'estimation sont sélectionnés pour une estimation de paramètres. Veuillez les déselectionner ou lancer l'estimation des paramètres avant de lancer le modèle.";
   }
 
-  // Vérifier chaque paramètre coché
+  alertMessage.value = "";
+  alertMessageModel.value =
+    "Des paramètres d'estimation sont sélectionnés pour une estimation de paramètres. Veuillez les déselectionner ou lancer l'estimation des paramètres avant de lancer le modèle.";
+
   for (const item of enabledParams) {
-    // Vérifier que pas > 0
     if (!Number.isFinite(item.pas) || item.pas <= 0) {
       errorMessage.value = `"${item.label}" : le pas (step) ne peut pas être à 0 ou négatif`;
       return false;
     }
 
-    // Vérifier que min <= max
     if (item.min > item.max) {
       errorMessage.value = `"${item.label}" : min (${item.min}) est supérieur à max (${item.max})`;
       return false;
     }
   }
-  errorMessage.value = ""; // Réinitialiser l'erreur si tout est bon pour ce paramètre
+
+  errorMessage.value = "";
   return true;
 };
 
-// Computed pour déterminer si le bouton d'estimation est activé
-const canLaunchEstimation = computed(() => {
-  // Toujours vérifier la validation
-  return validateEstimationParams();
-});
+// Validation calculée à la demande pour garder l'interface réactive
+const canLaunchEstimation = computed(() => validateEstimationParams());
 
-// Créer un objet avec les valeurs des paramètres d'estimation (ex: { alpha: { value: 20, enabled: true, min: 0, max: 50, pas: 50 }, ... })
+// Transforme la configuration en objet directement exploitable par App.vue
 const buildParamsEstimPayload = () =>
   Object.fromEntries(
     configEstimation.map((item) => [
@@ -263,42 +264,44 @@ const buildParamsEstimPayload = () =>
     ]),
   );
 
-// Envoi à App.vue l'information que le bouton "Lancer l'estimation des paramètres" ou "Lancer le modèle" ont été cliqué
 const emit = defineEmits(["launch-estimation", "launch-model"]);
 
-// Lancer l'estimation avec validation
+// Déclenche une estimation avec les paramètres d'estimation sélectionnés et les paramètres d'initialisation
 const emitLaunchEstimation = () => {
   if (!validateEstimationParams()) {
     return;
   }
-  alertMessage.value = ""; // Réinitialiser l'alerte
-  alertMessageModel.value = ""; // Réinitialiser l'alerte du modèle
-  errorMessage.value = ""; // Réinitialiser l'erreur
+
+  alertMessage.value = "";
+  alertMessageModel.value = "";
+  errorMessage.value = "";
+
   emit("launch-estimation", {
     paramsInit: { ...params.value },
     paramsEstim: buildParamsEstimPayload(),
   });
 };
 
+// Déclenche le modèle avec tous les paramètres d'estimation et d'initialisation, même ceux non sélectionnés
 const emitLaunchModel = () => {
-  alertMessageModel.value = ""; // Réinitialiser l'alerte du modèle
+  alertMessageModel.value = "";
+
   emit("launch-model", {
     paramsInit: { ...params.value },
     paramsEstim: buildParamsEstimPayload(),
   });
 };
 
-// Permet au parent (App.vue) de remplacer les paramètres d'estimation
-// après une estimation
+// Permet à App.vue de remplacer les paramètres après une estimation réussie
 const setParamsEstim = (newParams) => {
   previousParamsEstimation.value = { ...paramsEstimation.value };
-  // newParams attendu sous la forme { alpha: 20, beta: 1000, ... }
+
   Object.entries(newParams || {}).forEach(([key, value]) => {
     if (key in paramsEstimation.value) {
       paramsEstimation.value[key] = Number(value);
     }
-    // Mettre à jour aussi la configuration si besoin pour garder l'UI cohérente
-    const cfg = configEstimation.find((it) => it.key === key);
+
+    const cfg = configEstimation.find((item) => item.key === key);
     if (cfg) {
       cfg.min = cfg.min ?? cfg.min;
       cfg.max = cfg.max ?? cfg.max;
@@ -315,56 +318,59 @@ defineExpose({ setParamsEstim });
       <div id="initialisation" class="d-flex flex-column">
         <div class="ms-5 fw-bold">Paramètres d'initialisation :</div>
         <div class="d-flex flex-row justify-content-around flex-wrap">
-          <AppInput
+          <ParameterField
             v-for="item in configInitialisation"
             :key="item.id"
             :id="item.id"
-            :label="item.label"
             v-model="params[item.key]"
+            :label="item.label"
           />
         </div>
       </div>
-      <div class="container border border-1 rounded-4 p-3 mb-3">
+
+      <div class="container border rounded-4 p-3 mb-3">
         <div id="estimation" class="d-flex flex-column mb-4">
           <div class="ms-5 fw-bold">Paramètres d'estimation :</div>
+
           <div class="gap-2 d-flex ms-5 mt-2">
-              <BaseButton
-            variant="btn btn-primary"
-            size="md"
-            @click.prevent="configEstimation.forEach(item => item.enabled = true)"
-          >
-            Tout sélectionner
-          </BaseButton>
-          <BaseButton
-            variant="btn btn-outline-primary"
-            size="md"
-            @click.prevent="configEstimation.forEach(item => item.enabled = false)"
-          >
-            Tout désélectionner
-          </BaseButton>
+            <BaseButton
+              size="md"
+              variant="btn btn-primary"
+              @click.prevent="configEstimation.forEach((item) => item.enabled = true)"
+            >
+              Tout sélectionner
+            </BaseButton>
+
+            <BaseButton
+              variant="btn btn-outline-primary"
+              @click.prevent="configEstimation.forEach((item) => item.enabled = false)"
+            >
+              Tout désélectionner
+            </BaseButton>
           </div>
+
           <div class="d-flex flex-row justify-content-around flex-wrap">
-            <AppInputMinMax
+            <ParameterField
               v-for="item in configEstimation"
               :key="item.id"
-              :id="item.id"
-              :label="item.label"
-              :min="item.min"
-              :max="item.max"
-              :pas="item.pas"
               v-model="paramsEstimation[item.key]"
               v-model:enabled="item.enabled"
-              v-model:min="item.min"
               v-model:max="item.max"
+              v-model:min="item.min"
               v-model:pas="item.pas"
+              :id="item.id"
+              :label="item.label"
+              :show-range="true"
             />
           </div>
         </div>
 
-        <!-- Affichage de la meilleure configuration estimée -->
         <div v-if="bestEstimatedParams" class="d-flex justify-content-center">
           <div class="alert alert-success text-center w-auto d-inline-block">
-            <strong>✓ Estimation finie, les paramètres d'estimation ont été remplacés par les nouveaux :</strong>
+            <strong>
+              ✓ Estimation finie, les paramètres d'estimation ont été remplacés par les nouveaux :
+            </strong>
+
             <div class="mt-2">
               <div
                 v-for="(value, key) in bestEstimatedParams"
@@ -380,31 +386,33 @@ defineExpose({ setParamsEstim });
         </div>
 
         <BaseDataTable
-              title="RMSE de chaque combinaison des paramètres d'estimation"
-              buttonLabel="Exporter les résultats de l'estimation"
-            :rows="estimationResultsDisplayRows"
-              :columns="estimationResultCols"
-            :hide-button-when-empty="true"
-            :sortable="true"
-            initial-sort-key="rmse"
-            initial-sort-direction="asc"
-            />
+          :columns="estimationResultCols"
+          :hide-button-when-empty="true"
+          :rows="estimationResultsDisplayRows"
+          :sortable="true"
+          buttonLabel="Exporter les résultats de l'estimation"
+          initial-sort-direction="asc"
+          initial-sort-key="rmse"
+          title="RMSE de chaque combinaison des paramètres d'estimation"
+        />
 
         <div class="d-flex flex-column align-items-center">
-          <!-- Affichage des erreurs -->
           <div v-if="errorMessage" class="alert alert-danger">
             {{ errorMessage }}
           </div>
+
           <div v-if="!hasImportedData" class="alert alert-danger">
             Aucune donnée importée. Veuillez en importer avant de lancer l'estimation des paramètres ou le modèle.
           </div>
-          <!-- Affichage des alertes -->
+
           <div v-if="alertMessage" class="alert alert-light">
             {{ alertMessage }}
           </div>
+
           <BaseButton
-            variant="btn btn-primary mt-3"
+            class="mt-3"
             size="lg"
+            variant="btn btn-primary"
             :disabled="isEstimating || !canLaunchEstimation || !hasImportedData"
             @click.prevent="emitLaunchEstimation"
           >
@@ -412,17 +420,19 @@ defineExpose({ setParamsEstim });
           </BaseButton>
         </div>
       </div>
+
       <div class="d-flex flex-column align-items-center">
-        <!-- Affichage des erreurs -->
         <div v-if="alertMessageModel" class="alert alert-light">
           {{ alertMessageModel }}
         </div>
+
         <div v-if="!hasImportedData" class="alert alert-danger">
           Aucune donnée importée. Veuillez en importer avant de lancer le modèle.
         </div>
+
         <BaseButton
-          variant="btn btn-primary"
           size="lg"
+          variant="btn btn-primary"
           :disabled="isEstimating || alertMessageModel || !hasImportedData"
           @click.prevent="emitLaunchModel"
         >

@@ -1,8 +1,8 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import * as d3 from 'd3'
+import { onMounted, ref, watch } from "vue";
+import * as d3 from "d3";
 
-// Définition des props
+// Graphique de synthèse des temps mesurés par session et par addend
 const props = defineProps({
   data: {
     type: Array,
@@ -14,72 +14,77 @@ const props = defineProps({
   }
 })
 
-const svgRef = ref(null)
-const containerRef = ref(null)
+const svgRef = ref(null);
+const containerRef = ref(null);
 
-// Fonction pour transformer les données brutes en données agrégées
+// Regroupe les données brutes pour préparer à la fois le tableau et le tracé
 const aggregateData = (rawData) => {
-  if (!rawData || !rawData.length) return { lineData: [], tableData: [], addends: [], sessions: [] }
+  if (!rawData || !rawData.length) {
+    return { lineData: [], tableData: [], addends: [], sessions: [] };
+  }
 
-  // Créer une structure pour regrouper les données par addend et session
-  const grouped = {}
-  
-  rawData.forEach(item => {
-    const addend = item.addend
-    const session = item.session
-    const time = item.time
-    
+  const grouped = {};
+
+  rawData.forEach((item) => {
+    const addend = item.addend;
+    const session = item.session;
+    const time = item.time;
+
     if (!grouped[addend]) {
-      grouped[addend] = {}
+      grouped[addend] = {};
     }
     if (!grouped[addend][session]) {
-      grouped[addend][session] = []
+      grouped[addend][session] = [];
     }
-    grouped[addend][session].push(time)
-  })
+    grouped[addend][session].push(time);
+  });
 
-  // Calculer la moyenne pour chaque addend et session
-  const addends = Object.keys(grouped).sort((a, b) => Number(a) - Number(b))
-  const sessions = new Set()
-  
-  rawData.forEach(item => sessions.add(item.session))
-  const sortedSessions = Array.from(sessions).sort((a, b) => a - b)
+  const addends = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
+  const sessions = new Set();
 
-  // Préparer les données pour les lignes du graphique (une ligne par session)
-  const lineData = sortedSessions.map(session => ({
+  rawData.forEach((item) => sessions.add(item.session));
+  const sortedSessions = Array.from(sessions).sort((a, b) => a - b);
+
+  // Une ligne du graphique correspond à une session.
+  const lineData = sortedSessions.map((session) => ({
     session,
-    values: addends.map(addend => ({
+    values: addends.map((addend) => ({
       addend: Number(addend),
-      avgTime: d3.mean(grouped[addend][session] || [0])
-    }))
-  }))
+      avgTime: d3.mean(grouped[addend][session] || [0]),
+    })),
+  }));
 
-  // Préparer les données pour le tableau (une ligne par session, une colonne par addend)
-  const tableData = sortedSessions.map(session => {
-    const row = { session }
-    addends.forEach(addend => {
-      const times = grouped[addend][session] || []
-      row[`addend_${addend}`] = times.length > 0 ? d3.mean(times).toFixed(2) : '-'
-    })
-    return row
-  })
+  // Une ligne du tableau récapitule les moyennes pour une session donnée
+  const tableData = sortedSessions.map((session) => {
+    const row = { session };
+    addends.forEach((addend) => {
+      const times = grouped[addend][session] || [];
+      row[`addend_${addend}`] = times.length > 0 ? d3.mean(times).toFixed(2) : "-";
+    });
+    return row;
+  });
 
-  return { lineData, tableData, addends: addends.map(Number), sessions: sortedSessions }
-}
+  return { lineData, tableData, addends: addends.map(Number), sessions: sortedSessions };
+};
 
-// Fonction pour dessiner le graphique
+// Dessine le graphique D3 à partir des données agrégées
 const drawChart = () => {
-  if (!svgRef.value || !props.data || !props.data.length) return
+  if (!svgRef.value || !props.data || !props.data.length) {
+    return;
+  }
 
-  const { lineData, addends, sessions } = aggregateData(props.data)
+  const { lineData, addends, sessions } = aggregateData(props.data);
 
-  if (!lineData.length || !addends.length) return
+  if (!lineData.length || !addends.length) {
+    return;
+  }
 
-  // Supprimer les tooltips existants
-  d3.select("body").selectAll(".d3-tooltip").remove()
+  // On retire l'ancien tooltip avant d'en recréer un
+  d3.select("body").selectAll(".d3-tooltip").remove();
 
-  // Créer le tooltip
-  const tooltip = d3.select("body").append("div")
+  const tooltip = d3
+    .select("body")
+    .append("div")
     .attr("class", "d3-tooltip")
     .style("position", "absolute")
     .style("visibility", "hidden")
@@ -89,129 +94,128 @@ const drawChart = () => {
     .style("border-radius", "4px")
     .style("font-size", "12px")
     .style("pointer-events", "none")
-    .style("z-index", "1000")
+    .style("z-index", "1000");
 
-  // Dimensions du graphique
-  const margin = { top: 20, right: 30, bottom: 50, left: 60 }
-  const width = Math.max(600, containerRef.value?.clientWidth || 800) - margin.left - margin.right
-  const height = 400 - margin.top - margin.bottom
+  // Les dimensions s'adaptent à la largeur du conteneur
+  const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+  const width = Math.max(600, containerRef.value?.clientWidth || 800) - margin.left - margin.right;
+  const height = 400 - margin.top - margin.bottom;
 
-  // Vider le SVG précédent
-  d3.select(svgRef.value).selectAll('*').remove()
+  // Nettoie le SVG pour éviter de superposer plusieurs rendus
+  d3.select(svgRef.value).selectAll("*").remove();
 
-  // Créer le SVG
-  const svg = d3.select(svgRef.value)
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-    .append('g')
-    .attr('transform', `translate(${margin.left},${margin.top})`)
+  const svg = d3
+    .select(svgRef.value)
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  // Échelles
-  const xScale = d3.scalePoint()
-    .domain(addends)
-    .range([0, width])
-    .padding(0.5)
+  const xScale = d3.scalePoint().domain(addends).range([0, width]).padding(0.5);
 
-  const yScale = d3.scaleLinear()
-    .domain([d3.min(lineData, line => d3.min(line.values, d => d.avgTime))/1.1, d3.max(lineData, line => d3.max(line.values, d => d.avgTime)) * 1.1])
-    .range([height, 0])
+  const yScale = d3
+    .scaleLinear()
+    .domain([
+      d3.min(lineData, (line) => d3.min(line.values, (d) => d.avgTime)) / 1.1,
+      d3.max(lineData, (line) => d3.max(line.values, (d) => d.avgTime)) * 1.1,
+    ])
+    .range([height, 0]);
 
-  // Couleurs pour les différentes sessions
-  const colorScale = d3.scaleOrdinal()
-    .domain(sessions)
-    .range(d3.schemeCategory10)
+  // Une couleur par session pour rendre la lecture plus simple.
+  const colorScale = d3.scaleOrdinal().domain(sessions).range(d3.schemeCategory10);
 
-  // Générateur de ligne
-  const line = d3.line()
-    .x(d => xScale(d.addend))
-    .y(d => yScale(d.avgTime))
+  const line = d3
+    .line()
+    .x((d) => xScale(d.addend))
+    .y((d) => yScale(d.avgTime));
 
-  // Ajouter les axes
-  svg.append('g')
-    .attr('transform', `translate(0,${height})`)
+  // Axe horizontal
+  svg
+    .append("g")
+    .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(xScale))
-    .append('text')
-    .attr('x', width / 2)
-    .attr('y', 30)
-    .attr('fill', 'black')
-    .attr('text-anchor', 'middle')
-    .text('Addend')
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", 30)
+    .attr("fill", "black")
+    .attr("text-anchor", "middle")
+    .text("Addend");
 
-  svg.append('g')
+  // Axe vertical
+  svg
+    .append("g")
     .call(d3.axisLeft(yScale))
-    .append('text')
-    .attr('transform', 'rotate(-90)')
-    .attr('x', -height / 2)
-    .attr('y', -45)
-    .attr('fill', 'black')
-    .attr('text-anchor', 'middle')
-    .text('Temps moyen (ms)')
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", -45)
+    .attr("fill", "black")
+    .attr("text-anchor", "middle")
+    .text("Temps moyen (ms)");
 
-  // Tracer les lignes (une par session)
-  lineData.forEach(lineItem => {
-    svg.append('path')
+  // Tracé principal: une courbe par session
+  lineData.forEach((lineItem) => {
+    svg
+      .append("path")
       .datum(lineItem.values)
-      .attr('fill', 'none')
-      .attr('stroke', colorScale(lineItem.session))
-      .attr('stroke-width', 2.5)
-      .attr('d', line)
+      .attr("fill", "none")
+      .attr("stroke", colorScale(lineItem.session))
+      .attr("stroke-width", 2.5)
+      .attr("d", line);
 
-    // Ajouter les points
+    // Chaque point peut afficher une infobulle au survol
     svg.selectAll(null)
       .data(lineItem.values)
       .enter()
-      .append('circle')
-      .attr('cx', d => xScale(d.addend))
-      .attr('cy', d => yScale(d.avgTime))
-      .attr('r', 4)
-      .attr('fill', colorScale(lineItem.session))
-      .style('cursor', 'pointer')
-      .on("mouseover", function(event, d) {
-        tooltip.style("visibility", "visible")
-               .text(`${d.avgTime.toFixed(2)} ms`)
+      .append("circle")
+      .attr("cx", (d) => xScale(d.addend))
+      .attr("cy", (d) => yScale(d.avgTime))
+      .attr("r", 4)
+      .attr("fill", colorScale(lineItem.session))
+      .style("cursor", "pointer")
+      .on("mouseover", function (event, d) {
+        tooltip.style("visibility", "visible").text(`${d.avgTime.toFixed(2)} ms`);
       })
-      .on("mousemove", function(event) {
-        tooltip.style("top", (event.pageY + 10) + "px")
-               .style("left", (event.pageX + 10) + "px")
+      .on("mousemove", function (event) {
+        tooltip
+          .style("top", `${event.pageY + 10}px`)
+          .style("left", `${event.pageX + 10}px`);
       })
-      .on("mouseout", function() {
-        tooltip.style("visibility", "hidden")
-      })
-  })
+      .on("mouseout", function () {
+        tooltip.style("visibility", "hidden");
+      });
+  });
 
-  
-
-  // Ajouter une légende
-  const legend = svg.selectAll('.legend')
+  // Légende à droite du graphique
+  const legend = svg
+    .selectAll(".legend")
     .data(sessions)
     .enter()
-    .append('g')
-    .attr('class', 'legend')
-    .attr('transform', (d, i) => `translate(${width - 100}, ${i * 20})`)
+    .append("g")
+    .attr("class", "legend")
+    .attr("transform", (d, i) => `translate(${width - 100}, ${i * 20})`);
 
-  legend.append('rect')
-    .attr('width', 18)
-    .attr('height', 18)
-    .attr('fill', colorScale)
+  legend.append("rect").attr("width", 18).attr("height", 18).attr("fill", colorScale);
 
-  legend.append('text')
-    .attr('x', 24)
-    .attr('y', 9)
-    .attr('dy', '.35em')
-    .style('font-size', '12px')
-    .text(d => `Session ${d}`)
-}
+  legend
+    .append("text")
+    .attr("x", 24)
+    .attr("y", 9)
+    .attr("dy", ".35em")
+    .style("font-size", "12px")
+    .text((d) => `Session ${d}`);
+};
 
-// Redessiner quand les données changent
+// Le graphique se met à jour dès que les données changent
 watch(() => props.data, async () => {
-  await new Promise(resolve => setTimeout(resolve, 100))
-  drawChart()
-}, { deep: true, immediate: true })
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  drawChart();
+}, { deep: true, immediate: true });
 
 onMounted(async () => {
-  await new Promise(resolve => setTimeout(resolve, 50))
-  drawChart()
-})
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  drawChart();
+});
 </script>
 
 <template>
