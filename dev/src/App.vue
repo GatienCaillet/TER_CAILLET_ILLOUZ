@@ -75,13 +75,17 @@ const handleImportData = () =>
 
 // Transforme les lignes importees en stimuli pour le modèle
 // Le temps n’est pas inclus car le modèle doit le prédire
-  const buildStimuli = () =>
-  data.value.map((equation) => ({
+const buildStimuli = (rows = data.value) =>
+  rows.map((equation) => ({
     augend: String(equation.augend ?? "").trim(),
     addend: Number(equation.addend),
     result: String(equation.result ?? "").trim(),
     session: Number(equation.session ?? 1),
   }));
+
+const currentInputEquations = computed(() =>
+  equations.value.length > 0 ? equations.value : data.value,
+);
 
 // Label dynamique du bouton d'import de données selon qu'il y a déjà des données importées ou pas
 const labelImportData = computed(() =>
@@ -310,23 +314,21 @@ const handleGenerateEquations = () => {
   equations.value = generatedEquations;
 };
 
-// Lance le modèle de calcul sur les données importées
+// Lance le modèle de calcul sur les données importées ou générées
 const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
-  if (!data.value.length) {
+  if (!data.value.length && !equations.value.length) {
     console.warn(
-      "Aucun stimulus importé. Importez des équations avant de lancer le modèle.",
+      "Aucun stimulus importé ni aucune équation générée. Importez ou générez des équations avant de lancer le modèle.",
     );
     dataResults.value = [];
     return;
   }
 
   try {
-    // Construire les stimuli à partir des données importées pour les passer au modèle
-    const stimuli = buildStimuli();
-    // Lancer le modèle avec les paramètres d'initialisation et d'estimation fournis
+    const sourceEquations = equations.value.length > 0 ? equations.value : data.value;
+    const stimuli = buildStimuli(sourceEquations);
     const model = new Model(paramsInit, paramsEstim, stimuli);
 
-    // Le modèle calcule les temps de réponse pour chaque stimulus
     model.calculEveryStimulusTime(stimuli);
 
     dataResults.value = model.results.map((result, index) => ({
@@ -591,7 +593,7 @@ onBeforeUnmount(() => {
             :best-estimated-params="bestEstimatedParams"
             :estimation-results-rows="estimationResultsRows"
             :is-estimating="isEstimating"
-            :data-imported="data"
+            :data-imported="currentInputEquations"
             @launch-estimation="handleLaunchEstimation"
             @launch-model="handleLaunchModel"
           />

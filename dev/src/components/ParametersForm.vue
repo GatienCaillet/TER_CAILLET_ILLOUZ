@@ -133,7 +133,7 @@ const errorMessage = ref("");
 const alertMessage = ref("");
 const alertMessageModel = ref("");
 
-const hasImportedData = computed(() => props.dataImported.length > 0);
+const hasImportedData = computed(() => props.dataImported.length > 0 );
 
 // Met en évidence les valeurs extrêmes dans les résultats 
 const estimationResultsDisplayRows = computed(() => {
