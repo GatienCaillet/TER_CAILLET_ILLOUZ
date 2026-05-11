@@ -5,6 +5,7 @@ import ParametersForm from "./components/ParametersForm.vue";
 import GraphicsResult from "./components/GraphicsResult.vue";
 import { useDataImporter } from "./composables/useDataImporter.js";
 import { Model } from "./model/Model";
+import BaseButton from "./components/BaseButton.vue";
 
 // Définition des colonnes pour le tableau des équations à donner au modèle
 const equationCols = [
@@ -36,6 +37,9 @@ const isImportingData = ref(false);
 const MIN_LOADING_DURATION_MS = 700;
 const mainScrollRef = ref(null);
 const currentSectionIndex = ref(0);
+
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const showEquationLists = ref(false);
 
 const hasResults = computed(() => dataResults.value.length > 0);
 const totalSections = computed(() => (hasResults.value ? 3 : 2));
@@ -239,6 +243,10 @@ const handleCloseLoadingOverlay = () => {
   currentEstimationModel.value = null;
 };
 
+const handleGenerateEquationList = () => {
+  showEquationLists.value = !showEquationLists.value;
+};
+
 // Logique pour lancer le modèle : le Model lit directement les descriptors ou les valeurs simples
 const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
@@ -362,6 +370,21 @@ onBeforeUnmount(() => {
   padding-top: 3rem;
 }
 
+.equation-lists {
+  font-size: 0.875rem;
+}
+
+.augend-list .list-group-item,
+.addend-list .list-group-item {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.augend-list, .addend-list {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -431,14 +454,59 @@ onBeforeUnmount(() => {
         </h2>
         <div class="section-card">
           <div class="d-flex flex-column flex-lg-row justify-content-around">
-            <BaseDataTable
-              title="Aperçu des équations"
-              buttonLabel="Importer les équations"
-              :rows="equations"
-              :columns="equationCols"
-              :is-loading="isImportingEquations"
-              @import="handleImportEquations"
-            />
+            <div>
+              <BaseButton
+                variant="btn btn-outline-primary mb-3"
+                size="lg"
+                @click="handleGenerateEquationList"
+              >
+              Générer une liste d'équations
+              </BaseButton>
+
+              <!-- Liste des augends et addends -->
+              <div v-if="showEquationLists" class="equation-lists">
+                <label class="form-label">Sélectionnez les augends souhaités :</label>
+                <ul class="list-group list-group-horizontal-sm flex-wrap mb-3 augend-list">
+                  <li  class="list-group-item" 
+                    v-for="x in ALPHABET"
+                    :key="x"
+                  >
+                    <input class="form-check-input me-1" type="checkbox" :value="x" :id="x">
+                    <label class="form-check-label stretched-link" :for="x">{{ x }}</label>
+                  </li>    
+                </ul>
+
+                <label class="form-label">Sélectionnez les addends souhaités :</label>
+                <ul class="list-group list-group-horizontal-sm addend-list mb-3">
+                  <li class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" value="2" id="2">
+                    <label class="form-check-label stretched-link" for="2">2</label>
+                  </li>
+                  <li class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" value="3" id="3">
+                    <label class="form-check-label stretched-link" for="3">3</label>
+                  </li>
+                  <li class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" value="4" id="4">
+                    <label class="form-check-label stretched-link" for="4">4</label>
+                  </li>
+                  <li class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" value="5" id="5">
+                    <label class="form-check-label stretched-link" for="5">5</label>
+                  </li>
+                </ul>
+              </div>
+
+              <BaseDataTable
+                title="Aperçu des équations"
+                buttonLabel="Valider"
+                size="sm"
+                :rows="equations"
+                :columns="equationCols"
+                :is-loading="isImportingEquations"
+                @import="handleImportEquations"
+              />
+            </div>
 
             <BaseDataTable
               title="Aperçu de vos données"
