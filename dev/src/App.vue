@@ -426,6 +426,15 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
 }
 
+.first-section-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .results-section {
   justify-content: flex-start;
   padding-top: 3rem;
@@ -514,7 +523,7 @@ onBeforeUnmount(() => {
           Cette application vous permet, à partir de données de participants,
           d'optimiser les paramètres d'estimation et de générer les temps de réponse du modèle avec leur représentation graphique.
         </h2>
-        <div class="section-card">
+        <div class="first-section-card">
           <div class="d-flex flex-column flex-lg-row justify-content-around">
             <div>
               <BaseButton
