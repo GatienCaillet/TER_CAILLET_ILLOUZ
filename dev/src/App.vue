@@ -40,6 +40,8 @@ const currentSectionIndex = ref(0);
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const showEquationLists = ref(false);
+const selectedAugends = ref([]);
+const selectedAddends = ref([]);
 
 const hasResults = computed(() => dataResults.value.length > 0);
 const totalSections = computed(() => (hasResults.value ? 3 : 2));
@@ -279,6 +281,40 @@ const handleGenerateEquationList = () => {
   showEquationLists.value = !showEquationLists.value;
 };
 
+const handleGenerateEquations = () => {
+  if (selectedAugends.value.length === 0 || selectedAddends.value.length === 0) {
+    alert("Veuillez sélectionner au moins un augend et un addend");
+    return;
+  }
+
+  const generatedEquations = [];
+  let id = 1;
+
+  selectedAugends.value.forEach(augend => {
+    selectedAddends.value.forEach(addend => {
+      // Calcul du résultat : position de l'augend dans l'alphabet + addend
+      const augendIndex = augend.charCodeAt(0) - 65; // A=0, B=1, etc.
+      const resultIndex = augendIndex + parseInt(addend);
+      
+      // Vérifier que le résultat ne dépasse pas Z
+      if (resultIndex > 25) {
+        return; // Skip cette combinaison
+      }
+      
+      const result = String.fromCharCode(65 + resultIndex);
+      
+      generatedEquations.push({
+        id: id++,
+        augend: augend,
+        addend: parseInt(addend),
+        result: result
+      });
+    });
+  });
+
+  equations.value = generatedEquations;
+};
+
 // Lance le modèle de calcul sur les données importées
 const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
   if (!data.value.length) {
@@ -500,7 +536,7 @@ onBeforeUnmount(() => {
                     v-for="x in ALPHABET"
                     :key="x"
                   >
-                    <input class="form-check-input me-1" type="checkbox" :value="x" :id="x">
+                    <input class="form-check-input me-1" type="checkbox" :value="x" :id="x" v-model="selectedAugends">
                     <label class="form-check-label stretched-link" :for="x">{{ x }}</label>
                   </li>    
                 </ul>
@@ -508,19 +544,19 @@ onBeforeUnmount(() => {
                 <label class="form-label">Sélectionnez les addends souhaités :</label>
                 <ul class="list-group list-group-horizontal-sm addend-list mb-3">
                   <li class="list-group-item">
-                    <input class="form-check-input me-1" type="checkbox" value="2" id="2">
+                    <input class="form-check-input me-1" type="checkbox" value="2" id="2" v-model="selectedAddends">
                     <label class="form-check-label stretched-link" for="2">2</label>
                   </li>
                   <li class="list-group-item">
-                    <input class="form-check-input me-1" type="checkbox" value="3" id="3">
+                    <input class="form-check-input me-1" type="checkbox" value="3" id="3" v-model="selectedAddends">
                     <label class="form-check-label stretched-link" for="3">3</label>
                   </li>
                   <li class="list-group-item">
-                    <input class="form-check-input me-1" type="checkbox" value="4" id="4">
+                    <input class="form-check-input me-1" type="checkbox" value="4" id="4" v-model="selectedAddends">
                     <label class="form-check-label stretched-link" for="4">4</label>
                   </li>
                   <li class="list-group-item">
-                    <input class="form-check-input me-1" type="checkbox" value="5" id="5">
+                    <input class="form-check-input me-1" type="checkbox" value="5" id="5" v-model="selectedAddends">
                     <label class="form-check-label stretched-link" for="5">5</label>
                   </li>
                 </ul>
@@ -533,7 +569,7 @@ onBeforeUnmount(() => {
                 :rows="equations"
                 :columns="equationCols"
                 :is-loading="isImportingEquations"
-                @import="handleImportEquations"
+                @import="handleGenerateEquations"
               />
             </div>
 
