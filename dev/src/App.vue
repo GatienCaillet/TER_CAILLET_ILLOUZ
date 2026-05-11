@@ -282,23 +282,18 @@ const handleGenerateEquationList = () => {
 };
 
 const handleGenerateEquations = () => {
-  if (selectedAugends.value.length === 0 || selectedAddends.value.length === 0) {
-    alert("Veuillez sélectionner au moins un augend et un addend");
-    return;
-  }
-
   const generatedEquations = [];
   let id = 1;
 
   selectedAugends.value.forEach(augend => {
     selectedAddends.value.forEach(addend => {
-      // Calcul du résultat : position de l'augend dans l'alphabet + addend
-      const augendIndex = augend.charCodeAt(0) - 65; // A=0, B=1, etc.
+      // Calculer le résultat de l'équation 
+      const augendIndex = augend.charCodeAt(0) - 65; // position de l'augend dans l'alphabet
       const resultIndex = augendIndex + parseInt(addend);
       
-      // Vérifier que le résultat ne dépasse pas Z
+      // Vérifie que le résultat ne dépasse pas Z
       if (resultIndex > 25) {
-        return; // Skip cette combinaison
+        return; // Ne tient pas compte de cette combinaison
       }
       
       const result = String.fromCharCode(65 + resultIndex);
@@ -565,7 +560,7 @@ onBeforeUnmount(() => {
               <BaseDataTable
                 title="Aperçu des équations"
                 buttonLabel="Valider"
-                size="sm"
+                :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
                 :rows="equations"
                 :columns="equationCols"
                 :is-loading="isImportingEquations"
