@@ -40,7 +40,6 @@ const mainScrollRef = ref(null);
 const currentSectionIndex = ref(0);
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const showEquationLists = ref(false);
 const selectedAugends = ref([]);
 const selectedAddends = ref([]);
 const numSessions = ref(1);
@@ -281,10 +280,6 @@ const handleCloseLoadingOverlay = () => {
   estimationProgress.value = { current: 0, total: 0 };
   loadingStartedAt.value = 0;
   currentEstimationModel.value = null;
-};
-
-const handleGenerateEquationList = () => {
-  showEquationLists.value = !showEquationLists.value;
 };
 
 const handleGenerateEquations = () => {
@@ -548,15 +543,16 @@ onBeforeUnmount(() => {
           <div class="d-flex flex-column flex-lg-row justify-content-around">
             <div>
               <BaseButton
-                variant="btn btn-outline-primary mb-3"
+                variant="btn btn-outline-primary mb-3 dropdown-toggle"
                 size="lg"
-                @click="handleGenerateEquationList"
+                data-bs-toggle="collapse"
+                data-bs-target="#equationParameters"
               >
               Générer une liste d'équations
               </BaseButton>
 
               <!-- Liste des augends -->
-              <div v-if="showEquationLists" class="equation-lists">
+              <div class="equation-lists collapse" id="equationParameters">
                 <label class="form-label">Sélectionnez les augends souhaités :</label>
                 <ul class="list-group list-group-horizontal-sm flex-wrap mb-3 augend-list">
                   <li  class="list-group-item" 
