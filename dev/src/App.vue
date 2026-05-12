@@ -13,6 +13,7 @@ const equationCols = [
   { key: "augend", label: "Augend" },
   { key: "addend", label: "Addend" },
   { key: "result", label: "Résultat" },
+  { key: "session", label: "Session" },
 ];
 
 // Les données importées reprennent ces colonnes avec deux champs supplémentaires
@@ -42,6 +43,7 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const showEquationLists = ref(false);
 const selectedAugends = ref([]);
 const selectedAddends = ref([]);
+const numSessions = ref(1);
 
 const hasResults = computed(() => dataResults.value.length > 0);
 const totalSections = computed(() => (hasResults.value ? 3 : 2));
@@ -289,6 +291,8 @@ const handleGenerateEquations = () => {
   const generatedEquations = [];
   let id = 1;
 
+  // Générer toutes les combinaisons uniques
+  const combinations = [];
   selectedAugends.value.forEach(augend => {
     selectedAddends.value.forEach(addend => {
       // Calculer le résultat de l'équation 
@@ -302,14 +306,29 @@ const handleGenerateEquations = () => {
       
       const result = String.fromCharCode(65 + resultIndex);
       
-      generatedEquations.push({
-        id: id++,
+      combinations.push({
         augend: augend,
         addend: parseInt(addend),
-        result: result
+        result: result, 
       });
     });
   });
+
+  // Mettre les combinaisons dans un ordre aléatoire pour chaque session
+  for (let session = 1; session <= numSessions.value; session++) {
+    // Mélanger les combinaisons pour cette session
+    const shuffledCombinations = [...combinations].sort(() => Math.random() - 0.5);
+    
+    shuffledCombinations.forEach(combination => {
+      generatedEquations.push({
+        id: id++,
+        augend: combination.augend,
+        addend: combination.addend,
+        result: combination.result,
+        session: session,
+      });
+    });
+  }
 
   equations.value = generatedEquations;
 };
