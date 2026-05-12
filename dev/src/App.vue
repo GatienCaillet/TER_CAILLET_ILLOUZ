@@ -306,11 +306,13 @@ const handleGenerateEquations = () => {
       
       const result = String.fromCharCode(65 + resultIndex);
       
-      combinations.push({
-        augend: augend,
-        addend: parseInt(addend),
-        result: result, 
-      });
+      for (let rep = 1; rep <= 3; rep++) {
+        combinations.push({
+          augend: augend,
+          addend: parseInt(addend),
+          result: result, 
+        });
+      }
     });
   });
 
