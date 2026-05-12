@@ -534,7 +534,7 @@ onBeforeUnmount(() => {
               Générer une liste d'équations
               </BaseButton>
 
-              <!-- Liste des augends et addends -->
+              <!-- Liste des augends -->
               <div v-if="showEquationLists" class="equation-lists">
                 <label class="form-label">Sélectionnez les augends souhaités :</label>
                 <ul class="list-group list-group-horizontal-sm flex-wrap mb-3 augend-list">
@@ -547,6 +547,7 @@ onBeforeUnmount(() => {
                   </li>    
                 </ul>
 
+                <!-- Liste des addends -->
                 <label class="form-label">Sélectionnez les addends souhaités :</label>
                 <ul class="list-group list-group-horizontal-sm addend-list mb-3">
                   <li class="list-group-item">
@@ -566,6 +567,10 @@ onBeforeUnmount(() => {
                     <label class="form-check-label stretched-link" for="5">5</label>
                   </li>
                 </ul>
+
+                <!-- Nombre de sessions -->
+                <label class="form-label">Indiquez le nombre de sessions souhaité :</label>
+                <input type="number" class="form-control mb-3" v-model="numSessions" min="1" max="100"/>
               </div>
 
               <BaseDataTable
