@@ -43,6 +43,7 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const selectedAugends = ref([]);
 const selectedAddends = ref([]);
 const numSessions = ref(1);
+const numRep = ref(1);
 
 const hasResults = computed(() => dataResults.value.length > 0);
 const totalSections = computed(() => (hasResults.value ? 3 : 2));
@@ -301,7 +302,7 @@ const handleGenerateEquations = () => {
       
       const result = String.fromCharCode(65 + resultIndex);
       
-      for (let rep = 1; rep <= 3; rep++) {
+      for (let rep = 1; rep <= numRep.value; rep++) {
         combinations.push({
           augend: augend,
           addend: parseInt(addend),
@@ -553,7 +554,7 @@ onBeforeUnmount(() => {
 
               <!-- Liste des augends -->
               <div class="equation-lists collapse" id="equationParameters">
-                <label class="form-label">Sélectionnez les augends souhaités :</label>
+                <label class="form-label">Sélectionnez les augends :</label>
                 <ul class="list-group list-group-horizontal-sm flex-wrap mb-3 augend-list">
                   <li  class="list-group-item" 
                     v-for="x in ALPHABET"
@@ -565,7 +566,7 @@ onBeforeUnmount(() => {
                 </ul>
 
                 <!-- Liste des addends -->
-                <label class="form-label">Sélectionnez les addends souhaités :</label>
+                <label class="form-label">Sélectionnez les addends :</label>
                 <ul class="list-group list-group-horizontal-sm addend-list mb-3">
                   <li class="list-group-item">
                     <input class="form-check-input me-1" type="checkbox" value="2" id="2" v-model="selectedAddends">
@@ -586,8 +587,12 @@ onBeforeUnmount(() => {
                 </ul>
 
                 <!-- Nombre de sessions -->
-                <label class="form-label">Indiquez le nombre de sessions souhaité :</label>
-                <input type="number" class="form-control mb-3" v-model="numSessions" min="1" max="100"/>
+                <label class="form-label">Indiquez le nombre de sessions :</label>
+                <input type="number" class="form-control mb-3" v-model="numSessions" min="1"/>
+
+                <!-- Nombre de répétition d'une équation au sein d'une session -->
+                <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session :</label>
+                <input type="number" class="form-control mb-3" v-model="numRep" min="1"/>
               </div>
 
               <BaseDataTable
