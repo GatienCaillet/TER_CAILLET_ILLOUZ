@@ -558,6 +558,44 @@ onBeforeUnmount(() => {
               Générer une liste d'équations
               </BaseButton>
 
+              <!-- Informations sur la génération des équations -->
+              <button
+                class="btn btn-outline-secondary btn-sm bi bi-info-lg mb-3 ms-2" 
+                type="button" 
+                title="Informations sur la génération des équations"
+                data-bs-toggle="modal" 
+                data-bs-target="#modalInfos" 
+              /> 
+              
+              <div
+                class="modal fade"
+                id="modalInfos"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Paramètres par défaut"
+                
+              >
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Informations sur la génération des équations</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p>
+                        Vous pouvez générer des données d'expérience en sélectionnant les augends et les addends que vous souhaitez inclure. Le résultat de chaque équation est calculé automatiquement (toutes les équations sont donc justes). Vous pouvez également spécifier le nombre de sessions et le nombre de répétitions pour chaque équation au sein d'une session. Les équations générées seront affichées dans un tableau d'aperçu avant d'être utilisées pour le lancement du modèle.
+                      </p>
+                      <p class="text-danger">
+                        Attention : en générant des équations, vous ne pourrez pas lancer d'estimation des paramètres, étant donné qu'il n'y a pas de temps de référence pour calculer des RMSE. Si vous souhaitez faire cela, vous devez importer des données existantes.
+                      </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    </div>
+                  </div>
+                </div>
+              </div>    
+
               <!-- Liste des augends -->
               <div class="equation-lists collapse" id="equationParameters">
                 <label class="form-label">Sélectionnez les augends :</label>
