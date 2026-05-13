@@ -562,19 +562,12 @@ onBeforeUnmount(() => {
               <button
                 class="btn btn-outline-secondary btn-sm bi bi-info-lg mb-3 ms-2 rounded-circle" 
                 type="button" 
-                title="Informations sur la génération des équations"
+                title="Informations sur la génération des données"
                 data-bs-toggle="modal" 
                 data-bs-target="#modalInfos" 
               /> 
               
-              <div
-                class="modal fade"
-                id="modalInfos"
-                role="dialog"
-                aria-modal="true"
-                aria-label="Paramètres par défaut"
-                
-              >
+              <div class="modal fade" id="modalInfos" role="dialog" aria-modal="true" aria-label="Informations sur la génération des données">
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
