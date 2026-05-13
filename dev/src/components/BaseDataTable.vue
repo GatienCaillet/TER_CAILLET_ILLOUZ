@@ -10,6 +10,8 @@ const props = defineProps({
   columns: { type: Array, required: true },
   isLoading: { type: Boolean, default: false },
   hideButtonWhenEmpty: { type: Boolean, default: false },
+  clearable: { type: Boolean, default: false },
+  buttonDisabled: { type: Boolean, default: false },
   sortable: { type: Boolean, default: false },
   initialSortKey: { type: String, default: null },
   initialSortDirection: { type: String, default: "asc" },
@@ -90,21 +92,32 @@ const sortIndicator = (key) => {
   return sortDirection.value === "asc" ? " ▲" : " ▼";
 };
 
-// Le parent déclenche l'import via cet événement
-defineEmits(["import"]);
+// Le parent déclenche les actions d'import et de suppression via ces événements
+defineEmits(["import", "clear"]);
 </script>
 
 <template>
   <div class="table-wrapper">
-    <BaseButton
-      v-if="!hideButtonWhenEmpty || rows.length"
-      :disabled="isLoading"
-      size="lg"
-      variant="btn btn-outline-primary"
-      @click="$emit('import')"
-    >
-      {{ buttonLabel }}
-    </BaseButton>
+    <div class="d-flex gap-2 align-items-center">
+      <BaseButton
+        v-if="!hideButtonWhenEmpty || rows.length"
+        :disabled="isLoading || buttonDisabled"
+        size="lg"
+        variant="btn btn-outline-primary"
+        @click="$emit('import')"
+      >
+        {{ buttonLabel }}
+      </BaseButton>
+
+      <BaseButton
+        v-if="clearable && rows.length"
+        size="sm"
+        variant="btn btn-outline-secondary"
+        @click="$emit('clear')"
+      >
+        Supprimer les données
+      </BaseButton>
+    </div>
 
     <div v-if="title && rows.length">{{ title }} :</div>
 

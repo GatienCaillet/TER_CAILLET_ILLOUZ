@@ -75,6 +75,14 @@ const handleImportData = () =>
     },
   });
 
+const handleClearTable = (table) => {
+  if (table === "equations") {
+    equations.value = [];
+  } else if (table === "data") {
+    data.value = [];
+  } 
+};
+
 // Transforme les lignes importees en stimuli pour le modèle
 // Le temps n’est pas inclus car le modèle doit le prédire
 const buildStimuli = (rows = data.value) =>
@@ -554,6 +562,7 @@ onBeforeUnmount(() => {
                 size="lg"
                 data-bs-toggle="collapse"
                 data-bs-target="#equationParameters"
+                :disabled="data.length > 0"
               >
               Générer une liste d'équations
               </BaseButton>
@@ -639,7 +648,9 @@ onBeforeUnmount(() => {
                 :rows="equations"
                 :columns="equationCols"
                 :is-loading="isImportingEquations"
+                :clearable="true"
                 @import="handleGenerateEquations"
+                @clear="handleClearTable('equations')"
               />
             </div>
 
@@ -649,7 +660,10 @@ onBeforeUnmount(() => {
               :rows="data"
               :columns="dataCols"
               :is-loading="isImportingData"
+              :clearable="true"
+              :button-disabled="equations.length > 0"
               @import="handleImportData"
+              @clear="handleClearTable('data')"
             />
           </div>
         </div>
