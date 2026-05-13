@@ -560,7 +560,7 @@ onBeforeUnmount(() => {
 
               <!-- Informations sur la génération des équations -->
               <button
-                class="btn btn-outline-secondary btn-sm bi bi-info-lg mb-3 ms-2" 
+                class="btn btn-outline-secondary btn-sm bi bi-info-lg mb-3 ms-2 rounded-circle" 
                 type="button" 
                 title="Informations sur la génération des équations"
                 data-bs-toggle="modal" 
@@ -638,7 +638,7 @@ onBeforeUnmount(() => {
                 <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session :</label>
                 <input type="number" class="form-control mb-3" v-model="numRep" min="1"/>
               </div>
-
+              
               <BaseDataTable
                 title="Aperçu des équations"
                 buttonLabel="Valider"
