@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import BaseDataTable from "./components/BaseDataTable.vue";
 import GraphicsResult from "./components/GraphicsResult.vue";
 import ParametersForm from "./components/ParametersForm.vue";
@@ -66,7 +66,20 @@ const handleImportEquations = () =>
     },
   });
 
-// Gère le bouton "Importer les données existantes"
+// Ferme le bouton "Générer des équations" quand des données sont importées
+const closeEquationCollapse = () => {
+  const collapse = document.querySelector("#equationParameters");
+  const toggle = document.querySelector('[data-bs-target="#equationParameters"]');
+
+  if (!collapse || !toggle) {
+    return;
+  }
+
+  collapse.classList.remove("show");
+  toggle.setAttribute("aria-expanded", "false");
+  toggle.classList.add("collapsed");
+};
+
 const handleImportData = () =>
   importData(data, {
     onStart: () => {
@@ -74,8 +87,15 @@ const handleImportData = () =>
     },
     onDone: () => {
       isImportingData.value = false;
+      closeEquationCollapse();
     },
   });
+
+watch(data, (newData) => {
+  if (newData.length > 0) {
+    closeEquationCollapse();
+  }
+});
 
 const handleClearTable = (table) => {
   if (table === "equations") {
