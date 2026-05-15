@@ -29,6 +29,14 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  hasImportedData: {
+    type: Boolean,
+    default: false,
+  },
+  hasGeneratedData: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const toNumber = (value, fallback) => {
@@ -195,8 +203,8 @@ const estimationResultCols = [
 const errorMessage = ref("");
 const alertMessage = ref("");
 const alertMessageModel = ref("");
-
-const hasImportedData = computed(() => props.dataImported.length > 0 );
+const hasImportedData = computed(() => props.hasImportedData);
+const isRangeDisabled = computed(() => !props.hasGeneratedData);
 
 // Met en évidence les valeurs extrêmes dans les résultats 
 const estimationResultsDisplayRows = computed(() => {
@@ -553,6 +561,7 @@ defineExpose({ setParamsEstim });
               :id="item.id"
               :label="item.label"
               :show-range="true"
+              :range-disabled="isRangeDisabled"
             />
           </div>
         </div>

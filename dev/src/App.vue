@@ -47,6 +47,8 @@ const numRep = ref(1);
 
 const hasResults = computed(() => dataResults.value.length > 0);
 const totalSections = computed(() => (hasResults.value ? 3 : 2));
+const hasImportedData = computed(() => data.value.length > 0);
+const hasGeneratedData = computed(() => equations.value.length > 0 && data.value.length === 0);
 
 // === Import des donnees ===
 
@@ -681,6 +683,8 @@ onBeforeUnmount(() => {
             :estimation-results-rows="estimationResultsRows"
             :is-estimating="isEstimating"
             :data-imported="currentInputEquations"
+            :has-imported-data="hasImportedData"
+            :has-generated-data="hasGeneratedData"
             @launch-estimation="handleLaunchEstimation"
             @launch-model="handleLaunchModel"
           />

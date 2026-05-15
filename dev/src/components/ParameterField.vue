@@ -15,6 +15,10 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  rangeDisabled: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Tous les changements de valeur remontent au parent via ces événements
@@ -45,14 +49,19 @@ defineEmits([
         :checked="enabled"
         class="form-check-input"
         type="checkbox"
+        :disabled="rangeDisabled"
         @click.stop
         @change="$emit('update:enabled', $event.target.checked)"
       />
 
       <fieldset
         class="d-flex flex-row gap-2 align-items-center border-3 p-0 m-0"
-        :class="{ 'opacity-50': !enabled, 'cursor-pointer': !enabled }"
-        @click="!enabled && $emit('update:enabled', true)"
+        :class="{
+          'opacity-50': !enabled || rangeDisabled,
+          'cursor-pointer': !enabled && !rangeDisabled,
+          'cursor-not-allowed': rangeDisabled,
+        }"
+        @click="!enabled && !rangeDisabled && $emit('update:enabled', true)"
       >
       <!-- &nbsp; est un espace inseparable pour éviter le retour a la ligne -->
         <label class="shrink-0">Min&nbsp;:</label>
@@ -62,7 +71,8 @@ defineEmits([
             :value="min"
             class="form-control"
             type="number"
-            @focus="!enabled && $emit('update:enabled', true)"
+            :disabled="rangeDisabled"
+            @focus="!enabled && !rangeDisabled && $emit('update:enabled', true)"
             @input="$emit('update:min', $event.target.valueAsNumber)"
           />
         </div>
@@ -74,7 +84,8 @@ defineEmits([
             :value="max"
             class="form-control"
             type="number"
-            @focus="!enabled && $emit('update:enabled', true)"
+            :disabled="rangeDisabled"
+            @focus="!enabled && !rangeDisabled && $emit('update:enabled', true)"
             @input="$emit('update:max', $event.target.valueAsNumber)"
           />
         </div>
@@ -88,7 +99,8 @@ defineEmits([
             min="1"
             step="1"
             type="number"
-            @focus="!enabled && $emit('update:enabled', true)"
+            :disabled="rangeDisabled"
+            @focus="!enabled && !rangeDisabled && $emit('update:enabled', true)"
             @input="$emit('update:pas', $event.target.valueAsNumber)"
           />
         </div>
