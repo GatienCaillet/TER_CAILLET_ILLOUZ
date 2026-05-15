@@ -564,6 +564,8 @@ onBeforeUnmount(() => {
                 size="lg"
                 data-bs-toggle="collapse"
                 data-bs-target="#equationParameters"
+                aria-expanded="false"
+                aria-controls="equationParameters"
                 :disabled="data.length > 0"
               >
               Générer une liste d'équations
@@ -641,19 +643,19 @@ onBeforeUnmount(() => {
                 <!-- Nombre de répétition d'une équation au sein d'une session -->
                 <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session :</label>
                 <input type="number" class="form-control mb-3" v-model="numRep" min="1"/>
-              </div>
               
-              <BaseDataTable
-                title="Aperçu des équations"
-                buttonLabel="Valider"
-                :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
-                :rows="equations"
-                :columns="equationCols"
-                :is-loading="isImportingEquations"
-                :clearable="true"
-                @import="handleGenerateEquations"
-                @clear="handleClearTable('equations')"
-              />
+                <BaseDataTable
+                  title="Aperçu des équations"
+                  buttonLabel="Valider"
+                  :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
+                  :rows="equations"
+                  :columns="equationCols"
+                  :is-loading="isImportingEquations"
+                  :clearable="true"
+                  @import="handleGenerateEquations"
+                  @clear="handleClearTable('equations')"
+                />
+              </div>
             </div>
 
             <BaseDataTable
