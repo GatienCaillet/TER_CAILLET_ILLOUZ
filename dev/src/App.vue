@@ -480,6 +480,10 @@ onBeforeUnmount(() => {
   min-height: 0;
 }
 
+.text-justify {
+  text-align: justify;
+}
+
 .section-title {
   margin-bottom: 1.5rem;
 }
@@ -622,8 +626,12 @@ onBeforeUnmount(() => {
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                     </div>
                     <div class="modal-body">
-                      <p>
-                        Vous pouvez générer des données d'expérience en sélectionnant les augends et les addends que vous souhaitez inclure. Le résultat de chaque équation est calculé automatiquement (toutes les équations sont donc justes). Vous pouvez également spécifier le nombre de sessions et le nombre de répétitions pour chaque équation au sein d'une session. Les équations générées seront affichées dans un tableau d'aperçu avant d'être utilisées pour le lancement du modèle.
+                      <p class="text-justify">
+                        Vous pouvez générer des données d'expérience en sélectionnant les augends et les addends 
+                        que vous souhaitez inclure. Le résultat de chaque équation est calculé automatiquement 
+                        (toutes les équations sont donc justes). Vous pouvez également spécifier le nombre de sessions 
+                        et le nombre de répétitions pour chaque équation au sein d'une session. Les équations générées 
+                        seront affichées dans un tableau d'aperçu avant d'être utilisées pour le lancement du modèle.
                       </p>
                       <p class="text-danger">
                         Attention : en générant des équations, vous ne pourrez pas lancer d'estimation des paramètres, étant donné qu'il n'y a pas de temps de référence pour calculer des RMSE. Si vous souhaitez faire cela, vous devez importer des données existantes.
