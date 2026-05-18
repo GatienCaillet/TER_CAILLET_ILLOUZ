@@ -115,21 +115,6 @@ const parseSpreadsheetRows = async (file) => {
 
 // Service d'import utilisé par l'application principale
 export function useDataImporter() {
-  const importEquations = (targetRef, callbacks = {}) => {
-    const { onStart, onDone } = callbacks;
-    console.log("Logique d'importation des équations en cours...");
-    onStart?.();
-
-    // TODO : Implémenter la logique d'importation réelle ici
-    setTimeout(() => {
-      targetRef.value = [
-        { id: 1, augend: "A", addend: 2, result: "C" },
-        { id: 2, augend: "B", addend: 4, result: "E" },
-        { id: 3, augend: "C", addend: 2, result: "E" },
-      ];
-      onDone?.();
-    }, 500);
-  };
 
   // Ouvre un sélecteur de fichier puis lit les données importées et les transforme pour correspondre au modèle de l'application
   const importData = async (targetRef, callbacks = {}) => {
@@ -189,7 +174,6 @@ export function useDataImporter() {
   };
 
   return {
-    importEquations,
-    importData,
+    importData
   };
 }

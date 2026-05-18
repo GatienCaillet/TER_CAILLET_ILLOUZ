@@ -50,21 +50,10 @@ const totalSections = computed(() => (hasResults.value ? 3 : 2));
 const hasImportedData = computed(() => data.value.length > 0);
 const hasGeneratedData = computed(() => equations.value.length > 0 && data.value.length === 0);
 
-// === Import des donnees ===
+// === Import des donnees et Génération d'équations ===
 
-// Import centralisé des données depuis le composable.
-const { importEquations, importData } = useDataImporter();
-
-// Gère le bouton "Importer les équations"
-const handleImportEquations = () =>
-  importEquations(equations, {
-    onStart: () => {
-      isImportingEquations.value = true;
-    },
-    onDone: () => {
-      isImportingEquations.value = false;
-    },
-  });
+// Import centralisé des données depuis le composable
+const { importData } = useDataImporter();
 
 // Ferme le bouton "Générer des équations" quand des données sont importées
 const closeEquationCollapse = () => {
@@ -96,6 +85,68 @@ watch(data, (newData) => {
     closeEquationCollapse();
   }
 });
+
+const scrollToEquationsPreview = () => {
+  const preview = document.getElementById("equationsPreview");
+  if (!preview) {
+    return;
+  }
+
+  preview.scrollIntoView({
+    behavior: "smooth",
+    block: "end",
+  });
+};
+
+const handleGenerateEquations = async () => {
+  const generatedEquations = [];
+  let id = 1;
+
+  // Générer toutes les combinaisons uniques
+  const combinations = [];
+  selectedAugends.value.forEach(augend => {
+    selectedAddends.value.forEach(addend => {
+      // Calculer le résultat de l'équation 
+      const augendIndex = augend.charCodeAt(0) - 65; // position de l'augend dans l'alphabet
+      const resultIndex = augendIndex + parseInt(addend);
+      
+      // Vérifie que le résultat ne dépasse pas Z
+      if (resultIndex > 25) {
+        return; // Ne tient pas compte de cette combinaison
+      }
+      
+      const result = String.fromCharCode(65 + resultIndex);
+      
+      for (let rep = 1; rep <= numRep.value; rep++) {
+        combinations.push({
+          augend: augend,
+          addend: parseInt(addend),
+          result: result, 
+        });
+      }
+    });
+  });
+
+  // Mettre les combinaisons dans un ordre aléatoire pour chaque session
+  for (let session = 1; session <= numSessions.value; session++) {
+    // Mélanger les combinaisons pour cette session
+    const shuffledCombinations = [...combinations].sort(() => Math.random() - 0.5);
+    
+    shuffledCombinations.forEach(combination => {
+      generatedEquations.push({
+        id: id++,
+        augend: combination.augend,
+        addend: combination.addend,
+        result: combination.result,
+        session: session,
+      });
+    });
+  }
+
+  equations.value = generatedEquations;
+  await nextTick();
+  scrollToEquationsPreview();
+};
 
 const handleClearTable = (table) => {
   if (table === "equations") {
@@ -319,68 +370,6 @@ const handleCloseLoadingOverlay = () => {
   currentEstimationModel.value = null;
 };
 
-const scrollToEquationsPreview = () => {
-  const preview = document.getElementById("equationsPreview");
-  if (!preview) {
-    return;
-  }
-
-  preview.scrollIntoView({
-    behavior: "smooth",
-    block: "end",
-  });
-};
-
-const handleGenerateEquations = async () => {
-  const generatedEquations = [];
-  let id = 1;
-
-  // Générer toutes les combinaisons uniques
-  const combinations = [];
-  selectedAugends.value.forEach(augend => {
-    selectedAddends.value.forEach(addend => {
-      // Calculer le résultat de l'équation 
-      const augendIndex = augend.charCodeAt(0) - 65; // position de l'augend dans l'alphabet
-      const resultIndex = augendIndex + parseInt(addend);
-      
-      // Vérifie que le résultat ne dépasse pas Z
-      if (resultIndex > 25) {
-        return; // Ne tient pas compte de cette combinaison
-      }
-      
-      const result = String.fromCharCode(65 + resultIndex);
-      
-      for (let rep = 1; rep <= numRep.value; rep++) {
-        combinations.push({
-          augend: augend,
-          addend: parseInt(addend),
-          result: result, 
-        });
-      }
-    });
-  });
-
-  // Mettre les combinaisons dans un ordre aléatoire pour chaque session
-  for (let session = 1; session <= numSessions.value; session++) {
-    // Mélanger les combinaisons pour cette session
-    const shuffledCombinations = [...combinations].sort(() => Math.random() - 0.5);
-    
-    shuffledCombinations.forEach(combination => {
-      generatedEquations.push({
-        id: id++,
-        augend: combination.augend,
-        addend: combination.addend,
-        result: combination.result,
-        session: session,
-      });
-    });
-  }
-
-  equations.value = generatedEquations;
-  await nextTick();
-  scrollToEquationsPreview();
-};
-
 // Lance le modèle de calcul sur les données importées ou générées
 const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
   if (!data.value.length && !equations.value.length) {
@@ -436,6 +425,8 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+
+/* Snap scrolling */
 .y-mandatory-scroll-snapping {
   scroll-snap-type: y mandatory;
   overflow-y: auto;
@@ -480,14 +471,17 @@ onBeforeUnmount(() => {
   min-height: 0;
 }
 
+/* Texte justifié */
 .text-justify {
   text-align: justify;
 }
 
+/* Titres de section */
 .section-title {
   margin-bottom: 1.5rem;
 }
 
+/* Cartes de section */
 .section-card {
   background: rgba(255, 255, 255, 0.92);
   border-radius: 1.25rem;
@@ -497,6 +491,7 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
 }
 
+/* Carte de la première section */
 .first-section-card {
   background: rgba(255, 255, 255, 0.92);
   border-radius: 1.25rem;
@@ -506,11 +501,13 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
 }
 
+/* Section des résultats */
 .results-section {
   justify-content: flex-start;
   padding-top: 3rem;
 }
 
+/* Listes d'équations */
 .equation-lists {
   font-size: 0.875rem;
 }
@@ -526,6 +523,7 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(7, 1fr);
 }
 
+/* Overlay de chargement */
 .loading-overlay {
   position: fixed;
   inset: 0;
