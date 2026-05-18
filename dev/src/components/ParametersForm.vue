@@ -638,7 +638,7 @@ defineExpose({ setParamsEstim });
         <BaseButton
           size="lg"
           variant="btn btn-primary"
-          :disabled="isEstimating || rhoModelError || alertMessageModel || !hasImportedData"
+          :disabled="isEstimating || rhoModelError || alertMessageModel || (!hasImportedData && !hasGeneratedData)"
           @click.prevent="emitLaunchModel"
         >
           Lancer le modèle
