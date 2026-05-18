@@ -204,7 +204,7 @@ const errorMessage = ref("");
 const alertMessage = ref("");
 const alertMessageModel = ref("");
 const hasImportedData = computed(() => props.hasImportedData);
-const isRangeDisabled = computed(() => props.hasGeneratedData);
+const hasGeneratedData = computed(() => props.hasGeneratedData);
 
 // Met en évidence les valeurs extrêmes dans les résultats 
 const estimationResultsDisplayRows = computed(() => {
@@ -561,7 +561,7 @@ defineExpose({ setParamsEstim });
               :id="item.id"
               :label="item.label"
               :show-range="true"
-              :range-disabled="isRangeDisabled"
+              :range-disabled="hasGeneratedData"
             />
           </div>
         </div>
