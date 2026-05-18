@@ -319,7 +319,19 @@ const handleCloseLoadingOverlay = () => {
   currentEstimationModel.value = null;
 };
 
-const handleGenerateEquations = () => {
+const scrollToEquationsPreview = () => {
+  const preview = document.getElementById("equationsPreview");
+  if (!preview) {
+    return;
+  }
+
+  preview.scrollIntoView({
+    behavior: "smooth",
+    block: "end",
+  });
+};
+
+const handleGenerateEquations = async () => {
   const generatedEquations = [];
   let id = 1;
 
@@ -365,6 +377,8 @@ const handleGenerateEquations = () => {
   }
 
   equations.value = generatedEquations;
+  await nextTick();
+  scrollToEquationsPreview();
 };
 
 // Lance le modèle de calcul sur les données importées ou générées
@@ -665,6 +679,7 @@ onBeforeUnmount(() => {
                 <input type="number" class="form-control mb-3" v-model="numRep" min="1"/>
               
                 <BaseDataTable
+                  id="equationsPreview"
                   title="Aperçu des équations"
                   buttonLabel="Valider"
                   :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
