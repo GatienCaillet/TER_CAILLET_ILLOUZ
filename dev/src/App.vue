@@ -662,6 +662,14 @@ onBeforeUnmount(() => {
                 </div>
               </div>    
 
+                            <div
+                v-if="data.length > 0"
+                class="alert alert-warning py-2 mb-3 data-format-hint"
+                role="alert"
+              >
+                Vous ne pouvez pas générer une liste d'équations car vous avez déjà importé des données.
+              </div>
+
               <!-- Liste des augends -->
               <div class="equation-lists collapse" id="equationParameters">
                 <label class="form-label">Sélectionnez les augends :</label>
@@ -731,11 +739,18 @@ onBeforeUnmount(() => {
                 @clear="handleClearTable('data')"
               />
               <p
-                v-if="data.length === 0"
+                v-if="data.length === 0 && equations.length === 0"
                 class="small text-muted mt-2 data-format-hint"
               >
                 Les données importées doivent être celles d'un participant avec au minimum les colonnes suivantes&nbsp;: Augend, Addend, Résultat, Session, Temps
               </p>
+              <div
+                v-if="equations.length > 0"
+                class="alert alert-warning py-2 mt-2 mb-0 data-format-hint"
+                role="alert"
+              >
+                Vous ne pouvez pas importer des données existantes car vous avez déjà généré une liste d'équations.
+              </div>
             </div>
           </div>
         </div>
