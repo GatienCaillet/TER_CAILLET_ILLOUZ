@@ -38,6 +38,7 @@ const isImportingData = ref(false);
 const MIN_LOADING_DURATION_MS = 700;
 const mainScrollRef = ref(null);
 const currentSectionIndex = ref(0);
+const isEquationOpen = ref(false);
 
 const alphabetWithoutYZ = "ABCDEFGHIJKLMNOPQRSTUVWX";
 const selectedAugends = ref([]);
@@ -67,6 +68,7 @@ const closeEquationCollapse = () => {
   collapse.classList.remove("show");
   toggle.setAttribute("aria-expanded", "false");
   toggle.classList.add("collapsed");
+  isEquationOpen.value = false;
 };
 
 const handleImportData = () =>
@@ -612,15 +614,16 @@ onBeforeUnmount(() => {
         </h2>
         <div class="first-section-card">
           <div class="d-flex flex-row justify-content-around">
-            <div>
+            <div :class="isEquationOpen ? 'dropup' : 'dropdown'">
               <BaseButton
                 variant="btn btn-outline-primary mb-3 dropdown-toggle"
                 size="lg"
                 data-bs-toggle="collapse"
                 data-bs-target="#equationParameters"
-                aria-expanded="false"
+                :aria-expanded="isEquationOpen"
                 aria-controls="equationParameters"
                 :disabled="data.length > 0"
+                @click="isEquationOpen = !isEquationOpen"
               >
               Générer une liste d'équations
               </BaseButton>
