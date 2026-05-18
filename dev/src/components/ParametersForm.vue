@@ -337,7 +337,7 @@ const canLaunchEstimation = computed(() => validateEstimationParams());
 const rhoModelError = computed(() => {
   const rhoValue = Number(paramsEstimation.value.rho);
   if (!Number.isFinite(rhoValue) || rhoValue <= 0) {
-    return "La valeur de ρ : Taux de la diminution du temps de récupération selon la force de l'association doit être strictement positive.";
+    return "La valeur de ρ (taux de la diminution du temps de récupération selon la force de l'association) doit être strictement positive.";
   }
   return "";
 });
@@ -534,6 +534,7 @@ defineExpose({ setParamsEstim });
 
           <div class="gap-2 d-flex ms-5 mt-2">
             <BaseButton
+              v-if="!hasGeneratedData"
               size="md"
               variant="btn btn-primary"
               @click.prevent="configEstimation.forEach((item) => item.enabled = true)"
@@ -542,6 +543,7 @@ defineExpose({ setParamsEstim });
             </BaseButton>
 
             <BaseButton
+              v-if="!hasGeneratedData"
               variant="btn btn-outline-primary"
               @click.prevent="configEstimation.forEach((item) => item.enabled = false)"
             >
@@ -602,8 +604,12 @@ defineExpose({ setParamsEstim });
             {{ errorMessage }}
           </div>
 
-          <div v-if="!hasImportedData" class="alert alert-danger">
+          <div v-if="!hasImportedData && !hasGeneratedData" class="alert alert-danger">
             Aucune donnée importée. Veuillez en importer avant de lancer l'estimation des paramètres ou le modèle.
+          </div>
+
+          <div v-if="hasGeneratedData" class="alert alert-danger">
+            L'estimation des paramètres nécessite l'import de données existantes avec des temps de réponse (pour pouvoir calculer les RMSE).
           </div>
 
           <div v-if="alertMessage" class="alert alert-light">
@@ -631,7 +637,7 @@ defineExpose({ setParamsEstim });
           {{ alertMessageModel }}
         </div>
 
-        <div v-if="!hasImportedData" class="alert alert-danger">
+        <div v-if="!hasImportedData && !hasGeneratedData" class="alert alert-danger">
           Aucune donnée importée. Veuillez en importer avant de lancer le modèle.
         </div>
 
