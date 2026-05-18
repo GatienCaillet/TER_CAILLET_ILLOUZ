@@ -98,7 +98,7 @@ defineEmits(["import", "clear"]);
 
 <template>
   <div class="table-wrapper">
-    <div class="d-flex gap-2 align-items-center">
+    <div class="d-flex gap-2 align-items-center justify-content-center">
       <BaseButton
         v-if="!hideButtonWhenEmpty || rows.length"
         :disabled="isLoading || buttonDisabled"

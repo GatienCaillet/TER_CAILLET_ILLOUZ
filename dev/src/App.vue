@@ -102,6 +102,15 @@ const handleGenerateEquations = async () => {
   const generatedEquations = [];
   let id = 1;
 
+  const shuffleInPlace = (items) => {
+    for (let i = items.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+
+    return items;
+  };
+
   // Générer toutes les combinaisons uniques
   const combinations = [];
   selectedAugends.value.forEach(augend => {
@@ -130,7 +139,7 @@ const handleGenerateEquations = async () => {
   // Mettre les combinaisons dans un ordre aléatoire pour chaque session
   for (let session = 1; session <= numSessions.value; session++) {
     // Mélanger les combinaisons pour cette session
-    const shuffledCombinations = [...combinations].sort(() => Math.random() - 0.5);
+    const shuffledCombinations = shuffleInPlace([...combinations]);
     
     shuffledCombinations.forEach(combination => {
       generatedEquations.push({
@@ -553,6 +562,15 @@ onBeforeUnmount(() => {
   animation: spin 0.9s linear infinite;
 }
 
+.data-format-hint {
+  text-align: center;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  white-space: normal;
+  word-break: break-word;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -593,7 +611,7 @@ onBeforeUnmount(() => {
           d'optimiser les paramètres d'estimation et de générer les temps de réponse du modèle avec leur représentation graphique.
         </h2>
         <div class="first-section-card">
-          <div class="d-flex flex-column flex-lg-row justify-content-around">
+          <div class="d-flex flex-row justify-content-around">
             <div>
               <BaseButton
                 variant="btn btn-outline-primary mb-3 dropdown-toggle"
@@ -700,18 +718,25 @@ onBeforeUnmount(() => {
                 />
               </div>
             </div>
-
-            <BaseDataTable
-              title="Aperçu de vos données"
-              :buttonLabel="labelImportData"
-              :rows="data"
-              :columns="dataCols"
-              :is-loading="isImportingData"
-              :clearable="true"
-              :button-disabled="equations.length > 0"
-              @import="handleImportData"
-              @clear="handleClearTable('data')"
-            />
+            <div>
+              <BaseDataTable
+                title="Aperçu de vos données"
+                :buttonLabel="labelImportData"
+                :rows="data"
+                :columns="dataCols"
+                :is-loading="isImportingData"
+                :clearable="true"
+                :button-disabled="equations.length > 0"
+                @import="handleImportData"
+                @clear="handleClearTable('data')"
+              />
+              <p
+                v-if="data.length === 0"
+                class="small text-muted mt-2 data-format-hint"
+              >
+                Les données importées doivent être celles d'un participant avec au minimum les colonnes suivantes&nbsp;: Augend, Addend, Résultat, Session, Temps
+              </p>
+            </div>
           </div>
         </div>
       </div>
