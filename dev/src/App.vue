@@ -39,7 +39,7 @@ const MIN_LOADING_DURATION_MS = 700;
 const mainScrollRef = ref(null);
 const currentSectionIndex = ref(0);
 
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const alphabetWithoutYZ = "ABCDEFGHIJKLMNOPQRSTUVWX";
 const selectedAugends = ref([]);
 const selectedAddends = ref([]);
 const numSessions = ref(1);
@@ -617,7 +617,7 @@ onBeforeUnmount(() => {
                 data-bs-toggle="modal" 
                 data-bs-target="#modalInfos" 
               /> 
-              
+              <!-- Modal d'informations sur la génération des équations -->
               <div class="modal fade" id="modalInfos" role="dialog" aria-modal="true" aria-label="Informations sur la génération des données">
                 <div class="modal-dialog">
                   <div class="modal-content">
@@ -634,7 +634,9 @@ onBeforeUnmount(() => {
                         seront affichées dans un tableau d'aperçu avant d'être utilisées pour le lancement du modèle.
                       </p>
                       <p class="text-danger">
-                        Attention : en générant des équations, vous ne pourrez pas lancer d'estimation des paramètres, étant donné qu'il n'y a pas de temps de référence pour calculer des RMSE. Si vous souhaitez faire cela, vous devez importer des données existantes.
+                        Attention : en générant des équations, vous ne pourrez pas lancer d'estimation des paramètres, 
+                        étant donné qu'il n'y a pas de temps de référence pour calculer des RMSE. Si vous souhaitez faire cela, 
+                        vous devez importer des données existantes.
                       </p>
                     </div>
                     <div class="modal-footer">
@@ -649,7 +651,7 @@ onBeforeUnmount(() => {
                 <label class="form-label">Sélectionnez les augends :</label>
                 <ul class="list-group list-group-horizontal-sm flex-wrap mb-3 augend-list">
                   <li  class="list-group-item" 
-                    v-for="x in ALPHABET"
+                    v-for="x in alphabetWithoutYZ"
                     :key="x"
                   >
                     <input class="form-check-input me-1" type="checkbox" :value="x" :id="x" v-model="selectedAugends">
