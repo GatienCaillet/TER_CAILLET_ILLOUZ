@@ -204,7 +204,7 @@ const errorMessage = ref("");
 const alertMessage = ref("");
 const alertMessageModel = ref("");
 const hasImportedData = computed(() => props.hasImportedData);
-const isRangeDisabled = computed(() => !props.hasGeneratedData);
+const isRangeDisabled = computed(() => props.hasGeneratedData);
 
 // Met en évidence les valeurs extrêmes dans les résultats 
 const estimationResultsDisplayRows = computed(() => {
