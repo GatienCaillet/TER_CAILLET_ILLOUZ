@@ -20,7 +20,7 @@ const equationCols = [
 const dataCols = [
   ...equationCols,
   { key: "time", label: "Temps" },
-  { key: "session", label: "Session" },
+  
 ];
 
 // État principal de l'application.
@@ -79,7 +79,7 @@ const handleImportData = () =>
     onDone: () => {
       isImportingData.value = false;
       closeEquationCollapse();
-    },fermeture du coll
+    },
   });
 
 watch(data, (newData) => {
