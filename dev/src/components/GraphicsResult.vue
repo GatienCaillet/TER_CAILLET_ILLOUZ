@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import * as d3 from "d3";
 
 // Graphique de synthèse des temps mesurés par session et par addend
@@ -96,17 +96,26 @@ const drawChart = () => {
     .style("pointer-events", "none")
     .style("z-index", "1000");
 
+  const legendItems = sessions.map((session) => ({
+    session,
+    label: `Session ${session}`,
+  }));
+  const maxLegendLabel = Math.max(...legendItems.map((item) => item.label.length), 1);
+
   // Les dimensions s'adaptent à la largeur du conteneur
-  const margin = { top: 20, right: 30, bottom: 50, left: 60 };
-  const width = Math.max(600, containerRef.value?.clientWidth || 800) - margin.left - margin.right;
-  const height = 400 - margin.top - margin.bottom;
+  const margin = { top: 12, right: 30, bottom: 60, left: 60 };
+  const containerWidth = containerRef.value?.clientWidth || 800;
+  const legendWidth = Math.min(240, Math.max(140, Math.round(maxLegendLabel * 8 + 40)));
+  const width = Math.max(600, containerWidth) - margin.left - margin.right - legendWidth;
+  const svgHeight = svgRef.value?.clientHeight || window.innerHeight * 0.35;
+  const height = Math.max(220, svgHeight - margin.top - margin.bottom);
 
   // Nettoie le SVG pour éviter de superposer plusieurs rendus
   d3.select(svgRef.value).selectAll("*").remove();
 
   const svg = d3
     .select(svgRef.value)
-    .attr("width", width + margin.left + margin.right)
+    .attr("width", width + margin.left + margin.right + legendWidth)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -130,13 +139,15 @@ const drawChart = () => {
     .y((d) => yScale(d.avgTime));
 
   // Axe horizontal
+  const xAxisOffset = 0;
+
   svg
     .append("g")
-    .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(xScale))
+    .attr("transform", `translate(0,${height - xAxisOffset})`)
+    .call(d3.axisBottom(xScale).tickPadding(6))
     .append("text")
     .attr("x", width / 2)
-    .attr("y", 30)
+    .attr("y", 22)
     .attr("fill", "black")
     .attr("text-anchor", "middle")
     .text("Addend");
@@ -189,21 +200,25 @@ const drawChart = () => {
   // Légende à droite du graphique
   const legend = svg
     .selectAll(".legend")
-    .data(sessions)
+    .data(legendItems)
     .enter()
     .append("g")
     .attr("class", "legend")
-    .attr("transform", (d, i) => `translate(${width - 100}, ${i * 20})`);
+    .attr("transform", (d, i) => `translate(${width + 20}, ${i * 22})`);
 
-  legend.append("rect").attr("width", 18).attr("height", 18).attr("fill", colorScale);
+  legend
+    .append("rect")
+    .attr("width", 18)
+    .attr("height", 18)
+    .attr("fill", (d) => colorScale(d.session));
 
   legend
     .append("text")
     .attr("x", 24)
     .attr("y", 9)
     .attr("dy", ".35em")
-    .style("font-size", "12px")
-    .text((d) => `Session ${d}`);
+    .style("font-size", "11px")
+    .text((d) => d.label);
 };
 
 // Le graphique se met à jour dès que les données changent
@@ -215,18 +230,36 @@ watch(() => props.data, async () => {
 onMounted(async () => {
   await new Promise((resolve) => setTimeout(resolve, 50));
   drawChart();
+  window.addEventListener("resize", handleResize, { passive: true });
+});
+
+let resizeFrame = 0;
+const handleResize = () => {
+  if (resizeFrame) {
+    cancelAnimationFrame(resizeFrame);
+  }
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = 0;
+    drawChart();
+  });
+};
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", handleResize);
+  if (resizeFrame) {
+    cancelAnimationFrame(resizeFrame);
+  }
 });
 </script>
 
 <template>
-  <div class="graphics-container my-4" ref="containerRef">
+  <div class="graphics-container" ref="containerRef">
     <div v-if="data && data.length" class="chart-section">
-      <h3 class="text-center mb-3">{{ title }}</h3>
+      <h5 class="text-center mb-3">{{ title }}</h5>
       <svg ref="svgRef" class="chart-svg"></svg>
       
       <!-- Tableau récapitulatif -->
-      <div class="table-section mt-2">
-        <h5 class="mb-2">Moyennes des temps par session et addend (en ms)</h5>
+      <div class="table-section">
         <table class="table table-sm table-bordered">
           <thead class="table-light">
             <tr>
@@ -256,6 +289,7 @@ onMounted(async () => {
 <style scoped>
 .graphics-container {
   background: #f8f9fa;
+  max-height: 85vh;
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -263,10 +297,11 @@ onMounted(async () => {
 
 .chart-svg {
   width: 100%;
-  height: auto;
+  height: 35vh;
   background: white;
   border-radius: 4px;
   margin-bottom: 1rem;
+  overflow: visible;
 }
 
 .chart-section {
@@ -278,6 +313,8 @@ onMounted(async () => {
   background: white;
   padding: 1rem;
   border-radius: 4px;
+  max-height: 30vh;
+  overflow-y: auto;
 }
 
 .table {
