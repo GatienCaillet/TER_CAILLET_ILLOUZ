@@ -79,7 +79,7 @@ const handleImportData = () =>
     onDone: () => {
       isImportingData.value = false;
       closeEquationCollapse();
-    },
+    },fermeture du coll
   });
 
 watch(data, (newData) => {
@@ -665,7 +665,7 @@ onBeforeUnmount(() => {
                 </div>
               </div>    
 
-                            <div
+              <div
                 v-if="data.length > 0"
                 class="alert alert-warning py-2 mb-3 data-format-hint"
                 role="alert"
@@ -714,8 +714,9 @@ onBeforeUnmount(() => {
                 <!-- Nombre de répétition d'une équation au sein d'une session -->
                 <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session :</label>
                 <input type="number" class="form-control mb-3" v-model="numRep" min="1"/>
-              
-                <BaseDataTable
+              </div>
+
+              <BaseDataTable
                   id="equationsPreview"
                   title="Aperçu des équations"
                   buttonLabel="Valider"
@@ -726,8 +727,8 @@ onBeforeUnmount(() => {
                   :clearable="true"
                   @import="handleGenerateEquations"
                   @clear="handleClearTable('equations')"
+                  @click="closeEquationCollapse()"
                 />
-              </div>
             </div>
             <div>
               <BaseDataTable
