@@ -15,6 +15,7 @@ const props = defineProps({
   sortable: { type: Boolean, default: false },
   initialSortKey: { type: String, default: null },
   initialSortDirection: { type: String, default: "asc" },
+  maxHeight: { type: String, default: "100%" },
 });
 
 const normalizeDirection = (value) => (value === "desc" ? "desc" : "asc");
@@ -135,8 +136,8 @@ defineEmits(["import", "clear"]);
 
     <div
       v-else-if="rows.length"
-      class="table-responsive"
-      style="overflow-y: scroll; max-height: calc(100vh - 20rem)"
+      class="table-responsive table-scroll"
+      :style="{ maxHeight: props.maxHeight }"
     >
       <table class="table table-striped table-bordered">
         <thead class="sticky-top">
@@ -169,3 +170,25 @@ defineEmits(["import", "clear"]);
     </div>
   </div>
 </template>
+
+<style scoped>
+.table-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.table-scroll {
+  flex: 1 1 auto;
+  max-height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+.table-scroll .table {
+  margin-bottom: 0;
+}
+</style>

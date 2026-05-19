@@ -719,6 +719,7 @@ onBeforeUnmount(() => {
                   id="equationsPreview"
                   title="Aperçu des équations"
                   buttonLabel="Valider"
+                  max-height="50vh"
                   :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
                   :rows="equations"
                   :columns="equationCols"
@@ -733,6 +734,7 @@ onBeforeUnmount(() => {
               <BaseDataTable
                 title="Aperçu de vos données"
                 :buttonLabel="labelImportData"
+                max-height="50vh"
                 :rows="data"
                 :columns="dataCols"
                 :is-loading="isImportingData"
@@ -814,17 +816,18 @@ onBeforeUnmount(() => {
     <!-- === Affichage des resultats === -->
     <section v-if="hasResults" class="snap-section results-section">
       <div class="snap-section-inner container-lg">
-        <div class="section-card">
+        <div class="section-card d-flex flex-row gap-4 align-items-start justify-content-center">
           <BaseDataTable
             title="Tableau des résultats"
             buttonLabel="Sauvegarder les résultats"
+            max-height="70vh"
             :rows="dataResults"
             :columns="dataCols"
             @import="handleSaveResults"
           />
 
           <!-- Graphique des résultats -->
-          <GraphicsResult :data="dataResults" title="Graphique des résultats" />
+          <GraphicsResult :data="dataResults" title="Moyennes des temps par session et addend (en ms)" />
         </div>
       </div>
     </section>

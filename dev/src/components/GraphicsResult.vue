@@ -225,7 +225,7 @@ onMounted(async () => {
       <svg ref="svgRef" class="chart-svg"></svg>
       
       <!-- Tableau récapitulatif -->
-      <div class="table-section mt-4">
+      <div class="table-section mt-2">
         <h5 class="mb-2">Moyennes des temps par session et addend (en ms)</h5>
         <table class="table table-sm table-bordered">
           <thead class="table-light">
