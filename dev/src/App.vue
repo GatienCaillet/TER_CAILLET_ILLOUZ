@@ -951,6 +951,7 @@ onBeforeUnmount(() => {
             <BaseDataTable
               title="Tableau des résultats"
               buttonLabel="Sauvegarder les résultats"
+              :show-button="false"
               max-height="70vh"
               :rows="dataResults"
               :columns="dataCols"

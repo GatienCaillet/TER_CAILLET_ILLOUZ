@@ -9,6 +9,7 @@ const props = defineProps({
   rows: { type: Array, default: () => [] },
   columns: { type: Array, required: true },
   isLoading: { type: Boolean, default: false },
+  showButton: { type: Boolean, default: true },
   hideButtonWhenEmpty: { type: Boolean, default: false },
   clearable: { type: Boolean, default: false },
   buttonDisabled: { type: Boolean, default: false },
@@ -101,7 +102,7 @@ defineEmits(["import", "clear"]);
   <div class="table-wrapper">
     <div class="d-flex gap-2 align-items-center justify-content-center">
       <BaseButton
-        v-if="!hideButtonWhenEmpty || rows.length"
+        v-if="showButton && (!hideButtonWhenEmpty || rows.length)"
         :disabled="isLoading || buttonDisabled"
         size="lg"
         variant="btn btn-outline-primary"
