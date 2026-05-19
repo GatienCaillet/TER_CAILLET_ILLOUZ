@@ -535,7 +535,6 @@ defineExpose({ setParamsEstim });
           <div class="gap-2 d-flex ms-5 mt-2">
             <BaseButton
               v-if="!hasGeneratedData"
-              size="md"
               variant="btn btn-primary"
               @click.prevent="configEstimation.forEach((item) => item.enabled = true)"
             >

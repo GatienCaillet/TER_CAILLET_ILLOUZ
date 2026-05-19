@@ -88,18 +88,6 @@ watch(data, (newData) => {
   }
 });
 
-const scrollToEquationsPreview = () => {
-  const preview = document.getElementById("equationsPreview");
-  if (!preview) {
-    return;
-  }
-
-  preview.scrollIntoView({
-    behavior: "smooth",
-    block: "end",
-  });
-};
-
 const handleGenerateEquations = async () => {
   const generatedEquations = [];
   let id = 1;
@@ -155,8 +143,6 @@ const handleGenerateEquations = async () => {
   }
 
   equations.value = generatedEquations;
-  await nextTick();
-  scrollToEquationsPreview();
 };
 
 // Wrapper pour générer les équations puis fermer le panneau
