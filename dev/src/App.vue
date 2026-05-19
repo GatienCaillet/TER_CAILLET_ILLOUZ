@@ -111,6 +111,7 @@ const handleGenerateEquations = async () => {
       
       // Vérifie que le résultat ne dépasse pas Z
       if (resultIndex > 25) {
+        
         return; // Ne tient pas compte de cette combinaison
       }
       
@@ -179,6 +180,21 @@ const labelImportData = computed(() =>
     ? "Remplacer les données existantes"
     : "Importer les données existantes",
 );
+
+// Détecte les combinaisons d'augends et addends qui dépassent Z
+const invalidCombinations = computed(() => {
+  const invalid = [];
+  selectedAugends.value.forEach(augend => {
+    selectedAddends.value.forEach(addend => {
+      const augendIndex = augend.charCodeAt(0) - 65;
+      const resultIndex = augendIndex + parseInt(addend);
+      if (resultIndex > 25) {
+        invalid.push(`${augend} + ${addend}`);
+      }
+    });
+  });
+  return invalid;
+});
 
 // === Parametrage et lancement ===
 
@@ -558,7 +574,7 @@ onBeforeUnmount(() => {
 
 .data-format-hint {
   text-align: center;
-  max-width: 500px;
+  max-width: 400px;
   margin-left: auto;
   margin-right: auto;
   white-space: normal;
@@ -741,6 +757,17 @@ onBeforeUnmount(() => {
                 <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session :</label>
                 <input type="number" class="form-control mb-3" v-model="numRep" min="1"/>
 
+                <!-- Alerte pour les combinaisons invalides -->
+                <div 
+                  v-if="invalidCombinations.length > 0" 
+                  class="alert alert-warning mb-3 data-format-hint" 
+                  
+                  role="alert"
+                >
+                  <strong>Attention :</strong> Le résultat de certaines combinaisons dépasse Z. Celles-ci ne seront donc pas prises en compte dans le modèle. 
+                  (<code>{{ invalidCombinations.join(", ") }}</code>)
+                </div>
+
                 <BaseButton
                   variant="btn btn-outline-primary"
                   size="lg"
@@ -750,6 +777,8 @@ onBeforeUnmount(() => {
                 >
                 Valider 
                 </BaseButton>
+
+                
               </div>
 
               <div v-if="equations.length > 0" style="overflow-y: auto;">
