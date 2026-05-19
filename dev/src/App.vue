@@ -682,6 +682,22 @@ onBeforeUnmount(() => {
               <!-- Liste des augends -->
               <div class="equation-lists collapse" id="equationParameters">
                 <label class="form-label">Sélectionnez les augends :</label>
+                <div class="mb-2 d-flex gap-2">
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-primary"
+                    @click="selectedAugends = alphabetWithoutYZ.split('')"
+                  >
+                    Tout sélectionner
+                  </BaseButton>
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-primary"
+                    @click="selectedAugends = []"
+                  >
+                    Tout désélectionner
+                  </BaseButton>
+                </div>
                 <ul class="list-group list-group-horizontal-sm flex-wrap mb-3 augend-list">
                   <li  class="list-group-item" 
                     v-for="x in alphabetWithoutYZ"
@@ -694,6 +710,24 @@ onBeforeUnmount(() => {
 
                 <!-- Liste des addends -->
                 <label class="form-label">Sélectionnez les addends :</label>
+
+                <div class="mb-2 d-flex gap-2">
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-primary"
+                    @click="selectedAddends = ['2', '3', '4', '5']"
+                  >
+                    Tout sélectionner
+                  </BaseButton>
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-primary"
+                    @click="selectedAddends = []"
+                  >
+                    Tout désélectionner
+                  </BaseButton>
+                </div>
+
                 <ul class="list-group list-group-horizontal-sm addend-list mb-3">
                   <li class="list-group-item">
                     <input class="form-check-input me-1" type="checkbox" value="2" id="2" v-model="selectedAddends">
