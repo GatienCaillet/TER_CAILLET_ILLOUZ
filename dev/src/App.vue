@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import BaseDataTable from "./components/BaseDataTable.vue";
 import GraphicsResult from "./components/GraphicsResult.vue";
 import ParametersForm from "./components/ParametersForm.vue";
-import { useDataImporter } from "./composables/useDataImporter.js";
+import { useDataIO } from "./composables/useDataIO.js";
 import { Model } from "./model/Model";
 import BaseButton from "./components/BaseButton.vue";
 
@@ -54,7 +54,7 @@ const hasGeneratedData = computed(() => equations.value.length > 0 && data.value
 // === Import des donnees et Génération d'équations ===
 
 // Import centralisé des données depuis le composable
-const { importData } = useDataImporter();
+const { importData, exportTable } = useDataIO();
 
 // Ferme le bouton "Générer des équations" quand des données sont importées
 const closeEquationCollapse = () => {
@@ -80,6 +80,13 @@ const handleImportData = () =>
       isImportingData.value = false;
       closeEquationCollapse();
     },
+  });
+
+const handleExportTable = (rows, columns, filename, format) =>
+  exportTable(rows, {
+    columns,
+    filename,
+    format,
   });
 
 watch(data, (newData) => {
@@ -790,6 +797,36 @@ onBeforeUnmount(() => {
                     </tbody>
                   </table>
                 </div>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(equations, equationCols, 'equations', 'xlsx')"
+                  >
+                    Exporter XLSX
+                  </BaseButton>
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(equations, equationCols, 'equations', 'xls')"
+                  >
+                    Exporter XLS
+                  </BaseButton>
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(equations, equationCols, 'equations', 'csv')"
+                  >
+                    Exporter CSV
+                  </BaseButton>
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(equations, equationCols, 'equations', 'json')"
+                  >
+                    Exporter JSON
+                  </BaseButton>
+                </div>
               </div>  
               
             </div>
@@ -806,6 +843,36 @@ onBeforeUnmount(() => {
                 @import="handleImportData"
                 @clear="handleClearTable('data')"
               />
+              <div v-if="data.length" class="d-flex flex-wrap gap-2 mt-2">
+                <BaseButton
+                  size="sm"
+                  variant="btn btn-outline-secondary"
+                  @click="handleExportTable(data, dataCols, 'donnees', 'xlsx')"
+                >
+                  Exporter XLSX
+                </BaseButton>
+                <BaseButton
+                  size="sm"
+                  variant="btn btn-outline-secondary"
+                  @click="handleExportTable(data, dataCols, 'donnees', 'xls')"
+                >
+                  Exporter XLS
+                </BaseButton>
+                <BaseButton
+                  size="sm"
+                  variant="btn btn-outline-secondary"
+                  @click="handleExportTable(data, dataCols, 'donnees', 'csv')"
+                >
+                  Exporter CSV
+                </BaseButton>
+                <BaseButton
+                  size="sm"
+                  variant="btn btn-outline-secondary"
+                  @click="handleExportTable(data, dataCols, 'donnees', 'json')"
+                >
+                  Exporter JSON
+                </BaseButton>
+              </div>
               <p
                 v-if="data.length === 0 && equations.length === 0"
                 class="small text-muted mt-2 data-format-hint"
@@ -880,14 +947,46 @@ onBeforeUnmount(() => {
     <section v-if="hasResults" class="snap-section results-section">
       <div class="snap-section-inner container-lg">
         <div class="section-card d-flex flex-row gap-4 align-items-center justify-content-center">
-          <BaseDataTable
-            title="Tableau des résultats"
-            buttonLabel="Sauvegarder les résultats"
-            max-height="70vh"
-            :rows="dataResults"
-            :columns="dataCols"
-            @import="handleSaveResults"
-          />
+          <div class="d-flex flex-column gap-2">
+            <BaseDataTable
+              title="Tableau des résultats"
+              buttonLabel="Sauvegarder les résultats"
+              max-height="70vh"
+              :rows="dataResults"
+              :columns="dataCols"
+              @import="handleSaveResults"
+            />
+            <div v-if="dataResults.length" class="d-flex flex-wrap gap-2">
+              <BaseButton
+                size="sm"
+                variant="btn btn-outline-secondary"
+                @click="handleExportTable(dataResults, dataCols, 'resultats', 'xlsx')"
+              >
+                Exporter XLSX
+              </BaseButton>
+              <BaseButton
+                size="sm"
+                variant="btn btn-outline-secondary"
+                @click="handleExportTable(dataResults, dataCols, 'resultats', 'xls')"
+              >
+                Exporter XLS
+              </BaseButton>
+              <BaseButton
+                size="sm"
+                variant="btn btn-outline-secondary"
+                @click="handleExportTable(dataResults, dataCols, 'resultats', 'csv')"
+              >
+                Exporter CSV
+              </BaseButton>
+              <BaseButton
+                size="sm"
+                variant="btn btn-outline-secondary"
+                @click="handleExportTable(dataResults, dataCols, 'resultats', 'json')"
+              >
+                Exporter JSON
+              </BaseButton>
+            </div>
+          </div>
 
           <!-- Graphique des résultats -->
           <GraphicsResult :data="dataResults" title="Moyennes des temps par session et addend (en ms)" />
