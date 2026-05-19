@@ -159,6 +159,12 @@ const handleGenerateEquations = async () => {
   scrollToEquationsPreview();
 };
 
+// Wrapper pour générer les équations puis fermer le panneau
+const handleValidate = async () => {
+  await handleGenerateEquations();
+  closeEquationCollapse();
+};
+
 const handleClearTable = (table) => {
   if (table === "equations") {
     equations.value = [];
@@ -714,21 +720,56 @@ onBeforeUnmount(() => {
                 <!-- Nombre de répétition d'une équation au sein d'une session -->
                 <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session :</label>
                 <input type="number" class="form-control mb-3" v-model="numRep" min="1"/>
+
+                <BaseButton
+                  variant="btn btn-outline-primary"
+                  size="lg"
+                  class="mb-3"
+                  :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
+                  @click="handleValidate"
+                >
+                Valider 
+                </BaseButton>
               </div>
 
-              <BaseDataTable
+              <div v-if="equations.length > 0" style="overflow-y: auto;">
+                <BaseButton
+                  v-if="equations.length > 0"
+                  size="sm"
+                  variant="btn btn-outline-secondary"
+                  @click="handleClearTable('equations')"
+                >
+                  Supprimer les données
+                </BaseButton>
+
+              <!-- Aperçu des équations générées -->
+                <p class="mt-2 mb-0">Aperçu des équations générées :</p>
+                <table 
+                  v-if="equations.length > 0" 
+                  class="table table-striped table-bordered"
                   id="equationsPreview"
-                  title="Aperçu des équations"
-                  buttonLabel="Valider"
-                  :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
-                  :rows="equations"
-                  :columns="equationCols"
-                  :is-loading="isImportingEquations"
-                  :clearable="true"
-                  @import="handleGenerateEquations"
-                  @clear="handleClearTable('equations')"
-                  @click="closeEquationCollapse()"
-                />
+                >
+                  <thead class="sticky-top">
+                    <tr>
+                      <th>#</th>
+                      <th>Augend</th>
+                      <th>Addend</th>
+                      <th>Résultat</th>
+                      <th>Session</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="equation in equations" :key="equation.id">
+                      <td>{{ equation.id }}</td>
+                      <td>{{ equation.augend }}</td>
+                      <td>{{ equation.addend }}</td>
+                      <td>{{ equation.result }}</td>
+                      <td>{{ equation.session }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>  
+              
             </div>
             <div>
               <BaseDataTable
