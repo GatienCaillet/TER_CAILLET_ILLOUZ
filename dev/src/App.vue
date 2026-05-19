@@ -778,30 +778,32 @@ onBeforeUnmount(() => {
 
               <!-- Aperçu des équations générées -->
                 <p class="mt-2 mb-0">Aperçu des équations générées :</p>
-                <table 
-                  v-if="equations.length > 0" 
-                  class="table table-striped table-bordered"
-                  id="equationsPreview"
-                >
-                  <thead class="sticky-top">
-                    <tr>
-                      <th>#</th>
-                      <th>Augend</th>
-                      <th>Addend</th>
-                      <th>Résultat</th>
-                      <th>Session</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="equation in equations" :key="equation.id">
-                      <td>{{ equation.id }}</td>
-                      <td>{{ equation.augend }}</td>
-                      <td>{{ equation.addend }}</td>
-                      <td>{{ equation.result }}</td>
-                      <td>{{ equation.session }}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="table-responsive table-scroll" style="max-height: 45vh;">
+                  <table 
+                    v-if="equations.length > 0" 
+                    class="table table-striped table-bordered"
+                    id="equationsPreview"
+                  >
+                    <thead class="sticky-top">
+                      <tr>
+                        <th>#</th>
+                        <th>Augend</th>
+                        <th>Addend</th>
+                        <th>Résultat</th>
+                        <th>Session</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="equation in equations" :key="equation.id">
+                        <td>{{ equation.id }}</td>
+                        <td>{{ equation.augend }}</td>
+                        <td>{{ equation.addend }}</td>
+                        <td>{{ equation.result }}</td>
+                        <td>{{ equation.session }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>  
               
             </div>
@@ -809,7 +811,7 @@ onBeforeUnmount(() => {
               <BaseDataTable
                 title="Aperçu de vos données"
                 :buttonLabel="labelImportData"
-                max-height="50vh"
+                max-height="45vh"
                 :rows="data"
                 :columns="dataCols"
                 :is-loading="isImportingData"
