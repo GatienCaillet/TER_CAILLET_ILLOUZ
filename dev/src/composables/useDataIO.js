@@ -209,12 +209,12 @@ export function useDataIO() {
         } else if (["xlsx", "xls", "csv"].includes(String(extension))) {
           rows = await parseSpreadsheetRows(file);
         } else {
-          console.warn("Format non supporte. Utilisez .xlsx, .xls, .csv ou .json.");
+          alert("Format non supporte. Utilisez .xlsx, .xls, .csv ou .json.");
           onDone?.();
           return;
         }
       } catch (error) {
-        console.error("Erreur pendant la lecture du fichier importe:", error);
+        alert("Erreur pendant la lecture du fichier importe : "+ error.message);
         onDone?.();
         return;
       }
@@ -225,9 +225,7 @@ export function useDataIO() {
         .filter((row) => row !== null);
 
       if (!mappedRows.length) {
-        console.warn(
-          "Aucune ligne valide trouvee. Colonnes requises: augend, addend, result, time, session.",
-        );
+        alert("Aucune ligne valide trouvee. Colonnes requises : augend, addend, result, time, session.");
         onDone?.();
         return;
       }
@@ -246,12 +244,12 @@ export function useDataIO() {
     const timestampedFilename = `${filename}-${buildTimestamp()}`;
 
     if (!allowedFormats.includes(normalizedFormat)) {
-      console.warn("Format non supporte pour l'export.");
+      alert("Format non supporte pour l'export.");
       return;
     }
 
     if (!Array.isArray(rows) || rows.length === 0) {
-      console.warn("Aucune donnee a exporter.");
+      alert("Aucune donnee a exporter.");
       return;
     }
 
