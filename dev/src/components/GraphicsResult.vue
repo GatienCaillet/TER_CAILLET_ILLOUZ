@@ -108,8 +108,8 @@ const drawChart = () => {
   const legendWidth = Math.min(100, Math.max(140, Math.round(maxLegendLabel * 8 + 40)));
   const minChartWidth = 400;
   const width = Math.max(minChartWidth, containerWidth - margin.left - margin.right - legendWidth);
-  const minChartHeight = 240;
-  const plotHeight = Math.max(minChartHeight, window.innerHeight * 0.3);
+  const minChartHeight = window.innerHeight * 0.25;
+  const plotHeight = Math.max(minChartHeight, window.innerHeight * 0.25);
   const height = plotHeight;
 
   // Nettoie le SVG pour éviter de superposer plusieurs rendus
