@@ -15,7 +15,7 @@ const props = defineProps({
 })
 
 const svgRef = ref(null);
-const containerRef = ref(null);
+const chartContainerRef = ref(null);
 
 // Regroupe les données brutes pour préparer à la fois le tableau et le tracé
 const aggregateData = (rawData) => {
@@ -103,12 +103,14 @@ const drawChart = () => {
   const maxLegendLabel = Math.max(...legendItems.map((item) => item.label.length), 1);
 
   // Les dimensions s'adaptent à la largeur du conteneur
-  const margin = { top: 12, right: 30, bottom: 60, left: 60 };
-  const containerWidth = containerRef.value?.clientWidth || 800;
-  const legendWidth = Math.min(240, Math.max(140, Math.round(maxLegendLabel * 8 + 40)));
-  const width = Math.max(600, containerWidth) - margin.left - margin.right - legendWidth;
-  const svgHeight = svgRef.value?.clientHeight || window.innerHeight * 0.35;
-  const height = Math.max(220, svgHeight - margin.top - margin.bottom);
+  const margin = { top: 8, right: 30, bottom: 40, left: 60 };
+  const containerWidth = chartContainerRef.value?.clientWidth || 800;
+  const legendWidth = Math.min(100, Math.max(140, Math.round(maxLegendLabel * 8 + 40)));
+  const minChartWidth = 400;
+  const width = Math.max(minChartWidth, containerWidth - margin.left - margin.right - legendWidth);
+  const minChartHeight = window.innerHeight * 0.25;
+  const plotHeight = Math.max(minChartHeight, window.innerHeight * 0.25);
+  const height = plotHeight;
 
   // Nettoie le SVG pour éviter de superposer plusieurs rendus
   d3.select(svgRef.value).selectAll("*").remove();
@@ -253,10 +255,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="graphics-container" ref="containerRef">
+  <div class="graphics-container">
     <div v-if="data && data.length" class="chart-section">
       <h5 class="text-center mb-3">{{ title }}</h5>
-      <svg ref="svgRef" class="chart-svg"></svg>
+      <div ref="chartContainerRef">
+        <svg ref="svgRef" class="chart-svg"></svg>
+      </div>
       
       <!-- Tableau récapitulatif -->
       <div class="table-section">
@@ -296,11 +300,8 @@ onBeforeUnmount(() => {
 }
 
 .chart-svg {
-  width: 100%;
-  height: 35vh;
   background: white;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  height: auto;
   overflow: visible;
 }
 
