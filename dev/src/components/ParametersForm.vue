@@ -615,9 +615,10 @@ defineExpose({ setParamsEstim, resetParams });
 
         <BaseDataTable
           :columns="estimationResultCols"
-          :hide-button-when-empty="true"
           :rows="estimationResultsDisplayRows"
           :sortable="true"
+          :show-button="false"
+          max-height="40vh"
           buttonLabel="Exporter les résultats de l'estimation"
           initial-sort-direction="asc"
           initial-sort-key="rmse"
