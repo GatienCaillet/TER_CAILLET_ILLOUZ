@@ -290,9 +290,9 @@ onBeforeUnmount(() => {
       <!-- Tableau récapitulatif -->
       <div class="table-section">
         <BaseDataTable
-          title="Tableau récapitulatif"
+          title=""
           :show-button="false"
-          max-height="30vh"
+          max-height="25vh"
           :rows="tableRows"
           :columns="tableColumns"
         />
@@ -345,8 +345,6 @@ onBeforeUnmount(() => {
 
 .chart-svg {
   background: white;
-  height: auto;
-  overflow: visible;
 }
 
 .chart-section {
@@ -356,10 +354,11 @@ onBeforeUnmount(() => {
 
 .table-section {
   background: white;
-  padding: 1rem;
+  margin-top: 1rem;
+  padding-inline: 1rem;
+  padding-bottom: 1rem;
   border-radius: 4px;
-  max-height: 30vh;
-  overflow-y: auto;
+  max-height: 40vh;
 }
 
 .table {
