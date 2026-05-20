@@ -879,36 +879,6 @@ onBeforeUnmount(() => {
                 @import="handleImportData"
                 @clear="handleClearTable('data')"
               />
-              <div v-if="data.length" class="d-flex flex-wrap gap-2 mt-2">
-                <BaseButton
-                  size="sm"
-                  variant="btn btn-outline-secondary"
-                  @click="handleExportTable(data, dataCols, 'donnees', 'xlsx')"
-                >
-                  Exporter XLSX
-                </BaseButton>
-                <BaseButton
-                  size="sm"
-                  variant="btn btn-outline-secondary"
-                  @click="handleExportTable(data, dataCols, 'donnees', 'xls')"
-                >
-                  Exporter XLS
-                </BaseButton>
-                <BaseButton
-                  size="sm"
-                  variant="btn btn-outline-secondary"
-                  @click="handleExportTable(data, dataCols, 'donnees', 'csv')"
-                >
-                  Exporter CSV
-                </BaseButton>
-                <BaseButton
-                  size="sm"
-                  variant="btn btn-outline-secondary"
-                  @click="handleExportTable(data, dataCols, 'donnees', 'json')"
-                >
-                  Exporter JSON
-                </BaseButton>
-              </div>
               <p
                 v-if="data.length === 0 && equations.length === 0"
                 class="small text-muted mt-2 mb-0 data-format-hint"
