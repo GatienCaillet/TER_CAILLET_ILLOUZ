@@ -911,9 +911,15 @@ onBeforeUnmount(() => {
               </div>
               <p
                 v-if="data.length === 0 && equations.length === 0"
-                class="small text-muted mt-2 data-format-hint"
+                class="small text-muted mt-2 mb-0 data-format-hint"
               >
                 Les données importées doivent être celles d'un participant avec au minimum les colonnes suivantes&nbsp;: Augend, Addend, Résultat, Session, Temps
+              </p>
+              <p
+                v-if="data.length === 0 && equations.length === 0"
+                class="small text-danger mt-0 data-format-hint"
+              >
+                Attention : les équations doivent être justes, sans quoi le modèle ne pourra pas fonctionner.
               </p>
               <div
                 v-if="equations.length > 0"
