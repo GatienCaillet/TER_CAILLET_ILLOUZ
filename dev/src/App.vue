@@ -164,6 +164,11 @@ const handleGenerateEquations = async () => {
     paramsForm.value.resetParams();
   }
 
+  // Effacer les résultats précédents du lancement du modèle et de l'estimation des paramètres
+  dataResults.value = [];
+  estimationResultsRows.value = [];
+  bestEstimatedParams.value = null;
+
   equations.value = generatedEquations;
 };
 
