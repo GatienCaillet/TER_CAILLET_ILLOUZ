@@ -949,6 +949,7 @@ onBeforeUnmount(() => {
             :has-generated-data="hasGeneratedData"
             @launch-estimation="handleLaunchEstimation"
             @launch-model="handleLaunchModel"
+            @export-estimation="({ rows, columns, format }) => handleExportTable(rows, columns, 'estimation-parametres', format)"
           />
 
           <!-- Barre de progression lors de l'estimation -->

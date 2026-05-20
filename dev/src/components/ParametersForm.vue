@@ -357,7 +357,15 @@ const buildParamsEstimPayload = () =>
     ]),
   );
 
-const emit = defineEmits(["launch-estimation", "launch-model"]);
+const emit = defineEmits(["launch-estimation", "launch-model", "export-estimation"]);
+
+const handleExportEstimation = (format) => {
+  emit("export-estimation", {
+    rows: estimationResultsDisplayRows.value,
+    columns: estimationResultCols,
+    format,
+  });
+};
 
 const isSettingsOpen = ref(false);
 const settingsDraft = ref({
@@ -615,6 +623,37 @@ defineExpose({ setParamsEstim, resetParams });
           initial-sort-key="rmse"
           title="RMSE de chaque combinaison des paramètres d'estimation"
         />
+
+        <div v-if="estimationResultsDisplayRows.length" class="d-flex flex-wrap gap-2 mt-2">
+          <BaseButton
+            size="sm"
+            variant="btn btn-outline-secondary"
+            @click="handleExportEstimation('xlsx')"
+          >
+            Exporter XLSX
+          </BaseButton>
+          <BaseButton
+            size="sm"
+            variant="btn btn-outline-secondary"
+            @click="handleExportEstimation('xls')"
+          >
+            Exporter XLS
+          </BaseButton>
+          <BaseButton
+            size="sm"
+            variant="btn btn-outline-secondary"
+            @click="handleExportEstimation('csv')"
+          >
+            Exporter CSV
+          </BaseButton>
+          <BaseButton
+            size="sm"
+            variant="btn btn-outline-secondary"
+            @click="handleExportEstimation('json')"
+          >
+            Exporter JSON
+          </BaseButton>
+        </div>
 
         <div class="d-flex flex-column align-items-center">
           <div v-if="errorMessage" class="alert alert-danger">
