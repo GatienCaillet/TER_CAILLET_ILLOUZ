@@ -6,6 +6,7 @@ import ParametersForm from "./components/ParametersForm.vue";
 import { useDataIO } from "./composables/useDataIO.js";
 import { Model } from "./model/Model";
 import BaseButton from "./components/BaseButton.vue";
+import { Alert } from "bootstrap/dist/js/bootstrap.bundle";
 
 // Colonnes communes aux tableaux d'équations et de résultats
 const equationCols = [
@@ -79,6 +80,10 @@ const handleImportData = () =>
     onDone: () => {
       isImportingData.value = false;
       closeEquationCollapse();
+      // Réinitialiser les paramètres aux valeurs par défaut avec les nouvelles données
+      if (paramsForm.value && typeof paramsForm.value.resetParams === "function") {
+        paramsForm.value.resetParams();
+      }
     },
   });
 
@@ -148,6 +153,11 @@ const handleGenerateEquations = async () => {
         session: session,
       });
     });
+  }
+
+  // Réinitialiser les paramètres aux valeurs par défaut avec les nouvelles données
+  if (paramsForm.value && typeof paramsForm.value.resetParams === "function") {
+    paramsForm.value.resetParams();
   }
 
   equations.value = generatedEquations;
@@ -764,11 +774,10 @@ onBeforeUnmount(() => {
                 <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session :</label>
                 <input type="number" class="form-control mb-3" v-model="numRep" min="1"/>
 
-                <!-- Alerte pour les combinaisons invalides -->
+                <!-- Message d'erreur lorsque des combinaisons ne sont pas prises en compte -->
                 <div 
                   v-if="invalidCombinations.length > 0" 
-                  class="alert alert-warning mb-3 data-format-hint" 
-                  
+                  class="alert alert-warning mb-3 data-format-hint"                   
                   role="alert"
                 >
                   <strong>Attention :</strong> Le résultat de certaines combinaisons dépasse Z. Celles-ci ne seront donc pas prises en compte dans le modèle. 
@@ -783,9 +792,7 @@ onBeforeUnmount(() => {
                   @click="handleValidate"
                 >
                 Valider 
-                </BaseButton>
-
-                
+                </BaseButton>                
               </div>
 
               <div v-if="equations.length > 0" style="overflow-y: auto;">

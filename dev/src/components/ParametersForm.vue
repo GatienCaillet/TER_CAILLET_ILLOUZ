@@ -498,7 +498,25 @@ const setParamsEstim = (newParams) => {
   });
 };
 
-defineExpose({ setParamsEstim });
+// Réinitialiser les paramètres aux valeurs par défaut
+const resetParams = () => {
+  Object.keys(DEFAULT_PARAMS_INIT).forEach((key) => {
+    params.value[key] = savedDefaults.paramsInit[key];
+  });
+
+  Object.keys(DEFAULT_PARAMS_ESTIM).forEach((key) => {
+    paramsEstimation.value[key] = savedDefaults.paramsEstim[key];
+  });
+
+  configEstimation.forEach((item) => {
+    item.min = savedDefaults.ranges[item.key].min;
+    item.max = savedDefaults.ranges[item.key].max;
+    item.pas = savedDefaults.ranges[item.key].pas;
+    item.enabled = false;
+  });
+};
+
+defineExpose({ setParamsEstim, resetParams });
 </script>
 
 <template>
