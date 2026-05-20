@@ -1033,7 +1033,11 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- Graphique des résultats -->
-          <GraphicsResult :data="dataResults" title="Moyennes des temps par session et addend (en ms)" />
+          <GraphicsResult
+            :data="dataResults"
+            title="Moyennes des temps par session et addend (en ms)"
+            @export-summary="({ rows, columns, format }) => handleExportTable(rows, columns, 'moyennes-sessions-addends', format)"
+          />
         </div>
       </div>
     </section>

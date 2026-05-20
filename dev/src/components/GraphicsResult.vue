@@ -1,6 +1,8 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import * as d3 from "d3";
+import BaseDataTable from "./BaseDataTable.vue";
+import BaseButton from "./BaseButton.vue";
 
 // Graphique de synthèse des temps mesurés par session et par addend
 const props = defineProps({
@@ -13,6 +15,8 @@ const props = defineProps({
     default: 'Graphique des résultats'
   }
 })
+
+const emit = defineEmits(["export-summary"]);
 
 const svgRef = ref(null);
 const chartContainerRef = ref(null);
@@ -65,6 +69,27 @@ const aggregateData = (rawData) => {
   });
 
   return { lineData, tableData, addends: addends.map(Number), sessions: sortedSessions };
+};
+
+const aggregated = computed(() => aggregateData(props.data));
+const tableRows = computed(() => aggregated.value.tableData || []);
+const tableColumns = computed(() => {
+  const addends = aggregated.value.addends || [];
+  return [
+    { key: "session", label: "Session" },
+    ...addends.map((addend) => ({
+      key: `addend_${addend}`,
+      label: `+${addend}`,
+    })),
+  ];
+});
+
+const handleExportSummary = (format) => {
+  emit("export-summary", {
+    rows: tableRows.value,
+    columns: tableColumns.value,
+    format,
+  });
 };
 
 // Dessine le graphique D3 à partir des données agrégées
@@ -264,24 +289,43 @@ onBeforeUnmount(() => {
       
       <!-- Tableau récapitulatif -->
       <div class="table-section">
-        <table class="table table-sm table-bordered">
-          <thead class="table-light">
-            <tr>
-              <th>Session</th>
-              <th v-for="addend in aggregateData(data).addends" :key="addend">
-                +{{ addend }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in aggregateData(data).tableData" :key="row.session">
-              <td class="fw-bold">{{ row.session }}</td>
-              <td v-for="addend in aggregateData(data).addends" :key="addend">
-                {{ row[`addend_${addend}`] }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <BaseDataTable
+          title="Tableau récapitulatif"
+          :show-button="false"
+          max-height="30vh"
+          :rows="tableRows"
+          :columns="tableColumns"
+        />
+        <div v-if="tableRows.length" class="d-flex flex-wrap gap-2 mt-2">
+          <BaseButton
+            size="sm"
+            variant="btn btn-outline-secondary"
+            @click="handleExportSummary('xlsx')"
+          >
+            Exporter XLSX
+          </BaseButton>
+          <BaseButton
+            size="sm"
+            variant="btn btn-outline-secondary"
+            @click="handleExportSummary('xls')"
+          >
+            Exporter XLS
+          </BaseButton>
+          <BaseButton
+            size="sm"
+            variant="btn btn-outline-secondary"
+            @click="handleExportSummary('csv')"
+          >
+            Exporter CSV
+          </BaseButton>
+          <BaseButton
+            size="sm"
+            variant="btn btn-outline-secondary"
+            @click="handleExportSummary('json')"
+          >
+            Exporter JSON
+          </BaseButton>
+        </div>
       </div>
     </div>
     <div v-else class="alert alert-light text-center">
