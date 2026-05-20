@@ -84,6 +84,10 @@ const handleImportData = () =>
       if (paramsForm.value && typeof paramsForm.value.resetParams === "function") {
         paramsForm.value.resetParams();
       }
+      // Effacer les résultats précédents du lancement du modèle et de l'estimation des paramètres
+      dataResults.value = [];
+      estimationResultsRows.value = [];
+      bestEstimatedParams.value = null;
     },
   });
 
