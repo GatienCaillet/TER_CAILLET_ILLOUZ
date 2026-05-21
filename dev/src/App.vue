@@ -445,7 +445,7 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
     await nextTick();
     goToSection(2);
   } catch (error) {
-    console.error("Impossible de lancer le modèle:", error);
+    alert("Impossible de lancer le modèle. " + error.message);
     dataResults.value = [];
   }
 };
