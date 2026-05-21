@@ -636,13 +636,6 @@ defineExpose({ setParamsEstim, resetParams });
           <BaseButton
             size="sm"
             variant="btn btn-outline-secondary"
-            @click="handleExportEstimation('xls')"
-          >
-            Exporter XLS
-          </BaseButton>
-          <BaseButton
-            size="sm"
-            variant="btn btn-outline-secondary"
             @click="handleExportEstimation('csv')"
           >
             Exporter CSV

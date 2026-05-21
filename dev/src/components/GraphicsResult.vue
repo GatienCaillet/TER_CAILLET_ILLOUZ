@@ -307,13 +307,6 @@ onBeforeUnmount(() => {
           <BaseButton
             size="sm"
             variant="btn btn-outline-secondary"
-            @click="handleExportSummary('xls')"
-          >
-            Exporter XLS
-          </BaseButton>
-          <BaseButton
-            size="sm"
-            variant="btn btn-outline-secondary"
             @click="handleExportSummary('csv')"
           >
             Exporter CSV

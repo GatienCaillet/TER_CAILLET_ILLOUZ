@@ -853,13 +853,6 @@ onBeforeUnmount(() => {
                   <BaseButton
                     size="sm"
                     variant="btn btn-outline-secondary"
-                    @click="handleExportTable(equations, equationCols, 'equations', 'xls')"
-                  >
-                    Exporter XLS
-                  </BaseButton>
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
                     @click="handleExportTable(equations, equationCols, 'equations', 'csv')"
                   >
                     Exporter CSV
@@ -986,13 +979,6 @@ onBeforeUnmount(() => {
                 @click="handleExportTable(dataResults, dataCols, 'resultats', 'xlsx')"
               >
                 Exporter XLSX
-              </BaseButton>
-              <BaseButton
-                size="sm"
-                variant="btn btn-outline-secondary"
-                @click="handleExportTable(dataResults, dataCols, 'resultats', 'xls')"
-              >
-                Exporter XLS
               </BaseButton>
               <BaseButton
                 size="sm"
