@@ -170,11 +170,8 @@ const exportAsSpreadsheet = async (definition, format) => {
   }
 
   const buffer = await workbook.xlsx.writeBuffer();
-  const mimeType =
-    format === "xls"
-      ? "application/vnd.ms-excel"
-      : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-  const extension = format === "xls" ? "xls" : "xlsx";
+  const mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  const extension = "xlsx";
   const blob = new Blob([buffer], { type: mimeType });
 
   return { blob, extension };
@@ -240,7 +237,7 @@ export function useDataIO() {
   const exportTable = async (rows, options = {}) => {
     const { columns, format = "xlsx", filename = "table" } = options;
     const normalizedFormat = String(format).toLowerCase();
-    const allowedFormats = ["xlsx", "xls", "csv", "json"];
+    const allowedFormats = ["xlsx", "csv", "json"];
     const timestampedFilename = `${filename}-${buildTimestamp()}`;
 
     if (!allowedFormats.includes(normalizedFormat)) {

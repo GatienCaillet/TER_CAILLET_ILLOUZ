@@ -279,7 +279,7 @@ describe("ParametersForm", () => {
     expect(emitted[0][0].rows[0].alpha).toContain("min");
   });
 
-  it("exports xlsx and xls formats", async () => {
+  it("exports xlsx format", async () => {
     const wrapper = await mountForm({
       estimationResultsRows: [
         {
@@ -299,16 +299,11 @@ describe("ParametersForm", () => {
     const xlsxButton = wrapper
       .findAll("button")
       .find((btn) => btn.text().trim() === "Exporter XLSX");
-    const xlsButton = wrapper
-      .findAll("button")
-      .find((btn) => btn.text().trim() === "Exporter XLS");
 
     await xlsxButton.trigger("click");
-    await xlsButton.trigger("click");
 
     const emitted = wrapper.emitted("export-estimation");
     expect(emitted[0][0].format).toBe("xlsx");
-    expect(emitted[1][0].format).toBe("xls");
   });
 
   it("marks min/max values in formatted rows", async () => {
