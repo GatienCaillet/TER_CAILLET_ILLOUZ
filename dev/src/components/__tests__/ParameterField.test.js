@@ -77,4 +77,71 @@ describe("ParameterField", () => {
     expect(inputs[1].attributes("disabled")).toBeDefined();
     expect(wrapper.find("fieldset").classes()).toContain("cursor-not-allowed");
   });
+
+  it("enables range when focusing inputs", async () => {
+    const wrapper = mount(ParameterField, {
+      props: {
+        id: "alpha",
+        label: "Alpha",
+        modelValue: 1,
+        min: 0,
+        max: 10,
+        pas: 2,
+        enabled: false,
+        showRange: true,
+        rangeDisabled: false,
+      },
+    });
+
+    const inputs = wrapper.findAll("input[type='number']");
+    await inputs[1].trigger("focus");
+
+    expect(wrapper.emitted("update:enabled")).toBeTruthy();
+  });
+
+  it("enables range when focusing max and step inputs", async () => {
+    const wrapper = mount(ParameterField, {
+      props: {
+        id: "alpha",
+        label: "Alpha",
+        modelValue: 1,
+        min: 0,
+        max: 10,
+        pas: 2,
+        enabled: false,
+        showRange: true,
+        rangeDisabled: false,
+      },
+    });
+
+    const inputs = wrapper.findAll("input[type='number']");
+    await inputs[2].trigger("focus");
+    await inputs[3].trigger("focus");
+
+    expect(wrapper.emitted("update:enabled")).toBeTruthy();
+  });
+
+  it("does not enable range when disabled", async () => {
+    const wrapper = mount(ParameterField, {
+      props: {
+        id: "alpha",
+        label: "Alpha",
+        modelValue: 1,
+        min: 0,
+        max: 10,
+        pas: 2,
+        enabled: false,
+        showRange: true,
+        rangeDisabled: true,
+      },
+    });
+
+    const fieldset = wrapper.find("fieldset");
+    await fieldset.trigger("click");
+
+    const inputs = wrapper.findAll("input[type='number']");
+    await inputs[1].trigger("focus");
+
+    expect(wrapper.emitted("update:enabled")).toBeFalsy();
+  });
 });

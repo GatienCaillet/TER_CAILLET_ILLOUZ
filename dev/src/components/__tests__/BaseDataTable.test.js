@@ -74,4 +74,41 @@ describe("BaseDataTable", () => {
     await wrapper.find("thead button").trigger("click");
     expect(getValues()).toEqual(["2", "1"]);
   });
+
+  it("handles mixed sortable values and nulls", () => {
+    const wrapper = mount(BaseDataTable, {
+      props: {
+        columns,
+        rows: [{ value: null }, { value: " 10 " }, { value: 2 }, { value: "b" }, { value: "A" }],
+        sortable: true,
+        initialSortKey: "value",
+        initialSortDirection: "asc",
+      },
+    });
+
+    const values = wrapper.findAll("tbody td").map((cell) => cell.text());
+    expect(values).toEqual(["A", "b", "2", "10", ""]);
+  });
+
+  it("renders title and sort indicator", async () => {
+    const wrapper = mount(BaseDataTable, {
+      props: {
+        columns: [
+          { key: "value", label: "Value" },
+          { key: "other", label: "Other" },
+        ],
+        rows,
+        sortable: true,
+        initialSortKey: "value",
+        initialSortDirection: "desc",
+        title: "Tableau",
+      },
+    });
+
+    expect(wrapper.text()).toContain("Tableau");
+    expect(wrapper.find("thead").text()).toContain("▼");
+
+    await wrapper.findAll("thead button")[1].trigger("click");
+    expect(wrapper.find("thead").text()).toContain("▲");
+  });
 });
