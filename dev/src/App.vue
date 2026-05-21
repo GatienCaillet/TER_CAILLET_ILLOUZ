@@ -450,11 +450,6 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
   }
 };
 
-// TODO : implémenter la sauvegarde des résultats dans un fichier
-const handleSaveResults = () => {
-  console.log("Btn sauvegarder résultats cliqué");
-};
-
 onMounted(() => {
   updateCurrentSectionIndex();
   mainScrollRef.value?.addEventListener("scroll", updateCurrentSectionIndex, {
