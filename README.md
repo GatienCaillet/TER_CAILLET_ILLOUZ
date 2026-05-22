@@ -6,7 +6,7 @@ Le deuxième objectif est de pouvoir trouver les paramètres d'entrée optimum a
 Pour ce faire nous nous sommes basés sur le modèle d'apprentissage figurant dans la thèse de Stéphanie Chouteau (2024). 
 L'objectif de cette application est également de donner une visualisation graphique des résultats.
 
-## Fonctionnalitées  principales
+## Fonctionnalités  principales
 - Générer des listes d'équations
 - Importer des données d'un participant
 - Lancer des estimations de paramètres
@@ -50,7 +50,7 @@ Pour lancer l'application il faut éxecuter la commande suivante :
 ```sh
 npm run dev
 ```
-Puis ouvrir un navigateur internet et aller sur l'addresse indiquée après "➜  Local:" 
+Puis ouvrir un navigateur internet et aller sur l'adresse indiquée après "➜  Local:" 
 (exemple : ➜  Local:   http://localhost:5173/)
 
 ## Notice d'utilisation
