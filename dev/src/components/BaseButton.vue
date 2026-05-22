@@ -7,7 +7,7 @@ defineProps({
   },
   size: {
     type: String,
-    default: "", // Tailles Bootstrap autorisées: sm, lg ou vide pour taille normale
+    default: "", // Tailles Bootstrap autorisées : sm, lg ou vide pour taille normale
     validator: (value) => ["", "sm", "lg"].includes(value),
   },
   disabled: {

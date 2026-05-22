@@ -309,9 +309,7 @@ const handleLaunchEstimation = async ({
   maxCombinations,
 }) => {
   if (!data.value.length) {
-    console.warn(
-      "Aucun stimulus importé. Importez des équations avant de lancer l estimation des paramètres.",
-    );
+    alert("Aucun stimulus importé. Importez des équations avant de lancer l'estimation des paramètres.");
     dataResults.value = [];
     estimationResultsRows.value = [];
     return;
@@ -385,7 +383,7 @@ const handleLaunchEstimation = async ({
     estimationResultsRows.value = mapEstimationResultsRows(evaluations);
   } catch (error) {
     if (error.message !== "Estimation aborted by user") {
-      console.error("Impossible de lancer l estimation des paramètres:", error);
+      alert("Impossible de lancer l'estimation des paramètres. " + error.message);
     }
     estimationResultsRows.value = [];
   } finally {
@@ -418,9 +416,7 @@ const handleCloseLoadingOverlay = () => {
 // Lance le modèle de calcul sur les données importées ou générées
 const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
   if (!data.value.length && !equations.value.length) {
-    console.warn(
-      "Aucun stimulus importé ni aucune équation générée. Importez ou générez des équations avant de lancer le modèle.",
-    );
+    alert("Aucun stimulus importé ni aucune équation générée. Importez ou générez des équations avant de lancer le modèle.");
     dataResults.value = [];
     return;
   }
