@@ -54,6 +54,7 @@ Puis ouvrir un navigateur internet et aller sur l'addresse indiquée après "➜
 (exemple : ➜  Local:   http://localhost:5173/)
 
 ## Notice d'utilisation
+(Pas encore mise)
 La notice d'utilisation se trouve dans la partie documentation (/docs/) sous forme de PDF.
 
 ## Auteurs et contexte
