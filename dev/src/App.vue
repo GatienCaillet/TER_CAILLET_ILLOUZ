@@ -784,55 +784,29 @@ onBeforeUnmount(() => {
                   (<code>{{ invalidCombinations.join(", ") }}</code>)
                 </div>
 
-                <BaseButton
-                  variant="btn btn-outline-primary"
-                  size="lg"
-                  class="mb-3"
-                  :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
-                  @click="handleValidate"
-                >
-                Valider 
-                </BaseButton>                
+                <div class="d-flex align-items-center justify-content-center">
+                  <BaseButton
+                    variant="btn btn-outline-primary"
+                    size="lg"
+                    class="mb-3"
+                    :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
+                    @click="handleValidate"
+                  >
+                  Valider 
+                  </BaseButton>  
+                </div>              
               </div>
 
               <div v-if="equations.length > 0" style="overflow-y: auto;">
-                <BaseButton
-                  v-if="equations.length > 0"
-                  size="sm"
-                  variant="btn btn-outline-secondary"
-                  @click="handleClearTable('equations')"
-                >
-                  Supprimer les données
-                </BaseButton>
-
-              <!-- Aperçu des équations générées -->
-                <p class="mt-2 mb-0">Aperçu des équations générées :</p>
-                <div class="table-responsive table-scroll" style="max-height: 45vh;">
-                  <table 
-                    v-if="equations.length > 0" 
-                    class="table table-striped table-bordered"
-                    id="equationsPreview"
-                  >
-                    <thead class="sticky-top">
-                      <tr>
-                        <th>#</th>
-                        <th>Augend</th>
-                        <th>Addend</th>
-                        <th>Résultat</th>
-                        <th>Session</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="equation in equations" :key="equation.id">
-                        <td>{{ equation.id }}</td>
-                        <td>{{ equation.augend }}</td>
-                        <td>{{ equation.addend }}</td>
-                        <td>{{ equation.result }}</td>
-                        <td>{{ equation.session }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <BaseDataTable
+                  title="Aperçu des équations générées"
+                  :show-button="false"
+                  :clearable="true"
+                  max-height="45vh"
+                  :rows="equations"
+                  :columns="equationCols"
+                  @clear="handleClearTable('equations')"
+                />
                 <div class="d-flex flex-wrap gap-2 mt-2">
                   <BaseButton
                     size="sm"
