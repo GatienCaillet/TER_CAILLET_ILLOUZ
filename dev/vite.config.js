@@ -10,6 +10,7 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  base: "/TER_CAILLET_ILLOUZ/",
   test: {
     // Permet d'utiliser 'describe', 'it', 'expect' sans les importer
     globals: true,
