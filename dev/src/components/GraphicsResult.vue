@@ -102,6 +102,80 @@ const handleExportSummary = (format) => {
   });
 };
 
+const handleExportSvg = () => {
+  const svgEl = svgRef.value;
+  if (!svgEl) {
+    return;
+  }
+
+  const serializer = new XMLSerializer();
+  const svgString = serializer.serializeToString(svgEl);
+  const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "graphique-resultats.svg";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const handleExportPng = () => {
+  const svgEl = svgRef.value;
+  if (!svgEl) {
+    return;
+  }
+
+  const serializer = new XMLSerializer();
+  const svgString = serializer.serializeToString(svgEl);
+  const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(svgBlob);
+
+  const img = new Image();
+  const width = Number(svgEl.getAttribute("width")) || 800;
+  const height = Number(svgEl.getAttribute("height")) || 600;
+
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(img, 0, 0, width, height);
+
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        URL.revokeObjectURL(url);
+        return;
+      }
+
+      const pngUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = pngUrl;
+      link.download = "graphique-resultats.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(pngUrl);
+      URL.revokeObjectURL(url);
+    }, "image/png");
+  };
+
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+  };
+
+  img.src = url;
+};
+
 // Dessine le graphique D3 à partir des données agrégées
 const drawChart = () => {
   if (!svgRef.value || !props.data || !props.data.length) {
@@ -267,6 +341,22 @@ onBeforeUnmount(() => {
             <span class="legend-label">{{ item.label }}</span>
           </div>
         </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        <BaseButton
+          size="sm"
+          variant="btn btn-outline-secondary"
+          @click="handleExportSvg"
+        >
+          Exporter SVG
+        </BaseButton>
+        <BaseButton
+          size="sm"
+          variant="btn btn-outline-secondary"
+          @click="handleExportPng"
+        >
+          Exporter PNG
+        </BaseButton>
       </div>
       
       <!-- Tableau récapitulatif -->
