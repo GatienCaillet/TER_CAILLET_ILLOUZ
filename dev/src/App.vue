@@ -34,6 +34,8 @@ const resultCols = [
 const equations = ref([]);
 const data = ref([]);
 const dataResults = ref([]);
+const practiceMap = ref({});
+const associationsMap = ref({});
 const bestEstimatedParams = ref(null);
 const estimationResultsRows = ref([]);
 const isEstimating = ref(false);
@@ -57,6 +59,28 @@ const hasResults = computed(() => dataResults.value.length > 0);
 const totalSections = computed(() => (hasResults.value ? 3 : 2));
 const hasImportedData = computed(() => data.value.length > 0);
 const hasGeneratedData = computed(() => equations.value.length > 0 && data.value.length === 0);
+
+const practiceCols = [
+  { key: "letter", label: "Lettre" },
+  { key: "count", label: "Nombre de rencontres" },
+];
+
+const associationCols = [
+  { key: "equation", label: "Equation" },
+  { key: "count", label: "Associations" },
+];
+
+const practiceRows = computed(() =>
+  Object.entries(practiceMap.value || {})
+    .map(([letter, count]) => ({ letter, count }))
+    .sort((a, b) => a.letter.localeCompare(b.letter)),
+);
+
+const associationRows = computed(() =>
+  Object.entries(associationsMap.value || {})
+    .map(([equation, count]) => ({ equation, count }))
+    .sort((a, b) => a.equation.localeCompare(b.equation)),
+);
 
 // === Import des donnees et Génération d'équations ===
 
@@ -92,6 +116,8 @@ const handleImportData = () =>
       }
       // Effacer les résultats précédents du lancement du modèle et de l'estimation des paramètres
       dataResults.value = [];
+      practiceMap.value = {};
+      associationsMap.value = {};
       estimationResultsRows.value = [];
       bestEstimatedParams.value = null;
     },
@@ -172,6 +198,8 @@ const handleGenerateEquations = async () => {
 
   // Effacer les résultats précédents du lancement du modèle et de l'estimation des paramètres
   dataResults.value = [];
+  practiceMap.value = {};
+  associationsMap.value = {};
   estimationResultsRows.value = [];
   bestEstimatedParams.value = null;
 
@@ -444,12 +472,17 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
       session: result.session,
     }));
 
+    practiceMap.value = { ...model.practice };
+    associationsMap.value = { ...model.associations };
+
     // Scroll automatique vers la section des résultats après le lancement du modèle
     await nextTick();
     goToSection(2);
   } catch (error) {
     alert("Impossible de lancer le modèle. " + error.message);
     dataResults.value = [];
+    practiceMap.value = {};
+    associationsMap.value = {};
   }
 };
 
@@ -933,8 +966,9 @@ onBeforeUnmount(() => {
     <!-- === Affichage des resultats === -->
     <section v-if="hasResults" class="snap-section results-section">
       <div class="snap-section-inner container-lg">
-        <div class="section-card d-flex flex-row gap-4 align-items-center justify-content-center">
-          <div class="d-flex flex-column gap-2">
+        <div class="section-card d-flex flex-column">
+          <div class="d-flex flex-row gap-4 align-items-center justify-content-center">
+            <div class="d-flex flex-column gap-2">
             <BaseDataTable
               title="Tableau des résultats"
               buttonLabel="Sauvegarder les résultats"
@@ -966,14 +1000,38 @@ onBeforeUnmount(() => {
                 Exporter JSON
               </BaseButton>
             </div>
+            </div>
+
+            <!-- Graphique des résultats -->
+            <GraphicsResult
+              :data="dataResults"
+              title="Moyennes des temps par session et addend (en ms)"
+              @export-summary="({ rows, columns, format }) => handleExportTable(rows, columns, 'moyennes-sessions-addends', format)"
+            />
           </div>
 
-          <!-- Graphique des résultats -->
-          <GraphicsResult
-            :data="dataResults"
-            title="Moyennes des temps par session et addend (en ms)"
-            @export-summary="({ rows, columns, format }) => handleExportTable(rows, columns, 'moyennes-sessions-addends', format)"
-          />
+          <div class="w-100" v-if="practiceRows.length || associationRows.length">
+            <div class="d-flex flex-wrap gap-3">
+              <div class="flex-grow-1" style="min-width: 280px;">
+                <BaseDataTable
+                  title="Nombre de rencontres par lettre"
+                  :show-button="false"
+                  max-height="30vh"
+                  :rows="practiceRows"
+                  :columns="practiceCols"
+                />
+              </div>
+              <div class="flex-grow-1" style="min-width: 280px;">
+                <BaseDataTable
+                  title="Associations"
+                  :show-button="false"
+                  max-height="30vh"
+                  :rows="associationRows"
+                  :columns="associationCols"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

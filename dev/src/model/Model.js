@@ -577,7 +577,5 @@ export class Model {
       });
     });
 
-    console.log("Practice map (counts per letter):", this.practice);
-    console.log("Associations (equation strength):", this.associations);
   }
 }
