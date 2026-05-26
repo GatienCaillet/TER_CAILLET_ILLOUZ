@@ -84,6 +84,16 @@ const tableColumns = computed(() => {
   ];
 });
 
+const legendItems = computed(() => {
+  const sessions = aggregated.value.sessions || [];
+  const colorScale = d3.scaleOrdinal().domain(sessions).range(d3.schemeCategory10);
+  return sessions.map((session) => ({
+    session,
+    label: `Session ${session}`,
+    color: colorScale(session),
+  }));
+});
+
 const handleExportSummary = (format) => {
   emit("export-summary", {
     rows: tableRows.value,
@@ -121,15 +131,8 @@ const drawChart = () => {
     .style("pointer-events", "none")
     .style("z-index", "1000");
 
-  const legendItems = sessions.map((session) => ({
-    session,
-    label: `Session ${session}`,
-  }));
-  const maxLegendLabel = Math.max(...legendItems.map((item) => item.label.length), 1);
-
   // Les dimensions s'adaptent à la largeur du conteneur
   const margin = { top: 8, right: 30, bottom: 40, left: 60 };
-  const legendWidth = Math.min(100, Math.max(140, Math.round(maxLegendLabel * 8 + 40)));
   const width = window.innerWidth * 0.21;
   const height = window.innerHeight * 0.25;
 
@@ -138,7 +141,7 @@ const drawChart = () => {
 
   const svg = d3
     .select(svgRef.value)
-    .attr("width", width + margin.left + margin.right + legendWidth)
+    .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -219,29 +222,6 @@ const drawChart = () => {
         tooltip.style("visibility", "hidden");
       });
   });
-
-  // Légende à droite du graphique
-  const legend = svg
-    .selectAll(".legend")
-    .data(legendItems)
-    .enter()
-    .append("g")
-    .attr("class", "legend")
-    .attr("transform", (d, i) => `translate(${width + 20}, ${i * 22})`);
-
-  legend
-    .append("rect")
-    .attr("width", 18)
-    .attr("height", 18)
-    .attr("fill", (d) => colorScale(d.session));
-
-  legend
-    .append("text")
-    .attr("x", 24)
-    .attr("y", 9)
-    .attr("dy", ".35em")
-    .style("font-size", "11px")
-    .text((d) => d.label);
 };
 
 // Le graphique se met à jour dès que les données changent
@@ -281,6 +261,12 @@ onBeforeUnmount(() => {
       <h5 class="text-center mb-3">{{ title }}</h5>
       <div ref="chartContainerRef" class="chart-container">
         <svg ref="svgRef" class="chart-svg"></svg>
+        <div v-if="legendItems.length" class="legend-container">
+          <div v-for="item in legendItems" :key="item.session" class="legend-item">
+            <span class="legend-color" :style="{ backgroundColor: item.color }"></span>
+            <span class="legend-label">{{ item.label }}</span>
+          </div>
+        </div>
       </div>
       
       <!-- Tableau récapitulatif -->
@@ -335,6 +321,41 @@ onBeforeUnmount(() => {
 
 .chart-svg {
   background: white;
+}
+
+.chart-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.legend-container {
+  max-height: 30vh;
+  overflow-y: auto;
+  background: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  min-width: 140px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px;
+  margin-bottom: 0.4rem;
+}
+
+.legend-item:last-child {
+  margin-bottom: 0;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex: 0 0 auto;
 }
 
 .chart-section {
