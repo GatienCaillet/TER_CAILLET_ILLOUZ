@@ -190,6 +190,7 @@ function cartesianProduct(entries, index = 0, current = {}, output = []) {
  * @property {number} addend
  * @property {string} result
  * @property {number} time
+ * @property {string} method
  * @property {number} session
  */
 
@@ -463,7 +464,9 @@ export class Model {
     }
     // Si rien n'est trouvé, la stratégie de comptage est considérée comme la plus rapide
 
-    return countingTimeEstimated;
+    // On enlève le temps d'initialisation pour car on veut seulement le temps de comptage pur, 
+    // sans les étapes communes aux deux stratégies
+    return countingTimeEstimated - this.initTime;
   }
 
   /**
@@ -533,11 +536,17 @@ export class Model {
     const retrievalTime = this.calculRetrievalTime(stimulus);
 
     // On conserve la stratégie la plus rapide
-    if (countingTimeEstimated < retrievalTime) {
-      return this.initTime + this.calculCountingTime(stimulus);
+    if (countingTimeEstimated < (this.initTime + retrievalTime)) {
+      return {
+        time: this.initTime + this.calculCountingTime(stimulus),
+        method: "counting",
+      };
     }
 
-    return this.initTime + retrievalTime;
+    return {
+      time: this.initTime + retrievalTime,
+      method: "retrieval",
+    };
   }
 
   /**
@@ -556,13 +565,14 @@ export class Model {
       this.validateStimulus(stimulus);
 
       // Temps obtenu via la meilleure stratégie disponible
-      const calculTime = this.timeWithBestStrategy(stimulus);
+      const { time: calculTime, method } = this.timeWithBestStrategy(stimulus);
 
       this.results.push({
         augend: stimulus.augend,
         addend: stimulus.addend,
         result: stimulus.result,
         time: calculTime,
+        method,
         session: stimulus.session,
       });
     });

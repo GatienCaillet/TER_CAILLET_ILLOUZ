@@ -21,7 +21,13 @@ const equationCols = [
 const dataCols = [
   ...equationCols,
   { key: "time", label: "Temps" },
-  
+];
+
+// Colonnes pour les résultats du modèle (inclut la méthode utilisée)
+const resultCols = [
+  ...equationCols,
+  { key: "time", label: "Temps" },
+  { key: "method", label: "Méthode" },
 ];
 
 // État principal de l'application.
@@ -434,6 +440,7 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
       addend: result.addend,
       result: result.result,
       time: Math.round(result.time),
+      method: result.method === "counting" ? "Comptage" : "Récupération",
       session: result.session,
     }));
 
@@ -934,28 +941,27 @@ onBeforeUnmount(() => {
               :show-button="false"
               max-height="70vh"
               :rows="dataResults"
-              :columns="dataCols"
-              @import="handleSaveResults"
+              :columns="resultCols"
             />
             <div v-if="dataResults.length" class="d-flex flex-wrap gap-2">
               <BaseButton
                 size="sm"
                 variant="btn btn-outline-secondary"
-                @click="handleExportTable(dataResults, dataCols, 'resultats', 'xlsx')"
+                @click="handleExportTable(dataResults, resultCols, 'resultats', 'xlsx')"
               >
                 Exporter XLSX
               </BaseButton>
               <BaseButton
                 size="sm"
                 variant="btn btn-outline-secondary"
-                @click="handleExportTable(dataResults, dataCols, 'resultats', 'csv')"
+                @click="handleExportTable(dataResults, resultCols, 'resultats', 'csv')"
               >
                 Exporter CSV
               </BaseButton>
               <BaseButton
                 size="sm"
                 variant="btn btn-outline-secondary"
-                @click="handleExportTable(dataResults, dataCols, 'resultats', 'json')"
+                @click="handleExportTable(dataResults, resultCols, 'resultats', 'json')"
               >
                 Exporter JSON
               </BaseButton>
