@@ -67,7 +67,7 @@ const practiceCols = [
 
 const associationCols = [
   { key: "equation", label: "Equation" },
-  { key: "count", label: "Associations" },
+  { key: "count", label: "Force d'associations" },
 ];
 
 const practiceRows = computed(() =>

@@ -535,12 +535,12 @@ defineExpose({ setParamsEstim, resetParams });
           <div class="fw-bold">Paramètres d'initialisation :</div>
           <button
             type="button"
-            class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
-            aria-label="Ouvrir les paramètres par défaut"
+            class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
+            aria-label="Modifier les paramètres par défaut"
             @click="openSettings"
           >
             <i class="bi bi-gear" aria-hidden="true"></i>
-            Par défaut
+            Modifier les paramètres par défaut
           </button>
         </div>
         <div class="d-flex flex-row justify-content-around flex-wrap">
