@@ -50,10 +50,18 @@ const currentSectionIndex = ref(0);
 const isEquationOpen = ref(false);
 
 const alphabetWithoutYZ = "ABCDEFGHIJKLMNOPQRSTUVWX";
+const defaultAddends = ["2", "3", "4", "5"];
 const selectedAugends = ref([]);
 const selectedAddends = ref([]);
+const customAddends = ref([]);
 const numSessions = ref(1);
 const numRep = ref(1);
+const showAddendInput = ref(false);
+const customAddendValue = ref("");
+
+const allAvailableAddends = computed(() =>
+  [...defaultAddends, ...customAddends.value].sort((a, b) => parseInt(a) - parseInt(b))
+);
 
 const hasResults = computed(() => dataResults.value.length > 0);
 const totalSections = computed(() => (hasResults.value ? 3 : 2));
@@ -210,6 +218,32 @@ const handleGenerateEquations = async () => {
 const handleValidate = async () => {
   await handleGenerateEquations();
   closeEquationCollapse();
+};
+
+// Ajoute un addend personnalisé à la liste des addends sélectionnés
+const addCustomAddend = () => {
+  const value = customAddendValue.value;
+  
+  // Valider que la valeur est un nombre valide
+  const numValue = parseInt(value, 10);
+  if (!value || isNaN(numValue) || numValue < 6) {
+    alert("Veuillez saisir un nombre supérieur ou égal à 6");
+    return;
+  }
+
+  // Vérifier que l'addend n'existe pas déjà
+  if (allAvailableAddends.value.includes(value)) {
+    alert("Cet addend est déjà dans la liste");
+    return;
+  }
+
+  // Ajouter l'addend à la liste des custom addends et le cocher
+  customAddends.value.push(value);
+  selectedAddends.value.push(value);
+  
+  // Réinitialiser l'input et le masquer
+  customAddendValue.value = "";
+  showAddendInput.value = false;
 };
 
 const handleClearTable = (table) => {
@@ -774,7 +808,7 @@ onBeforeUnmount(() => {
                   <BaseButton
                     size="sm"
                     variant="btn btn-primary"
-                    @click="selectedAddends = ['2', '3', '4', '5']"
+                    @click="selectedAddends = allAvailableAddends.slice()"
                   >
                     Tout sélectionner
                   </BaseButton>
@@ -786,25 +820,38 @@ onBeforeUnmount(() => {
                     Tout désélectionner
                   </BaseButton>
                 </div>
-
+                
+                <div class="d-flex align-items-center gap-2">
                 <ul class="list-group list-group-horizontal-sm addend-list mb-3">
-                  <li class="list-group-item">
-                    <input class="form-check-input me-1" type="checkbox" value="2" id="2" v-model="selectedAddends">
-                    <label class="form-check-label stretched-link" for="2">2</label>
+                  <li class="list-group-item" v-for="addend in allAvailableAddends" :key="addend">
+                    <input class="form-check-input me-1" type="checkbox" :value="addend" :id="'addend-' + addend" v-model="selectedAddends">
+                    <label class="form-check-label stretched-link" :for="'addend-' + addend">{{ addend }}</label>
                   </li>
-                  <li class="list-group-item">
-                    <input class="form-check-input me-1" type="checkbox" value="3" id="3" v-model="selectedAddends">
-                    <label class="form-check-label stretched-link" for="3">3</label>
-                  </li>
-                  <li class="list-group-item">
-                    <input class="form-check-input me-1" type="checkbox" value="4" id="4" v-model="selectedAddends">
-                    <label class="form-check-label stretched-link" for="4">4</label>
-                  </li>
-                  <li class="list-group-item">
-                    <input class="form-check-input me-1" type="checkbox" value="5" id="5" v-model="selectedAddends">
-                    <label class="form-check-label stretched-link" for="5">5</label>
+                  <li class="list-group-item d-flex justify-content-center" @click="showAddendInput = !showAddendInput">
+                    <label class="bi bi-plus-square text-primary"></label>
                   </li>
                 </ul>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 mb-3">
+                <input 
+                  v-if="showAddendInput"
+                  class="form-control" 
+                  type="number" 
+                  min="6"
+                  placeholder="Saisir l'addend souhaité" 
+                  v-model="customAddendValue"
+                  @keyup.enter="addCustomAddend"
+                  @blur="showAddendInput = false"
+                />
+                <button
+                  v-if="showAddendInput"
+                  class="btn btn-outline-secondary"
+                  @click="addCustomAddend"
+                >
+                  Ajouter
+                </button>
+                </div>
 
                 <!-- Nombre de sessions -->
                 <label class="form-label">Indiquez le nombre de sessions :</label>
