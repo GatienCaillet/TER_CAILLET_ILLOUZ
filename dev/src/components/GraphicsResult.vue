@@ -129,13 +129,9 @@ const drawChart = () => {
 
   // Les dimensions s'adaptent à la largeur du conteneur
   const margin = { top: 8, right: 30, bottom: 40, left: 60 };
-  const containerWidth = chartContainerRef.value?.clientWidth || 800;
   const legendWidth = Math.min(100, Math.max(140, Math.round(maxLegendLabel * 8 + 40)));
-  const minChartWidth = 400;
-  const width = Math.max(minChartWidth, containerWidth - margin.left - margin.right - legendWidth);
-  const minChartHeight = window.innerHeight * 0.25;
-  const plotHeight = Math.max(minChartHeight, window.innerHeight * 0.25);
-  const height = plotHeight;
+  const width = window.innerWidth * 0.21;
+  const height = window.innerHeight * 0.25;
 
   // Nettoie le SVG pour éviter de superposer plusieurs rendus
   d3.select(svgRef.value).selectAll("*").remove();
@@ -283,7 +279,7 @@ onBeforeUnmount(() => {
   <div class="graphics-container">
     <div v-if="data && data.length" class="chart-section">
       <h5 class="text-center mb-3">{{ title }}</h5>
-      <div ref="chartContainerRef">
+      <div ref="chartContainerRef" class="chart-container">
         <svg ref="svgRef" class="chart-svg"></svg>
       </div>
       
@@ -331,6 +327,7 @@ onBeforeUnmount(() => {
 .graphics-container {
   background: #f8f9fa;
   max-height: 85vh;
+  max-width: 40vw;
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
