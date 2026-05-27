@@ -158,14 +158,14 @@ const handleGenerateEquations = async () => {
     return items;
   };
 
-  const ensureNoConsecutiveAddends = (items, previousAddend = null) => {
+  const ensureNoConsecutiveAugends = (items, previousAugend = null) => {
     if (items.length === 0) {
       return items;
     }
 
-    if (previousAddend !== null && items[0].addend === previousAddend) {
+    if (previousAugend !== null && items[0].augend === previousAugend) {
       const swapIndex = items.findIndex(
-        (item, idx) => idx > 0 && item.addend !== previousAddend,
+        (item, idx) => idx > 0 && item.augend !== previousAugend,
       );
 
       if (swapIndex !== -1) {
@@ -174,12 +174,12 @@ const handleGenerateEquations = async () => {
     }
 
     for (let i = 1; i < items.length; i += 1) {
-      if (items[i].addend !== items[i - 1].addend) {
+      if (items[i].augend !== items[i - 1].augend) {
         continue;
       }
 
       const swapIndex = items.findIndex(
-        (item, idx) => idx > i && item.addend !== items[i - 1].addend,
+        (item, idx) => idx > i && item.augend !== items[i - 1].augend,
       );
 
       if (swapIndex === -1) {
@@ -219,12 +219,12 @@ const handleGenerateEquations = async () => {
   });
 
   // Mettre les combinaisons dans un ordre aléatoire pour chaque session
-  let previousAddend = null;
+  let previousAugend = null;
   for (let session = 1; session <= numSessions.value; session++) {
     // Mélanger les combinaisons pour cette session
-    const shuffledCombinations = ensureNoConsecutiveAddends(
+    const shuffledCombinations = ensureNoConsecutiveAugends(
       shuffleInPlace([...combinations]),
-      previousAddend,
+      previousAugend,
     );
     
     shuffledCombinations.forEach(combination => {
@@ -237,7 +237,7 @@ const handleGenerateEquations = async () => {
       });
     });
 
-    previousAddend = shuffledCombinations[shuffledCombinations.length - 1]?.addend ?? previousAddend;
+    previousAugend = shuffledCombinations[shuffledCombinations.length - 1]?.augend ?? previousAugend;
   }
 
   // Réinitialiser les paramètres aux valeurs par défaut avec les nouvelles données

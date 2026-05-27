@@ -28,7 +28,7 @@ describe("App - generation d'equations", () => {
     vi.restoreAllMocks();
   });
 
-  it("evite les addends identiques consecutifs quand c'est possible", async () => {
+  it("evite les augends identiques consecutifs quand c'est possible", async () => {
     const wrapper = mount(App, {
       global: {
         stubs: {
@@ -47,15 +47,15 @@ describe("App - generation d'equations", () => {
 
     await wrapper.vm.handleGenerateEquations();
 
-    const addends = wrapper.vm.equations.map((row) => row.addend);
-    const hasConsecutiveSame = addends.some(
-      (value, index) => index > 0 && value === addends[index - 1],
+    const augends = wrapper.vm.equations.map((row) => row.augend);
+    const hasConsecutiveSame = augends.some(
+      (value, index) => index > 0 && value === augends[index - 1],
     );
 
     expect(hasConsecutiveSame).toBe(false);
   });
 
-  it("autorise les doublons consecutifs quand c'est impossible (ex: X)", async () => {
+  it("autorise les doublons consecutifs quand c'est impossible (un seul augend)", async () => {
     const wrapper = mount(App, {
       global: {
         stubs: {
@@ -74,12 +74,12 @@ describe("App - generation d'equations", () => {
 
     await wrapper.vm.handleGenerateEquations();
 
-    const addends = wrapper.vm.equations.map((row) => row.addend);
-    expect(addends.length).toBeGreaterThan(1);
-    expect(new Set(addends)).toEqual(new Set([2]));
+    const augends = wrapper.vm.equations.map((row) => row.augend);
+    expect(augends.length).toBeGreaterThan(1);
+    expect(new Set(augends)).toEqual(new Set(["X"]));
 
-    const hasConsecutiveSame = addends.some(
-      (value, index) => index > 0 && value === addends[index - 1],
+    const hasConsecutiveSame = augends.some(
+      (value, index) => index > 0 && value === augends[index - 1],
     );
 
     expect(hasConsecutiveSame).toBe(true);
