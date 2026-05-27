@@ -620,6 +620,9 @@ defineExpose({ setParamsEstim, resetParams });
                   Le taux d'erreur sert à simuler des réponses incorrectes selon le pourcentage indiqué
                   (il ne modifie pas le temps, il décide si la réponse est fausse).
                 </p>
+                <p class="mt-2 mb-0">
+                  Vous pouvez modifier les valeurs par défaut via le bouton « Modifier les paramètres par défaut ».
+                </p>
               </div>
               <div class="modal-footer">
                 <button
@@ -689,6 +692,13 @@ defineExpose({ setParamsEstim, resetParams });
                   </p>
                   <p class="mb-0">
                     Autrement dit, on fait le total : temps d'initialisation + temps de la stratégie choisie.
+                  </p>
+                  <p class="mt-2 mb-0">
+                    Pour l'estimation, vous pouvez choisir la méthode (random search ou grid search) et ajuster
+                    les limites via « Modifier les paramètres par défaut ».
+                  </p>
+                  <p class="mt-2 mb-0">
+                    Vous pouvez aussi modifier les paramètres par défaut des valeurs d'estimation via ce même bouton.
                   </p>
                 </div>
                 <div class="modal-footer">
