@@ -20,6 +20,7 @@ const emit = defineEmits(["export-summary"]);
 
 const svgRef = ref(null);
 const chartContainerRef = ref(null);
+const activeTab = ref('temps');
 
 // Regroupe les données brutes pour préparer à la fois le tableau et le tracé
 const aggregateData = (rawData) => {
@@ -92,6 +93,42 @@ const legendItems = computed(() => {
     label: `Session ${session}`,
     color: colorScale(session),
   }));
+});
+
+// Calcule les taux de stratégie de comptage par session et addend
+const strategyRatesData = computed(() => {
+  const { addends, sessions } = aggregated.value;
+  if (!addends || !sessions) return [];
+  
+  return sessions.map((session) => {
+    const row = { session };
+    addends.forEach((addend) => {
+      const pointData = props.data.filter(
+        (item) => item.session === session && item.addend === addend
+      );
+      
+      if (pointData.length > 0) {
+        const counting = pointData.filter((item) => item.method === "Comptage").length;
+        const total = pointData.length;
+        const percentage = ((counting / total) * 100).toFixed(1);
+        row[`addend_${addend}`] = `${percentage}%`;
+      } else {
+        row[`addend_${addend}`] = "-";
+      }
+    });
+    return row;
+  });
+});
+
+const strategyRatesColumns = computed(() => {
+  const addends = aggregated.value.addends || [];
+  return [
+    { key: "session", label: "Session" },
+    ...addends.map((addend) => ({
+      key: `addend_${addend}`,
+      label: `+${addend}`,
+    })),
+  ];
 });
 
 const handleExportSummary = (format) => {
@@ -367,7 +404,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-      <div class="d-flex flex-wrap gap-2 mt-2">
+      <div class="d-flex flex-wrap gap-2 mt-2 mb-3">
         <BaseButton
           size="sm"
           variant="btn btn-outline-secondary"
@@ -382,18 +419,74 @@ onBeforeUnmount(() => {
         >
           Exporter PNG
         </BaseButton>
+      </div>      
+
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a
+            :class="['nav-link', { active: activeTab === 'temps' }]"
+            href="#temps"
+            @click.prevent="activeTab = 'temps'"
+          >
+            Temps moyens
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            :class="['nav-link', { active: activeTab === 'tauxStrategie' }]"
+            href="#tauxStrategie"
+            @click.prevent="activeTab = 'tauxStrategie'"
+          >
+            Taux de stratégie de comptage
+          </a>
+        </li>
+      </ul>
+
+      <!-- Tableau récapitulatif des temps de réponse -->
+      <div class="tab-content">
+        <div v-if="activeTab === 'temps'" class="table-section" id="temps">
+          <BaseDataTable
+            title=""
+            :show-button="false"
+            max-height="25vh"
+            :rows="tableRows"
+            :columns="tableColumns"
+          />
+          <div v-if="tableRows.length" class="d-flex flex-wrap gap-2 mt-2">
+            <BaseButton
+              size="sm"
+              variant="btn btn-outline-secondary"
+              @click="handleExportSummary('xlsx')"
+            >
+              Exporter XLSX
+            </BaseButton>
+            <BaseButton
+              size="sm"
+              variant="btn btn-outline-secondary"
+              @click="handleExportSummary('csv')"
+            >
+              Exporter CSV
+            </BaseButton>
+            <BaseButton
+              size="sm"
+              variant="btn btn-outline-secondary"
+              @click="handleExportSummary('json')"
+            >
+              Exporter JSON
+            </BaseButton>
+          </div>
       </div>
-      
-      <!-- Tableau récapitulatif -->
-      <div class="table-section">
+
+      <!-- Tableau récapitulatif des taux de comptage -->
+      <div v-if="activeTab === 'tauxStrategie'" class="table-section" id="tauxStrategie">
         <BaseDataTable
           title=""
           :show-button="false"
           max-height="25vh"
-          :rows="tableRows"
-          :columns="tableColumns"
+          :rows="strategyRatesData"
+          :columns="strategyRatesColumns"
         />
-        <div v-if="tableRows.length" class="d-flex flex-wrap gap-2 mt-2">
+        <div v-if="strategyRatesData.length" class="d-flex flex-wrap gap-2 mt-2">
           <BaseButton
             size="sm"
             variant="btn btn-outline-secondary"
@@ -417,6 +510,7 @@ onBeforeUnmount(() => {
           </BaseButton>
         </div>
       </div>
+      </div>
     </div>
     <div v-else class="alert alert-light text-center">
       Aucune donnée à afficher. Lancez le modèle pour générer des résultats.
@@ -427,7 +521,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .graphics-container {
   background: #f8f9fa;
-  max-height: 85vh;
+  max-height: 100vh;
   max-width: 40vw;
   padding: 1.5rem;
   border-radius: 8px;
