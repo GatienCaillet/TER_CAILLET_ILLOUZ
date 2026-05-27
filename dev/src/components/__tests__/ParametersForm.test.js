@@ -202,11 +202,12 @@ describe("ParametersForm", () => {
     await openButton.trigger("click");
     expect(wrapper.find(".settings-modal").exists()).toBe(true);
 
-    await wrapper.find(".btn-close").trigger("click");
+    await wrapper.find(".settings-modal .btn-close").trigger("click");
     expect(wrapper.find(".settings-modal").exists()).toBe(false);
 
     await openButton.trigger("click");
     const cancelButton = wrapper
+      .find(".settings-modal")
       .findAll("button")
       .find((btn) => stripDiacritics(btn.text()).includes("annuler"));
 

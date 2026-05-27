@@ -49,7 +49,7 @@ describe("Model", () => {
     expect(model.paramsInit.commandTime).toBe(30);
     expect(model.paramsInit.errorRate).toBe(10);
     expect(model.paramsEstim.alpha).toBe(1);
-    expect(model.initTime).toBe((10 + 20 + 30) * 1.1);
+    expect(model.initTime).toBe(10 + 20 + 30);
   });
 
   it("throws when estimation range is invalid", () => {
@@ -127,11 +127,11 @@ describe("Model", () => {
     });
 
     const fastest = model.timeWithBestStrategy({ augend: "A", addend: 1 });
-    expect(fastest).toBe(10);
+    expect(fastest).toEqual({ time: 10, method: "counting" });
 
     model.results = [{ addend: 1, time: 100 }];
     const retrievalWins = model.timeWithBestStrategy({ augend: "A", addend: 1 });
-    expect(retrievalWins).toBe(100);
+    expect(retrievalWins).toEqual({ time: 100, method: "retrieval" });
   });
 
   it("calculates results for all stimuli", () => {

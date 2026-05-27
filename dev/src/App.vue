@@ -157,6 +157,40 @@ const handleGenerateEquations = async () => {
     return items;
   };
 
+  const ensureNoConsecutiveAddends = (items, previousAddend = null) => {
+    if (items.length === 0) {
+      return items;
+    }
+
+    if (previousAddend !== null && items[0].addend === previousAddend) {
+      const swapIndex = items.findIndex(
+        (item, idx) => idx > 0 && item.addend !== previousAddend,
+      );
+
+      if (swapIndex !== -1) {
+        [items[0], items[swapIndex]] = [items[swapIndex], items[0]];
+      }
+    }
+
+    for (let i = 1; i < items.length; i += 1) {
+      if (items[i].addend !== items[i - 1].addend) {
+        continue;
+      }
+
+      const swapIndex = items.findIndex(
+        (item, idx) => idx > i && item.addend !== items[i - 1].addend,
+      );
+
+      if (swapIndex === -1) {
+        return items;
+      }
+
+      [items[i], items[swapIndex]] = [items[swapIndex], items[i]];
+    }
+
+    return items;
+  };
+
   // Générer toutes les combinaisons uniques
   const combinations = [];
   selectedAugends.value.forEach(augend => {
@@ -184,9 +218,13 @@ const handleGenerateEquations = async () => {
   });
 
   // Mettre les combinaisons dans un ordre aléatoire pour chaque session
+  let previousAddend = null;
   for (let session = 1; session <= numSessions.value; session++) {
     // Mélanger les combinaisons pour cette session
-    const shuffledCombinations = shuffleInPlace([...combinations]);
+    const shuffledCombinations = ensureNoConsecutiveAddends(
+      shuffleInPlace([...combinations]),
+      previousAddend,
+    );
     
     shuffledCombinations.forEach(combination => {
       generatedEquations.push({
@@ -197,6 +235,8 @@ const handleGenerateEquations = async () => {
         session: session,
       });
     });
+
+    previousAddend = shuffledCombinations[shuffledCombinations.length - 1]?.addend ?? previousAddend;
   }
 
   // Réinitialiser les paramètres aux valeurs par défaut avec les nouvelles données
