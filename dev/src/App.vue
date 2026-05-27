@@ -42,6 +42,7 @@ const isEstimating = ref(false);
 const estimationProgress = ref({ current: 0, total: 0 });
 const loadingStartedAt = ref(0);
 const currentEstimationModel = ref(null);
+const estimationWorker = ref(null);
 const isImportingEquations = ref(false);
 const isImportingData = ref(false);
 const MIN_LOADING_DURATION_MS = 700;
@@ -415,6 +416,8 @@ const handleLaunchEstimation = async ({
   paramsInit,
   paramsEstim,
   maxCombinations,
+  maxRandomSamples,
+  estimationMode,
 }) => {
   if (!data.value.length) {
     alert("Aucun stimulus importé. Importez des équations avant de lancer l'estimation des paramètres.");
@@ -431,7 +434,13 @@ const handleLaunchEstimation = async ({
   estimationResultsRows.value = [];
 
   try {
-    const stimuli = buildStimuli();
+    const stimuli = data.value.map((row) => ({
+      augend: String(row.augend ?? "").trim(),
+      addend: Number(row.addend),
+      result: String(row.result ?? "").trim(),
+      time: Number(row.time),
+      session: Number(row.session ?? 1),
+    }));
     const model = new Model(paramsInit, paramsEstim, stimuli);
     currentEstimationModel.value = model;
 
@@ -441,7 +450,7 @@ const handleLaunchEstimation = async ({
         ? Math.floor(maxCombinations)
         : 10000;
 
-    if (combCount > maxCombinationsSafe) {
+    if (estimationMode === "grid" && combCount > maxCombinationsSafe) {
       const confirmed = window.confirm(
         `Attention : ${combCount} combinaisons à évaluer. Cela peut prendre du temps. Continuer ?`,
       );
@@ -453,7 +462,12 @@ const handleLaunchEstimation = async ({
     }
 
     // Initialiser la progression à 0 avant de laisser le temps à l'interface de se mettre à jour
-    estimationProgress.value = { current: 0, total: combCount };
+    const randomTarget =
+      Number.isFinite(maxRandomSamples) && maxRandomSamples > 0
+        ? Math.floor(maxRandomSamples)
+        : 2000;
+    const totalTarget = estimationMode === "grid" ? combCount : randomTarget;
+    estimationProgress.value = { current: 0, total: totalTarget };
     loadingStartedAt.value = performance.now();
 
     // Permettre à l'interface de se mettre à jour avant de lancer le calcul intensif
@@ -463,20 +477,53 @@ const handleLaunchEstimation = async ({
     );
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    // Fonction de callback pour mettre à jour la progression depuis le modèle pendant l'estimation
-    const onProgress = (current, total) => {
-      estimationProgress.value = {
-        current,
-        total: total ?? combCount,
-      };
-    };
+    if (estimationWorker.value) {
+      estimationWorker.value.terminate();
+    }
 
-    // Lancer l'estimation des paramètres avec le modèle
-    // C'est la partie la plus longue du processus
-    const { bestParams, evaluations } = await model.estimateBestParamsWithScores(
-      data.value,
-      onProgress,
+    const worker = new Worker(
+      new URL("./workers/estimationWorker.js", import.meta.url),
+      { type: "module" },
     );
+    estimationWorker.value = worker;
+
+    const { bestParams, evaluations } = await new Promise((resolve, reject) => {
+      worker.onmessage = (event) => {
+        const { type, current, total, result, message } = event.data || {};
+
+        if (type === "progress") {
+          estimationProgress.value = {
+            current,
+            total: total ?? totalTarget,
+          };
+          return;
+        }
+
+        if (type === "result") {
+          resolve(result);
+        }
+
+        if (type === "error") {
+          reject(new Error(message));
+        }
+      };
+
+      worker.onerror = (event) => {
+        reject(new Error(event?.message || "Erreur worker"));
+      };
+
+      worker.postMessage({
+        type: "estimate",
+        payload: {
+          paramsInit,
+          paramsEstim,
+          stimuli,
+          mode: estimationMode,
+          maxCombinations: maxCombinationsSafe,
+          maxRandomSamples: randomTarget,
+        },
+      });
+    });
 
     // Envoyer les meilleurs paramètres estimés au formulaire pour qu'il puisse les afficher
     if (
@@ -506,13 +553,19 @@ const handleLaunchEstimation = async ({
     estimationProgress.value = { current: 0, total: 0 };
     loadingStartedAt.value = 0;
     currentEstimationModel.value = null;
+    if (estimationWorker.value) {
+      estimationWorker.value.terminate();
+      estimationWorker.value = null;
+    }
   }
 };
 
 // Permet d'interrompre le calcul long depuis l'interface en cliquant sur la croix du panneau de chargement
 const handleCloseLoadingOverlay = () => {
-  if (currentEstimationModel.value) {
-    currentEstimationModel.value.shouldAbort = true;
+  if (estimationWorker.value) {
+    estimationWorker.value.postMessage({ type: "abort" });
+    estimationWorker.value.terminate();
+    estimationWorker.value = null;
   }
 
   isEstimating.value = false;

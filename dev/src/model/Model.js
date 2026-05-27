@@ -135,6 +135,12 @@ function cartesianProduct(entries, index = 0, current = {}, output = []) {
   return output;
 }
 
+const countSearchSpaceSize = (searchSpace) =>
+  Object.values(searchSpace || {}).reduce(
+    (product, values) => product * Math.max(1, (values || []).length),
+    1,
+  );
+
 /**
  * Paramètres d'initialisation du modèle
  * @typedef {Object} ParamsInit
@@ -254,7 +260,7 @@ export class Model {
    */
   countGridSearchCombinations() {
     const entries = Object.entries(this.paramsEstimSearchSpace || {});
-    const product = entries.reduce((p, [, values]) => p * Math.max(1, (values || []).length), 1);
+    const product = countSearchSpaceSize(this.paramsEstimSearchSpace);
 
     // TODO : Juste bloquer l'estimation si la grille est trop grande et donner un avertissement à l'utilisateur, plutôt que de faire une estimation partielle
     // Si la grille est trop grande, on évite de générer toutes les combinaisons
@@ -265,6 +271,105 @@ export class Model {
     }
 
     return product;
+  }
+
+  /**
+   * Lance une estimation par tirages aléatoires dans l'espace de recherche
+   * @param {Stimuli} stimuli
+   * @param {number} maxSamples
+   * @param {Function|null} onProgress
+   * @param {boolean} collectResults
+   * @returns {{bestParams: ParamsEstim, evaluations: Array<{score: number, paramsEstim: ParamsEstim}>}}
+   */
+  async estimateParamsRandom(
+    stimuli = this.stimuli,
+    maxSamples = 1000,
+    onProgress = null,
+    collectResults = false,
+  ) {
+    const entries = Object.entries(this.paramsEstimSearchSpace);
+    if (!entries.length || !this.hasGridSearchConfiguration()) {
+      if (collectResults) {
+        const evaluation = this.evaluateParamsSet(stimuli, this.paramsEstim);
+        return { bestParams: this.paramsEstim, evaluations: [evaluation] };
+      }
+      return { bestParams: this.paramsEstim, evaluations: [] };
+    }
+
+    const totalComb = countSearchSpaceSize(this.paramsEstimSearchSpace);
+    const target = Math.max(1, Math.floor(maxSamples || 0));
+    if (target >= totalComb) {
+      return this.estimateParamsGrid(stimuli, onProgress, collectResults);
+    }
+
+    const evaluations = collectResults ? [] : null;
+    let bestCandidate = null;
+    let processedCount = 0;
+    const yieldEvery = Math.max(1, Math.floor(target / 80));
+    const visited = new Set();
+    const maxAttempts = Math.max(target * 10, target + 10);
+    let attempts = 0;
+
+    while (processedCount < target && attempts < maxAttempts) {
+      if (this.shouldAbort) {
+        throw new Error("Estimation aborted by user");
+      }
+
+      attempts += 1;
+      const candidate = {};
+      entries.forEach(([key, values]) => {
+        const idx = Math.floor(Math.random() * values.length);
+        candidate[key] = values[idx];
+      });
+
+      const signature = entries.map(([key]) => candidate[key]).join("|");
+      if (visited.has(signature)) {
+        continue;
+      }
+      visited.add(signature);
+
+      const mergedParams = {
+        ...this.paramsEstim,
+        ...candidate,
+      };
+      const evaluation = this.evaluateParamsSet(stimuli, mergedParams);
+      if (evaluations) {
+        evaluations.push(evaluation);
+      }
+
+      if (!bestCandidate || evaluation.score < bestCandidate.score) {
+        bestCandidate = evaluation;
+      }
+
+      processedCount += 1;
+      if (typeof onProgress === "function") {
+        onProgress(processedCount, target);
+      }
+
+      if (processedCount % yieldEvery === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
+
+    if (!bestCandidate) {
+      if (collectResults) {
+        const evaluation = this.evaluateParamsSet(stimuli, this.paramsEstim);
+        return { bestParams: this.paramsEstim, evaluations: [evaluation] };
+      }
+      return { bestParams: this.paramsEstim, evaluations: [] };
+    }
+
+    this.paramsEstim = {
+      ...this.paramsEstim,
+      ...(bestCandidate?.paramsEstim ?? {}),
+    };
+
+    this.paramsEstimSearchSpace = normalizeEstimSearchSpace(
+      this.paramsEstim,
+      DEFAULT_PARAMS_ESTIM,
+    );
+
+    return { bestParams: this.paramsEstim, evaluations: evaluations ?? [] };
   }
 
   /**

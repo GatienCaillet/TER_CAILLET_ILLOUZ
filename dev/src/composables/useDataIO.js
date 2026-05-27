@@ -15,14 +15,16 @@ const normalizeKey = (key) =>
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
 
 // Recupere une valeur dans une ligne en cherchant un nom de colonne connu
 const getValueByAliases = (row, aliases) => {
   const rowEntries = Object.entries(row);
+  const normalizedAliases = aliases.map(normalizeKey);
 
   for (const [key, value] of rowEntries) {
-    if (aliases.includes(normalizeKey(key))) {
+    if (normalizedAliases.includes(normalizeKey(key))) {
       return value;
     }
   }
@@ -42,8 +44,7 @@ const mapRowToImportedData = (row, index) => {
     augend === undefined ||
     addend === undefined ||
     result === undefined ||
-    time === undefined ||
-    session === undefined
+    time === undefined
   ) {
     return null;
   }
@@ -54,7 +55,7 @@ const mapRowToImportedData = (row, index) => {
     addend: Number(addend),
     result: String(result).trim(),
     time: Number(time),
-    session: Number(session),
+    session: session === undefined ? 1 : Number(session),
   };
 };
 
@@ -222,7 +223,7 @@ export function useDataIO() {
         .filter((row) => row !== null);
 
       if (!mappedRows.length) {
-        alert("Aucune ligne valide trouvee. Colonnes requises : augend, addend, result, time, session.");
+        alert("Aucune ligne valide trouvee. Colonnes requises : augend, addend, result, time (session optionnelle).");
         onDone?.();
         return;
       }

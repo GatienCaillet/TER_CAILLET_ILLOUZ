@@ -5,9 +5,11 @@ import BaseButton from "./BaseButton.vue";
 import BaseDataTable from "./BaseDataTable.vue";
 import {
   DEFAULT_MAX_COMBINATIONS,
+  DEFAULT_MAX_RANDOM_SAMPLES,
   DEFAULT_PARAMS_ESTIM,
   DEFAULT_PARAMS_INIT,
   DEFAULT_RANGES,
+  DEFAULT_ESTIMATION_MODE,
   STORAGE_KEY,
 } from "../config/defaults.js";
 
@@ -55,6 +57,8 @@ const loadDefaults = () => {
     paramsEstim: { ...DEFAULT_PARAMS_ESTIM },
     ranges: cloneRanges(DEFAULT_RANGES),
     maxCombinations: DEFAULT_MAX_COMBINATIONS,
+    maxRandomSamples: DEFAULT_MAX_RANDOM_SAMPLES,
+    estimationMode: DEFAULT_ESTIMATION_MODE,
   };
 
   try {
@@ -97,6 +101,17 @@ const loadDefaults = () => {
         defaults.maxCombinations,
       );
     }
+
+    if (parsed?.maxRandomSamples !== undefined) {
+      defaults.maxRandomSamples = toNumber(
+        parsed.maxRandomSamples,
+        defaults.maxRandomSamples,
+      );
+    }
+
+    if (parsed?.estimationMode) {
+      defaults.estimationMode = parsed.estimationMode;
+    }
   } catch (error) {
     console.warn("Impossible de lire les paramètres sauvegardés:", error);
   }
@@ -128,6 +143,8 @@ const configInitialisation = [
 const paramsEstimation = ref({ ...savedDefaults.paramsEstim });
 const previousParamsEstimation = ref(null);
 const maxCombinations = ref(savedDefaults.maxCombinations);
+const maxRandomSamples = ref(savedDefaults.maxRandomSamples);
+const estimationMode = ref(savedDefaults.estimationMode);
 
 // Chaque entrée définit un paramètre d'estimation et sa plage possible
 const configEstimation = reactive([
@@ -373,6 +390,8 @@ const settingsDraft = ref({
   paramsEstim: { ...savedDefaults.paramsEstim },
   ranges: cloneRanges(savedDefaults.ranges),
   maxCombinations: savedDefaults.maxCombinations,
+  maxRandomSamples: savedDefaults.maxRandomSamples,
+  estimationMode: savedDefaults.estimationMode,
 });
 
 const buildDefaultsSnapshot = () => ({
@@ -386,6 +405,8 @@ const buildDefaultsSnapshot = () => ({
     }]),
   ),
   maxCombinations: maxCombinations.value,
+  maxRandomSamples: maxRandomSamples.value,
+  estimationMode: estimationMode.value,
 });
 
 const openSettings = () => {
@@ -428,6 +449,11 @@ const applyDefaults = (payload) => {
     payload.maxCombinations,
     DEFAULT_MAX_COMBINATIONS,
   );
+  maxRandomSamples.value = toNumber(
+    payload.maxRandomSamples,
+    DEFAULT_MAX_RANDOM_SAMPLES,
+  );
+  estimationMode.value = payload.estimationMode || DEFAULT_ESTIMATION_MODE;
 };
 
 const saveSettings = () => {
@@ -436,6 +462,8 @@ const saveSettings = () => {
     paramsEstim: { ...settingsDraft.value.paramsEstim },
     ranges: { ...settingsDraft.value.ranges },
     maxCombinations: settingsDraft.value.maxCombinations,
+    maxRandomSamples: settingsDraft.value.maxRandomSamples,
+    estimationMode: settingsDraft.value.estimationMode,
   };
 
   applyDefaults(payload);
@@ -449,6 +477,8 @@ const resetSettings = () => {
     paramsEstim: { ...DEFAULT_PARAMS_ESTIM },
     ranges: cloneRanges(DEFAULT_RANGES),
     maxCombinations: DEFAULT_MAX_COMBINATIONS,
+    maxRandomSamples: DEFAULT_MAX_RANDOM_SAMPLES,
+    estimationMode: DEFAULT_ESTIMATION_MODE,
   };
 
   settingsDraft.value = {
@@ -456,6 +486,8 @@ const resetSettings = () => {
     paramsEstim: { ...payload.paramsEstim },
     ranges: cloneRanges(payload.ranges),
     maxCombinations: payload.maxCombinations,
+    maxRandomSamples: payload.maxRandomSamples,
+    estimationMode: payload.estimationMode,
   };
   applyDefaults(payload);
   persistDefaults(payload);
@@ -475,6 +507,8 @@ const emitLaunchEstimation = () => {
     paramsInit: { ...params.value },
     paramsEstim: buildParamsEstimPayload(),
     maxCombinations: maxCombinations.value,
+    maxRandomSamples: maxRandomSamples.value,
+    estimationMode: estimationMode.value,
   });
 };
 
@@ -486,6 +520,8 @@ const emitLaunchModel = () => {
     paramsInit: { ...params.value },
     paramsEstim: buildParamsEstimPayload(),
     maxCombinations: maxCombinations.value,
+    maxRandomSamples: maxRandomSamples.value,
+    estimationMode: estimationMode.value,
   });
 };
 
@@ -920,6 +956,38 @@ defineExpose({ setParamsEstim, resetParams });
                   Limite de sécurité pour éviter un calcul trop long. Si le nombre
                   de combinaisons à tester dépasse cette valeur, un message de
                   confirmation s'affiche avant de lancer l'estimation.
+                </div>
+              </div>
+              <div class="col-12 col-lg-6">
+                <label for="default-estimation-mode" class="form-label small">
+                  Mode d'estimation
+                </label>
+                <select
+                  id="default-estimation-mode"
+                  v-model="settingsDraft.estimationMode"
+                  class="form-select"
+                >
+                  <option value="random">Recherche aléatoire (rapide)</option>
+                  <option value="grid">Grid search (exhaustif)</option>
+                </select>
+                <div class="form-text">
+                  Par défaut la recherche aléatoire est utilisée pour éviter les
+                  blocages. Le grid search est réservé aux machines puissantes.
+                </div>
+              </div>
+              <div class="col-12 col-lg-6">
+                <label for="default-max-random-samples" class="form-label small">
+                  Nombre maximum d'essais aléatoires
+                </label>
+                <input
+                  id="default-max-random-samples"
+                  v-model.number="settingsDraft.maxRandomSamples"
+                  class="form-control"
+                  type="number"
+                  min="1"
+                />
+                <div class="form-text">
+                  Limite d'essais pour la recherche aléatoire.
                 </div>
               </div>
             </div>

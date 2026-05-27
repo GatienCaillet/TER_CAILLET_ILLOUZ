@@ -26,3 +26,5 @@ export const DEFAULT_RANGES = {
 };
 
 export const DEFAULT_MAX_COMBINATIONS = 10000;
+export const DEFAULT_MAX_RANDOM_SAMPLES = 2000;
+export const DEFAULT_ESTIMATION_MODE = "random";
