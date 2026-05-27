@@ -199,11 +199,34 @@ const drawChart = () => {
     .style("visibility", "hidden")
     .style("background", "rgba(0, 0, 0, 0.8)")
     .style("color", "white")
-    .style("padding", "5px 10px")
+    .style("padding", "8px 12px")
     .style("border-radius", "4px")
     .style("font-size", "12px")
     .style("pointer-events", "none")
-    .style("z-index", "1000");
+    .style("z-index", "1000")
+    .style("max-width", "200px")
+    .style("white-space", "pre-wrap");
+
+  // Fonction pour calculer les taux de stratégies pour un point donné
+  const getStrategyRates = (session, addend) => {
+    const pointData = props.data.filter(
+      (item) => item.session === session && item.addend === addend
+    );
+    
+    if (!pointData.length) return { counting: 0, retrieval: 0, total: 0, countingPct: 0, retrievalPct: 0 };
+    
+    const counting = pointData.filter((item) => item.method === "Comptage").length;
+    const retrieval = pointData.filter((item) => item.method === "Récupération").length;
+    const total = pointData.length;
+    
+    return {
+      counting,
+      retrieval,
+      total,
+      countingPct: ((counting / total) * 100).toFixed(1),
+      retrievalPct: ((retrieval / total) * 100).toFixed(1)
+    };
+  };
 
   // Les dimensions s'adaptent à la largeur du conteneur
   const margin = { top: 8, right: 30, bottom: 40, left: 60 };
@@ -285,7 +308,9 @@ const drawChart = () => {
       .attr("fill", colorScale(lineItem.session))
       .style("cursor", "pointer")
       .on("mouseover", function (event, d) {
-        tooltip.style("visibility", "visible").text(`${d.avgTime.toFixed(2)} ms`);
+        const rates = getStrategyRates(lineItem.session, d.addend);
+        const tooltipText = `${d.avgTime.toFixed(2)} ms\nTaux de comptage: ${rates.countingPct}%\nTaux de récupération: ${rates.retrievalPct}%`;
+        tooltip.style("visibility", "visible").html(tooltipText.split("\n").join("<br/>"));
       })
       .on("mousemove", function (event) {
         tooltip
