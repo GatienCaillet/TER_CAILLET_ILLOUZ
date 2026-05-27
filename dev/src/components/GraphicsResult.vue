@@ -102,14 +102,79 @@ const handleExportSummary = (format) => {
   });
 };
 
-const handleExportSvg = () => {
+const buildExportSvgString = () => {
   const svgEl = svgRef.value;
   if (!svgEl) {
-    return;
+    return null;
   }
 
+  const legend = legendItems.value || [];
+  const clone = svgEl.cloneNode(true);
   const serializer = new XMLSerializer();
-  const svgString = serializer.serializeToString(svgEl);
+
+  if (!legend.length) {
+    return serializer.serializeToString(clone);
+  }
+
+  const baseWidth = Number(clone.getAttribute("width")) || 800;
+  const baseHeight = Number(clone.getAttribute("height")) || 600;
+  const padding = 12;
+  const itemHeight = 18;
+  const swatchSize = 12;
+  const legendWidth = 160;
+  const legendHeight = Math.max(24, legend.length * itemHeight + padding);
+  const newWidth = baseWidth + legendWidth + padding * 2;
+
+  clone.setAttribute("width", newWidth);
+
+  const ns = "http://www.w3.org/2000/svg";
+  const legendGroup = document.createElementNS(ns, "g");
+  legendGroup.setAttribute(
+    "transform",
+    `translate(${baseWidth + padding}, ${padding})`,
+  );
+
+  const background = document.createElementNS(ns, "rect");
+  background.setAttribute("x", "0");
+  background.setAttribute("y", "0");
+  background.setAttribute("width", String(legendWidth));
+  background.setAttribute("height", String(legendHeight));
+  background.setAttribute("fill", "#ffffff");
+  background.setAttribute("stroke", "#e5e7eb");
+  background.setAttribute("rx", "4");
+  legendGroup.appendChild(background);
+
+  legend.forEach((item, index) => {
+    const y = padding + index * itemHeight + 6;
+
+    const swatch = document.createElementNS(ns, "rect");
+    swatch.setAttribute("x", String(padding));
+    swatch.setAttribute("y", String(y - 8));
+    swatch.setAttribute("width", String(swatchSize));
+    swatch.setAttribute("height", String(swatchSize));
+    swatch.setAttribute("fill", item.color);
+    swatch.setAttribute("rx", "2");
+    legendGroup.appendChild(swatch);
+
+    const label = document.createElementNS(ns, "text");
+    label.setAttribute("x", String(padding + swatchSize + 6));
+    label.setAttribute("y", String(y + 2));
+    label.setAttribute("font-size", "12");
+    label.setAttribute("font-family", "sans-serif");
+    label.setAttribute("fill", "#111827");
+    label.textContent = item.label;
+    legendGroup.appendChild(label);
+  });
+
+  clone.appendChild(legendGroup);
+  return serializer.serializeToString(clone);
+};
+
+const handleExportSvg = () => {
+  const svgString = buildExportSvgString();
+  if (!svgString) {
+    return;
+  }
   const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
 
@@ -123,19 +188,18 @@ const handleExportSvg = () => {
 };
 
 const handleExportPng = () => {
-  const svgEl = svgRef.value;
-  if (!svgEl) {
+  const svgString = buildExportSvgString();
+  if (!svgString) {
     return;
   }
-
-  const serializer = new XMLSerializer();
-  const svgString = serializer.serializeToString(svgEl);
   const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(svgBlob);
 
   const img = new Image();
-  const width = Number(svgEl.getAttribute("width")) || 800;
-  const height = Number(svgEl.getAttribute("height")) || 600;
+  const widthMatch = svgString.match(/width="(\d+(?:\.\d+)?)"/);
+  const heightMatch = svgString.match(/height="(\d+(?:\.\d+)?)"/);
+  const width = widthMatch ? Number(widthMatch[1]) : 800;
+  const height = heightMatch ? Number(heightMatch[1]) : 600;
 
   img.onload = () => {
     const canvas = document.createElement("canvas");
