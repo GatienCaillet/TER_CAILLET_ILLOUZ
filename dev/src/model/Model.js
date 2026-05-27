@@ -215,12 +215,10 @@ export class Model {
     this.paramsEstimSearchSpace = normalizeEstimSearchSpace(paramsEstim, DEFAULT_PARAMS_ESTIM);
     this.stimuli = stimuli;
 
-    const baseInitTime =
+    this.initTime =
       this.paramsInit.encodingTime +
       this.paramsInit.comparisonTime +
       this.paramsInit.commandTime;
-
-    this.initTime = baseInitTime * (1 + this.paramsInit.errorRate / 100);
 
     // Dictionnaire de pratique: chaque lettre commence à zéro
     /** @type {PracticeMap} */
