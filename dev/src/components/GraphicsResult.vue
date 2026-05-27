@@ -139,6 +139,14 @@ const handleExportSummary = (format) => {
   });
 };
 
+const handleExportStrategyRates = (format) => {
+  emit("export-strategy-rates", {
+    rows: strategyRatesData.value,
+    columns: strategyRatesColumns.value,
+    format,
+  });
+};
+
 const handleExportSvg = () => {
   const svgEl = svgRef.value;
   if (!svgEl) {
@@ -490,21 +498,21 @@ onBeforeUnmount(() => {
           <BaseButton
             size="sm"
             variant="btn btn-outline-secondary"
-            @click="handleExportSummary('xlsx')"
+            @click="handleExportStrategyRates('xlsx')"
           >
             Exporter XLSX
           </BaseButton>
           <BaseButton
             size="sm"
             variant="btn btn-outline-secondary"
-            @click="handleExportSummary('csv')"
+            @click="handleExportStrategyRates('csv')"
           >
             Exporter CSV
           </BaseButton>
           <BaseButton
             size="sm"
             variant="btn btn-outline-secondary"
-            @click="handleExportSummary('json')"
+            @click="handleExportStrategyRates('json')"
           >
             Exporter JSON
           </BaseButton>

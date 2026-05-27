@@ -1054,6 +1054,7 @@ onBeforeUnmount(() => {
               :data="dataResults"
               title="Moyennes des temps par session et addend (en ms)"
               @export-summary="({ rows, columns, format }) => handleExportTable(rows, columns, 'moyennes-sessions-addends', format)"
+              @export-strategy-rates="({ rows, columns, format }) => handleExportTable(rows, columns, 'taux-strategie-comptage', format)"
             />
           </div>
 
