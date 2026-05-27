@@ -532,7 +532,17 @@ defineExpose({ setParamsEstim, resetParams });
     <form>
       <div id="initialisation" class="d-flex flex-column">
         <div class="d-flex align-items-center justify-content-between ms-5 me-3">
-          <div class="fw-bold">Paramètres d'initialisation :</div>
+          <div class="d-flex align-items-center">
+            <div class="fw-bold">Paramètres d'initialisation :</div>
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm bi bi-info-lg ms-2 rounded-circle"
+              title="Informations sur l'initialisation"
+              aria-label="Informations sur l'initialisation"
+              data-bs-toggle="modal"
+              data-bs-target="#modalInitInfo"
+            ></button>
+          </div>
           <button
             type="button"
             class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
@@ -542,6 +552,50 @@ defineExpose({ setParamsEstim, resetParams });
             <i class="bi bi-gear" aria-hidden="true"></i>
             Modifier les paramètres par défaut
           </button>
+        </div>
+
+        <div
+          class="modal fade"
+          id="modalInitInfo"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Informations sur l'initialisation"
+        >
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Informations sur l'initialisation</h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Fermer"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <p class="mb-2">
+                  Les temps d'encodage, de comparaison et de commande moteur sont additionnés
+                  au temps de la stratégie (comptage ou récupération) pour obtenir le temps total.
+                </p>
+                <p class="mb-2 formula">
+                  T_total = T_encodage + T_comparaison + T_commande + T_stratégie.
+                </p>
+                <p class="mb-0">
+                  Le taux d'erreur sert à simuler des réponses incorrectes selon le pourcentage indiqué
+                  (il ne modifie pas le temps, il décide si la réponse est fausse).
+                </p>
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="d-flex flex-row justify-content-around flex-wrap">
           <ParameterField
@@ -556,7 +610,63 @@ defineExpose({ setParamsEstim, resetParams });
 
       <div class="container border rounded-4 p-3 mb-3">
         <div id="estimation" class="d-flex flex-column mb-4">
-          <div class="ms-5 fw-bold">Paramètres d'estimation :</div>
+          <div class="ms-5 d-flex align-items-center">
+            <div class="fw-bold">Paramètres d'estimation :</div>
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm bi bi-info-lg ms-2 rounded-circle"
+              title="Formules du modèle"
+              aria-label="Formules du modèle"
+              data-bs-toggle="modal"
+              data-bs-target="#modalFormulas"
+            ></button>
+          </div>
+
+          <div
+            class="modal fade"
+            id="modalFormulas"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Formules du modèle"
+          >
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Formules du modèle</h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Fermer"
+                  ></button>
+                </div>
+                <div class="modal-body">
+                  <div class="formula">Duration(i → i + 1) = α + β · exp(−practice(i → i + 1) / δ)</div>
+                  <div class="formula">Duration(Instance) = η + τ · exp(−AssoStrength / ρ)</div>
+                  <p class="mt-3 mb-2">
+                    Les formules ci-dessus donnent le temps de la stratégie choisie (comptage ou récupération).
+                    Le temps total pour une réponse est ensuite calculé en ajoutant les paramètres
+                    d'initialisation (temps d'encodage, de comparaison et de commande moteur).
+                  </p>
+                  <p class="mb-2 formula">
+                    T_total = T_encodage + T_comparaison + T_commande + T_stratégie.
+                  </p>
+                  <p class="mb-0">
+                    Autrement dit, on fait le total : temps d'initialisation + temps de la stratégie choisie.
+                  </p>
+                </div>
+                <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div class="gap-2 d-flex ms-5 mt-2">
             <BaseButton
@@ -881,5 +991,11 @@ defineExpose({ setParamsEstim, resetParams });
 
 .settings-modal-footer {
   border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.formula {
+  font-family: "Times New Roman", serif;
+  font-size: 1rem;
+  margin-top: 0.5rem;
 }
 </style>

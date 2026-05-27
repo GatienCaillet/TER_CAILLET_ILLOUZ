@@ -1070,7 +1070,7 @@ onBeforeUnmount(() => {
               </div>
               <div class="flex-grow-1" style="min-width: 280px;">
                 <BaseDataTable
-                  title="Associations"
+                  title="Force d'associations"
                   :show-button="false"
                   max-height="30vh"
                   :rows="associationRows"

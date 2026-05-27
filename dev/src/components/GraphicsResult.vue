@@ -457,7 +457,6 @@ onBeforeUnmount(() => {
   background: white;
   margin-top: 1rem;
   padding-inline: 1rem;
-  padding-bottom: 1rem;
   border-radius: 4px;
   max-height: 40vh;
 }
