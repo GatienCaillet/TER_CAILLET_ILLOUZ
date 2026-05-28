@@ -466,7 +466,10 @@ const handleLaunchEstimation = async ({
       Number.isFinite(maxRandomSamples) && maxRandomSamples > 0
         ? Math.floor(maxRandomSamples)
         : 2000;
-    const totalTarget = estimationMode === "grid" ? combCount : randomTarget;
+    const totalTarget =
+      estimationMode === "grid"
+        ? combCount
+        : Math.min(randomTarget, combCount);
     estimationProgress.value = { current: 0, total: totalTarget };
     loadingStartedAt.value = performance.now();
 

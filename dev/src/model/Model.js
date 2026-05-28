@@ -351,6 +351,10 @@ export class Model {
       }
     }
 
+    if (typeof onProgress === "function" && processedCount < target) {
+      onProgress(processedCount, processedCount);
+    }
+
     if (!bestCandidate) {
       if (collectResults) {
         const evaluation = this.evaluateParamsSet(stimuli, this.paramsEstim);
