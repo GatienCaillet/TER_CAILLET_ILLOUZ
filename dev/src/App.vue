@@ -852,8 +852,10 @@ onBeforeUnmount(() => {
                         Vous pouvez générer des données d'expérience en sélectionnant les augends et les addends 
                         que vous souhaitez inclure. Le résultat de chaque équation est calculé automatiquement 
                         (toutes les équations sont donc justes). Vous pouvez également spécifier le nombre de sessions 
-                        et le nombre de répétitions pour chaque équation au sein d'une session. Les équations générées 
-                        seront affichées dans un tableau d'aperçu avant d'être utilisées pour le lancement du modèle.
+                        et le nombre de répétitions pour chaque équation au sein d'une session. <br>L'ordre des équations 
+                        au sein d'une session est aléatoire de façon à ce que 2 équations avec des augends similaires ne 
+                        peuvent pas se suivre. Les équations générées seront affichées dans un tableau d'aperçu avant 
+                        d'être utilisées pour le lancement du modèle.
                       </p>
                       <p class="text-danger">
                         Attention : en générant des équations, vous ne pourrez pas lancer d'estimation des paramètres, 
