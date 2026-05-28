@@ -10,17 +10,29 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  userData: {
+    type: Array,
+    default: () => []
+  },
   title: {
     type: String,
     default: 'Graphique des résultats'
   }
 })
 
-const emit = defineEmits(["export-summary"]);
+const emit = defineEmits(["export-summary", "export-strategy-rates"]);
 
 const svgRef = ref(null);
 const chartContainerRef = ref(null);
 const activeTab = ref('temps');
+const activeDataset = ref('modele');
+
+const hasUserData = computed(() => (props.userData || []).length > 0);
+const activeRawData = computed(() =>
+  activeDataset.value === "utilisateur" ? props.userData : props.data,
+);
+const activeHasData = computed(() => (activeRawData.value || []).length > 0);
+const showStrategyTab = computed(() => activeDataset.value === "modele");
 
 // Regroupe les données brutes pour préparer à la fois le tableau et le tracé
 const aggregateData = (rawData) => {
@@ -72,7 +84,7 @@ const aggregateData = (rawData) => {
   return { lineData, tableData, addends: addends.map(Number), sessions: sortedSessions };
 };
 
-const aggregated = computed(() => aggregateData(props.data));
+const aggregated = computed(() => aggregateData(activeRawData.value));
 const tableRows = computed(() => aggregated.value.tableData || []);
 const tableColumns = computed(() => {
   const addends = aggregated.value.addends || [];
@@ -97,13 +109,17 @@ const legendItems = computed(() => {
 
 // Calcule les taux de stratégie de comptage par session et addend
 const strategyRatesData = computed(() => {
+  if (!showStrategyTab.value) {
+    return [];
+  }
+
   const { addends, sessions } = aggregated.value;
   if (!addends || !sessions) return [];
   
   return sessions.map((session) => {
     const row = { session };
     addends.forEach((addend) => {
-      const pointData = props.data.filter(
+      const pointData = activeRawData.value.filter(
         (item) => item.session === session && item.addend === addend
       );
       
@@ -287,11 +303,13 @@ const handleExportPng = () => {
 
 // Dessine le graphique D3 à partir des données agrégées
 const drawChart = () => {
-  if (!svgRef.value || !props.data || !props.data.length) {
+  const rawData = activeRawData.value || [];
+
+  if (!svgRef.value || !rawData.length) {
     return;
   }
 
-  const { lineData, addends, sessions } = aggregateData(props.data);
+  const { lineData, addends, sessions } = aggregateData(rawData);
 
   if (!lineData.length || !addends.length) {
     return;
@@ -318,7 +336,7 @@ const drawChart = () => {
 
   // Fonction pour calculer les taux de stratégies pour un point donné
   const getStrategyRates = (session, addend) => {
-    const pointData = props.data.filter(
+    const pointData = rawData.filter(
       (item) => item.session === session && item.addend === addend
     );
     
@@ -417,8 +435,12 @@ const drawChart = () => {
       .attr("fill", colorScale(lineItem.session))
       .style("cursor", "pointer")
       .on("mouseover", function (event, d) {
-        const rates = getStrategyRates(lineItem.session, d.addend);
-        const tooltipText = `${d.avgTime.toFixed(2)} ms\nTaux de comptage: ${rates.countingPct}%\nTaux de récupération: ${rates.retrievalPct}%`;
+        const tooltipText = showStrategyTab.value
+          ? (() => {
+              const rates = getStrategyRates(lineItem.session, d.addend);
+              return `${d.avgTime.toFixed(2)} ms\nTaux de comptage: ${rates.countingPct}%\nTaux de récupération: ${rates.retrievalPct}%`;
+            })()
+          : `${d.avgTime.toFixed(2)} ms`;
         tooltip.style("visibility", "visible").html(tooltipText.split("\n").join("<br/>"));
       })
       .on("mousemove", function (event) {
@@ -433,10 +455,26 @@ const drawChart = () => {
 };
 
 // Le graphique se met à jour dès que les données changent
-watch(() => props.data, async () => {
+watch(
+  () => [props.data, props.userData, activeDataset.value],
+  async () => {
   await new Promise((resolve) => setTimeout(resolve, 100));
   drawChart();
-}, { deep: true, immediate: true });
+  },
+  { deep: true, immediate: true },
+);
+
+watch(hasUserData, (value) => {
+  if (!value && activeDataset.value !== "modele") {
+    activeDataset.value = "modele";
+  }
+});
+
+watch(activeDataset, (value) => {
+  if (value !== "modele" && activeTab.value === "tauxStrategie") {
+    activeTab.value = "temps";
+  }
+});
 
 onMounted(async () => {
   await new Promise((resolve) => setTimeout(resolve, 50));
@@ -465,8 +503,28 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="graphics-container">
-    <div v-if="data && data.length" class="chart-section">
+    <div v-if="activeHasData" class="chart-section">
       <h5 class="text-center mb-3">{{ title }}</h5>
+      <ul v-if="hasUserData" class="nav nav-tabs mb-3">
+        <li class="nav-item">
+          <a
+            :class="['nav-link', { active: activeDataset === 'modele' }]"
+            href="#modele"
+            @click.prevent="activeDataset = 'modele'"
+          >
+            Temps du modèle
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            :class="['nav-link', { active: activeDataset === 'utilisateur' }]"
+            href="#utilisateur"
+            @click.prevent="activeDataset = 'utilisateur'"
+          >
+            Temps utilisateurs
+          </a>
+        </li>
+      </ul>
       <div ref="chartContainerRef" class="chart-container">
         <svg ref="svgRef" class="chart-svg"></svg>
         <div v-if="legendItems.length" class="legend-container">
@@ -493,7 +551,7 @@ onBeforeUnmount(() => {
         </BaseButton>
       </div>      
 
-      <ul class="nav nav-tabs">
+      <ul v-if="showStrategyTab" class="nav nav-tabs">
         <li class="nav-item">
           <a
             :class="['nav-link', { active: activeTab === 'temps' }]"
@@ -550,7 +608,11 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Tableau récapitulatif des taux de comptage -->
-      <div v-if="activeTab === 'tauxStrategie'" class="table-section" id="tauxStrategie">
+      <div
+        v-if="showStrategyTab && activeTab === 'tauxStrategie'"
+        class="table-section"
+        id="tauxStrategie"
+      >
         <BaseDataTable
           title=""
           :show-button="false"
