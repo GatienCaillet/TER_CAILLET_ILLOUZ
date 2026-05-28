@@ -1173,6 +1173,29 @@ onBeforeUnmount(() => {
                   :rows="practiceRows"
                   :columns="practiceCols"
                 />
+                <div v-if="practiceRows.length" class="d-flex flex-wrap gap-2 mt-2">
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(practiceRows, practiceCols, 'nombre-rencontres-lettres', 'xlsx')"
+                  >
+                    Exporter XLSX
+                  </BaseButton>
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(practiceRows, practiceCols, 'nombre-rencontres-lettres', 'csv')"
+                  >
+                    Exporter CSV
+                  </BaseButton>
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(practiceRows, practiceCols, 'nombre-rencontres-lettres', 'json')"
+                  >
+                    Exporter JSON
+                  </BaseButton>
+                </div>
               </div>
               <div class="flex-grow-1" style="min-width: 280px;">
                 <BaseDataTable
@@ -1182,6 +1205,29 @@ onBeforeUnmount(() => {
                   :rows="associationRows"
                   :columns="associationCols"
                 />
+                <div v-if="associationRows.length" class="d-flex flex-wrap gap-2 mt-2">
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(associationRows, associationCols, 'force-associations', 'xlsx')"
+                  >
+                    Exporter XLSX
+                  </BaseButton>
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(associationRows, associationCols, 'force-associations', 'csv')"
+                  >
+                    Exporter CSV
+                  </BaseButton>
+                  <BaseButton
+                    size="sm"
+                    variant="btn btn-outline-secondary"
+                    @click="handleExportTable(associationRows, associationCols, 'force-associations', 'json')"
+                  >
+                    Exporter JSON
+                  </BaseButton>
+                </div>
               </div>
             </div>
           </div>
