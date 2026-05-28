@@ -1121,7 +1121,7 @@ onBeforeUnmount(() => {
           <div class="d-flex flex-row gap-4 align-items-center justify-content-center">
             <div class="d-flex flex-column gap-2">
             <BaseDataTable
-              title="Tableau des résultats"
+              title="Tableau des temps prédits par le modèle pour chaque équation"
               buttonLabel="Sauvegarder les résultats"
               :show-button="false"
               max-height="70vh"
