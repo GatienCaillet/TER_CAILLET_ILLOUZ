@@ -641,13 +641,27 @@ onBeforeUnmount(() => {
 .scroll-nav {
   position: fixed;
   z-index: 1000;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.scroll-nav-top {
+  top: 1rem;
+}
+
+.scroll-nav-bottom {
+  bottom: 1rem;
 }
 
 .scroll-nav button {
-  width: 3rem;
-  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 0;
+  line-height: 1;
   border-radius: 999px;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+  padding: 0 1.25rem; 
 }
 
 .scroll-nav button:disabled {
@@ -769,24 +783,22 @@ onBeforeUnmount(() => {
 
 <template>
   <main ref="mainScrollRef" class="y-mandatory-scroll-snapping">
-    <div class="scroll-nav" style="top: -8vh; right: calc(50% - 5vw)" aria-label="Navigation du scroll">
+    <div class="scroll-nav scroll-nav-top" aria-label="Navigation du scroll">
       <button
         v-if="canGoUp"
         type="button"
         class="btn bi bi-chevron-compact-up text-primary border-0 shadow-none fs-1"
-        style="width: 10vw; height: 3vh;"
         aria-label="Aller à la page précédente"
         @click="goToSection(currentSectionIndex - 1)"
       >
       </button>
     </div>
 
-    <div class="scroll-nav me-3" style="bottom: 6vh; right: calc(50% - 5vw)" aria-label="Navigation du scroll">
+    <div class="scroll-nav scroll-nav-bottom" aria-label="Navigation du scroll">
       <button
         v-if="canGoDown"
         type="button"
         class="btn bi bi-chevron-compact-down text-primary border-0 shadow-none fs-1"
-        style="width: 10vw; height: 3vh;"
         aria-label="Aller à la page suivante"
         @click="goToSection(currentSectionIndex + 1)"
       >        
