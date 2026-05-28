@@ -21,7 +21,9 @@ L'objectif de cette application est également de donner une visualisation graph
 Afin de bien utiliser l'application, il est préférable que vous compreniez les paramètres utilisés pour la modélisation de l'apprentissage arithmétique.
 
 ### Prérequis techniques
-Avoir NodeJs : https://nodejs.org/en/download
+Vous pouvez aller direrectement sur la github page : https://gatiencaillet.github.io/TER_CAILLET_ILLOUZ/
+
+Ou installer l'application sur votre machine. Il vous faudra NodeJs : https://nodejs.org/en/download
 
 ## Installation et lancement de l'application
 
