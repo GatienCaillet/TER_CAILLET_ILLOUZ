@@ -640,12 +640,7 @@ onBeforeUnmount(() => {
 
 .scroll-nav {
   position: fixed;
-  right: 1.25rem;
-  bottom: 1.25rem;
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
 }
 
 .scroll-nav button {
@@ -774,26 +769,30 @@ onBeforeUnmount(() => {
 
 <template>
   <main ref="mainScrollRef" class="y-mandatory-scroll-snapping">
-    <div class="scroll-nav me-3" aria-label="Navigation du scroll">
+    <div class="scroll-nav" style="top: -8vh; right: calc(50% - 5vw)" aria-label="Navigation du scroll">
       <button
         v-if="canGoUp"
         type="button"
-        class="btn btn-primary"
+        class="btn bi bi-chevron-compact-up text-primary border-0 shadow-none fs-1"
+        style="width: 10vw; height: 3vh;"
         aria-label="Aller à la page précédente"
         @click="goToSection(currentSectionIndex - 1)"
       >
-        ↑
       </button>
+    </div>
+
+    <div class="scroll-nav me-3" style="bottom: 6vh; right: calc(50% - 5vw)" aria-label="Navigation du scroll">
       <button
         v-if="canGoDown"
         type="button"
-        class="btn btn-primary"
+        class="btn bi bi-chevron-compact-down text-primary border-0 shadow-none fs-1"
+        style="width: 10vw; height: 3vh;"
         aria-label="Aller à la page suivante"
         @click="goToSection(currentSectionIndex + 1)"
-      >
-        ↓
+      >        
       </button>
     </div>
+
     <!-- === Import des donnees === -->
     <section class="snap-section">
       <div class="snap-section-inner container-lg">
