@@ -660,7 +660,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .graphics-container {
   background: #f8f9fa;
-  max-height: 100vh;
   max-width: 40vw;
   padding: 1.5rem;
   border-radius: 8px;
@@ -713,8 +712,8 @@ onBeforeUnmount(() => {
 
 .table-section {
   background: white;
-  margin-top: 1rem;
   padding-inline: 1rem;
+  padding-bottom: 1rem;
   border-radius: 4px;
   max-height: 40vh;
 }
