@@ -33,6 +33,9 @@ const activeRawData = computed(() =>
 );
 const activeHasData = computed(() => (activeRawData.value || []).length > 0);
 const showStrategyTab = computed(() => activeDataset.value === "modele");
+const exportSuffix = computed(() =>
+  activeDataset.value === "utilisateur" ? "utilisateur" : "modele",
+);
 
 // Regroupe les données brutes pour préparer à la fois le tableau et le tracé
 const aggregateData = (rawData) => {
@@ -151,6 +154,7 @@ const handleExportSummary = (format) => {
   emit("export-summary", {
     rows: tableRows.value,
     columns: tableColumns.value,
+    filename: `moyennes-sessions-addends-${exportSuffix.value}`,
     format,
   });
 };
@@ -159,6 +163,7 @@ const handleExportStrategyRates = (format) => {
   emit("export-strategy-rates", {
     rows: strategyRatesData.value,
     columns: strategyRatesColumns.value,
+    filename: `taux-strategie-comptage-${exportSuffix.value}`,
     format,
   });
 };
@@ -241,7 +246,7 @@ const handleExportSvg = () => {
 
   const link = document.createElement("a");
   link.href = url;
-  link.download = "graphique-resultats.svg";
+  link.download = `graphique-resultats-${exportSuffix.value}.svg`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -285,7 +290,7 @@ const handleExportPng = () => {
       const pngUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = pngUrl;
-      link.download = "graphique-resultats.png";
+      link.download = `graphique-resultats-${exportSuffix.value}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

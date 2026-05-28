@@ -1158,8 +1158,8 @@ onBeforeUnmount(() => {
               :data="dataResults"
               :user-data="data"
               title="Moyennes des temps par session et addend (en ms)"
-              @export-summary="({ rows, columns, format }) => handleExportTable(rows, columns, 'moyennes-sessions-addends', format)"
-              @export-strategy-rates="({ rows, columns, format }) => handleExportTable(rows, columns, 'taux-strategie-comptage', format)"
+              @export-summary="({ rows, columns, format, filename }) => handleExportTable(rows, columns, filename || 'moyennes-sessions-addends', format)"
+              @export-strategy-rates="({ rows, columns, format, filename }) => handleExportTable(rows, columns, filename || 'taux-strategie-comptage', format)"
             />
           </div>
 
