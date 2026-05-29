@@ -950,8 +950,6 @@ onBeforeUnmount(() => {
                   min="6"
                   placeholder="Saisir l'addend souhaité" 
                   v-model="customAddendValue"
-                  @keyup.enter="addCustomAddend"
-                  @blur="showAddendInput = false"
                 />
                 <button
                   v-if="showAddendInput"
