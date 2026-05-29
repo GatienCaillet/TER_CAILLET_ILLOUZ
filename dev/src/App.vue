@@ -733,6 +733,10 @@ onBeforeUnmount(() => {
   font-size: 0.85rem;
 }
 
+.list-group-item, .list-group-item label, .list-group-item input {
+  cursor: pointer;
+}
+
 .augend-list, .addend-list {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -930,16 +934,17 @@ onBeforeUnmount(() => {
                   </BaseButton>
                 </div>
                 
+                <!-- changer l souris quand on passe sur la liste d'addend à cocher -->
                 <div class="d-flex align-items-center gap-2">
-                <ul class="list-group list-group-horizontal-sm addend-list mb-3">
-                  <li class="list-group-item" v-for="addend in allAvailableAddends" :key="addend">
-                    <input class="form-check-input me-1" type="checkbox" :value="addend" :id="'addend-' + addend" v-model="selectedAddends">
-                    <label class="form-check-label stretched-link" :for="'addend-' + addend">{{ addend }}</label>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-center" @click="showAddendInput = !showAddendInput">
-                    <label class="bi bi-plus-square text-primary"></label>
-                  </li>
-                </ul>
+                  <ul class="list-group list-group-horizontal-sm addend-list mb-3">
+                    <li class="list-group-item" v-for="addend in allAvailableAddends" :key="addend">
+                      <input class="form-check-input me-1" type="checkbox" :value="addend" :id="'addend-' + addend" v-model="selectedAddends">
+                      <label class="form-check-label stretched-link" :for="'addend-' + addend">{{ addend }}</label>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-center" @click="showAddendInput = !showAddendInput">
+                      <label class="bi bi-plus-square text-primary"></label>
+                    </li>
+                  </ul>
                 </div>
 
                 <div class="d-flex align-items-center gap-2 mb-3">
