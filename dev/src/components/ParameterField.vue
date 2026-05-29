@@ -58,7 +58,7 @@ defineEmits([
         class="d-flex flex-row gap-2 align-items-center border-3 p-0 m-0"
         :class="{
           'opacity-50': !enabled || rangeDisabled,
-          'cursor-pointer': !enabled && !rangeDisabled,
+          'cursor-pointer': !rangeDisabled,
           'cursor-not-allowed': rangeDisabled,
         }"
         @click="!enabled && !rangeDisabled && $emit('update:enabled', true)"
@@ -119,3 +119,10 @@ defineEmits([
     />
   </div>
 </template>
+
+<style scoped>
+  
+.form-check-input, .cursor-pointer, .cursor-pointer label {
+  cursor: pointer;
+}
+</style>
