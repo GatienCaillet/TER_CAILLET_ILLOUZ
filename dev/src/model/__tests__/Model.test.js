@@ -107,7 +107,7 @@ describe("Model", () => {
     expect(model.practice.B).toBe(1);
   });
 
-  it("calculates retrieval time and updates associations", () => {
+  it("calculates retrieval time without updating associations", () => {
     const model = new Model(baseInit, {
       ...baseEstim,
       eta: 5,
@@ -116,7 +116,45 @@ describe("Model", () => {
     const time = model.calculRetrievalTime({ augend: "A", addend: 1 });
 
     expect(time).toBe(5);
+    expect(model.associations["A+1"]).toBeUndefined();
+  });
+
+  it("updates associations only when retrieval succeeds", () => {
+    const randomSpy = vi.spyOn(Math, "random");
+
+    const model = new Model(
+      { ...baseInit, errorRate: 0 },
+      {
+        ...baseEstim,
+        eta: 5,
+        tau: 0,
+      },
+    );
+
+    // Forcer une situation où la récupération gagne (sinon le comptage est choisi)
+    model.results = [{ addend: 1, time: 100 }];
+
+    randomSpy.mockReturnValue(0.999);
+    const success = model.timeWithBestStrategy({ augend: "A", addend: 1 });
+    expect(success.method).toBe("retrieval");
     expect(model.associations["A+1"]).toBe(1);
+
+    // Échec de récupération: ne doit pas incrémenter
+    const modelFail = new Model(
+      { ...baseInit, errorRate: 100 },
+      {
+        ...baseEstim,
+        eta: 5,
+        tau: 0,
+      },
+    );
+    modelFail.results = [{ addend: 1, time: 100 }];
+    randomSpy.mockReturnValue(0);
+    const failure = modelFail.timeWithBestStrategy({ augend: "A", addend: 1 });
+    expect(failure).toEqual({ time: null, method: "retrieval" });
+    expect(modelFail.associations["A+1"]).toBeUndefined();
+
+    randomSpy.mockRestore();
   });
 
   it("chooses the faster strategy for total time", () => {
