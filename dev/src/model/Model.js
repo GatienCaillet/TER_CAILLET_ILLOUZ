@@ -245,7 +245,7 @@ export class Model {
     // Permettant d'interrompre une estimation en cours par l'utilisateur
     this.shouldAbort = false;
   }
- 
+
   /**
    * Indique si au moins un paramètre d'estimation doit être exploré en grille
    * @returns {boolean}
@@ -262,7 +262,6 @@ export class Model {
     const entries = Object.entries(this.paramsEstimSearchSpace || {});
     const product = countSearchSpaceSize(this.paramsEstimSearchSpace);
 
-    // TODO : Juste bloquer l'estimation si la grille est trop grande et donner un avertissement à l'utilisateur, plutôt que de faire une estimation partielle
     // Si la grille est trop grande, on évite de générer toutes les combinaisons
     const SAFETY_LIMIT = 100000; // Seuil de sécurité pour préserver le navigateur
     if (product <= SAFETY_LIMIT) {
@@ -614,7 +613,7 @@ export class Model {
    * @param {Stimulus} stimulus
    * @returns {number} Temps en ms
    */
-  calculRetrievalTime(stimulus) {    
+  calculRetrievalTime(stimulus) {
     // On crée une clé unique pour cette équation (ex: "A+3")
     const equationKey = `${stimulus.augend.toUpperCase()}+${stimulus.addend}`;
 
@@ -625,9 +624,6 @@ export class Model {
     const fraction = -assoStrength / this.paramsEstim.rho;
     const retrievalTime =
       this.paramsEstim.eta + this.paramsEstim.tau * Math.exp(fraction);
-
-    // La force d'association augmente après la récupération
-    this.associations[equationKey] = assoStrength + 1;
 
     return retrievalTime;
   }
@@ -641,15 +637,30 @@ export class Model {
   timeWithBestStrategy(stimulus) {
     const countingTimeEstimated = this.calculCountingTimeEstimation(stimulus);
     const retrievalTime = this.calculRetrievalTime(stimulus);
+    const equationKey = `${stimulus.augend.toUpperCase()}+${stimulus.addend}`;
+    const errorRate = this.paramsInit.errorRate;
+    const errorChance = errorRate > 1 ? errorRate / 100 : errorRate;
 
     // On conserve la stratégie la plus rapide
     if (countingTimeEstimated < (this.initTime + retrievalTime)) {
+      // La récupération en mémoire réussit, on garde en mémoire la force d'association pour les prochaines fois
+      this.associations[equationKey] = (this.associations[equationKey] || 0) + 1;
       return {
         time: this.initTime + this.calculCountingTime(stimulus),
         method: "counting",
       };
     }
 
+    // Si la récupération en mémoire échoue (simulée par le taux d'erreur), on ne retourne pas de temps
+    if (Math.random() < errorChance) {
+      return {
+        time: null,
+        method: "retrieval",
+      };
+    }
+
+    // La récupération en mémoire réussit, on garde en mémoire la force d'association pour les prochaines fois
+    this.associations[equationKey] = (this.associations[equationKey] || 0) + 1;
     return {
       time: this.initTime + retrievalTime,
       method: "retrieval",
@@ -674,14 +685,17 @@ export class Model {
       // Temps obtenu via la meilleure stratégie disponible
       const { time: calculTime, method } = this.timeWithBestStrategy(stimulus);
 
-      this.results.push({
-        augend: stimulus.augend,
-        addend: stimulus.addend,
-        result: stimulus.result,
-        time: calculTime,
-        method,
-        session: stimulus.session,
-      });
+      // Ne conserve le résultat que si la récupération en mémoire n'a pas échoué
+      if (calculTime !== null) {
+        this.results.push({
+          augend: stimulus.augend,
+          addend: stimulus.addend,
+          result: stimulus.result,
+          time: calculTime,
+          method,
+          session: stimulus.session,
+        });
+      }
     });
 
   }

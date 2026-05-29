@@ -617,8 +617,9 @@ defineExpose({ setParamsEstim, resetParams });
                   T_total = T_encodage + T_comparaison + T_commande + T_stratégie.
                 </p>
                 <p class="mb-0">
-                  Le taux d'erreur sert à simuler des réponses incorrectes selon le pourcentage indiqué
-                  (il ne modifie pas le temps, il décide si la réponse est fausse).
+                  Le taux d'erreur sert à simuler des réponses incorrectes selon le pourcentage indiqué. 
+                  Si la réponse est incorrecte, la réponse n'apparait pas dans le résultat et l'utilisateur 
+                  ne retient pas l'association correspondante pour les réponses suivantes.
                 </p>
                 <p class="mt-2 mb-0">
                   Vous pouvez modifier les valeurs par défaut via le bouton « Modifier les paramètres par défaut ».
