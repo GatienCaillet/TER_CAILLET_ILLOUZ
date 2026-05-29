@@ -115,6 +115,58 @@ describe("ParametersForm", () => {
     expect(emitted[0][0]).toHaveProperty("paramsInit");
   });
 
+  it("blocks launch-model when an init field is not a number", async () => {
+    const wrapper = await mountForm();
+
+    wrapper.vm.params.encodingTime = Number.NaN;
+    await nextTick();
+
+    expect(wrapper.vm.modelInputError.length).toBeGreaterThan(0);
+
+    const button = wrapper
+      .findAll("button")
+      .find((btn) => stripDiacritics(btn.text()).includes("lancer le modele"));
+
+    await button.trigger("click");
+
+    expect(wrapper.emitted("launch-model")).toBeFalsy();
+  });
+
+  it("blocks launch-estimation when a numeric field is invalid", async () => {
+    const wrapper = await mountForm();
+
+    wrapper.vm.configEstimation[0].enabled = true;
+    wrapper.vm.params.encodingTime = Number.NaN;
+    await nextTick();
+
+    const button = wrapper
+      .findAll("button")
+      .find((btn) => stripDiacritics(btn.text()).includes("lancer l'estimation"));
+
+    await button.trigger("click");
+
+    expect(wrapper.emitted("launch-estimation")).toBeFalsy();
+    expect(wrapper.vm.errorMessage.length).toBeGreaterThan(0);
+  });
+
+  it("does not block estimation when an estimation value is invalid", async () => {
+    const wrapper = await mountForm();
+
+    wrapper.vm.configEstimation[0].enabled = true;
+    wrapper.vm.paramsEstimation.alpha = Number.NaN;
+    await nextTick();
+
+    const button = wrapper
+      .findAll("button")
+      .find((btn) => stripDiacritics(btn.text()).includes("lancer l'estimation"));
+
+    await button.trigger("click");
+
+    const emitted = wrapper.emitted("launch-estimation");
+    expect(emitted).toBeTruthy();
+    expect(emitted[0][0]).toHaveProperty("paramsEstim");
+  });
+
   it("exposes rho error when invalid", async () => {
     const wrapper = await mountForm();
 

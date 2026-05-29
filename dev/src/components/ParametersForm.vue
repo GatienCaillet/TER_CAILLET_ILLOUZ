@@ -223,6 +223,67 @@ const alertMessageModel = ref("");
 const hasImportedData = computed(() => props.hasImportedData);
 const hasGeneratedData = computed(() => props.hasGeneratedData);
 
+const parseFiniteNumber = (value) => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+};
+
+const formatNumberError = (label) =>
+  `\"${label}\" : veuillez saisir un nombre valide`;
+
+const findInvalidInitParamLabel = () => {
+  for (const item of configInitialisation) {
+    const num = parseFiniteNumber(params.value[item.key]);
+    if (num === null) {
+      return item.label;
+    }
+
+    if (item.key !== "errorRate" && num < 0) {
+      return item.label;
+    }
+
+    if (item.key === "errorRate" && (num < 0 || num > 100)) {
+      return item.label;
+    }
+  }
+
+  return "";
+};
+
+const findInvalidEstimValueLabel = () => {
+  for (const item of configEstimation) {
+    const num = parseFiniteNumber(paramsEstimation.value[item.key]);
+    if (num === null) {
+      return item.label;
+    }
+  }
+
+  return "";
+};
+
+// Validation immédiate (sans clic) pour lancer le modèle
+const modelInputError = computed(() => {
+  const invalidInit = findInvalidInitParamLabel();
+  if (invalidInit) {
+    return formatNumberError(invalidInit);
+  }
+
+  const invalidEstim = findInvalidEstimValueLabel();
+  if (invalidEstim) {
+    return formatNumberError(invalidEstim);
+  }
+
+  if (rhoModelError.value) {
+    return rhoModelError.value;
+  }
+
+  return "";
+});
+
 // Met en évidence les valeurs extrêmes dans les résultats 
 const estimationResultsDisplayRows = computed(() => {
   const rows = props.estimationResultsRows || [];
@@ -304,6 +365,29 @@ const validateEstimationParams = () => {
     return false;
   }
 
+  // Paramètres init : doivent être des nombres valides
+  const invalidInit = findInvalidInitParamLabel();
+  if (invalidInit) {
+    errorMessage.value = formatNumberError(invalidInit);
+    alertMessage.value = "";
+    return false;
+  }
+
+  // Limites de sécurité : doivent être des nombres positifs
+  const maxCombNum = parseFiniteNumber(maxCombinations.value);
+  if (maxCombNum === null || maxCombNum <= 0) {
+    errorMessage.value = "\"Nombre maximum de combinaisons évaluées\" : veuillez saisir un nombre supérieur à 0";
+    alertMessage.value = "";
+    return false;
+  }
+
+  const maxRandomNum = parseFiniteNumber(maxRandomSamples.value);
+  if (maxRandomNum === null || maxRandomNum <= 0) {
+    errorMessage.value = "\"Nombre maximum d'essais aléatoires\" : veuillez saisir un nombre supérieur à 0";
+    alertMessage.value = "";
+    return false;
+  }
+
   const enabledParams = configEstimation.filter((item) => item.enabled);
 
   if (enabledParams.length === 0) {
@@ -319,26 +403,32 @@ const validateEstimationParams = () => {
     "Des paramètres d'estimation sont sélectionnés pour une estimation de paramètres. Veuillez les déselectionner ou lancer l'estimation des paramètres avant de lancer le modèle.";
 
   for (const item of enabledParams) {
-    if (!Number.isFinite(item.pas) || item.pas <= 0) {
+    const minNum = parseFiniteNumber(item.min);
+    const maxNum = parseFiniteNumber(item.max);
+    const pasNum = parseFiniteNumber(item.pas);
+
+    if (minNum === null || maxNum === null || pasNum === null) {
+      errorMessage.value = formatNumberError(item.label);
+      return false;
+    }
+
+    if (pasNum <= 0) {
       errorMessage.value = `"${item.label}" : le pas (step) ne peut pas être à 0 ou négatif`;
       return false;
     }
 
-    if (item.min > item.max) {
-      errorMessage.value = `"${item.label}" : min (${item.min}) est supérieur à max (${item.max})`;
+    if (minNum > maxNum) {
+      errorMessage.value = `"${item.label}" : min (${minNum}) est supérieur à max (${maxNum})`;
       return false;
     }
 
     if (item.key === "rho") {
-      const rhoValue = Number(paramsEstimation.value[item.key]);
       if (
-        !Number.isFinite(rhoValue) ||
-        rhoValue <= 0 ||
-        item.min <= 0 ||
-        item.max <= 0
+        minNum <= 0 ||
+        maxNum <= 0
       ) {
         errorMessage.value =
-          `"${item.label}" : ρ doit être strictement positif (valeur, min et max)`;
+          `"${item.label}" : ρ doit être strictement positif (min et max)`;
         return false;
       }
     }
@@ -372,6 +462,25 @@ const buildParamsEstimPayload = () =>
         pas: item.pas,
       },
     ]),
+  );
+
+// Version tolérante pour l'estimation : si une valeur est invalide, on retombe sur les valeurs par défaut.
+const buildParamsEstimPayloadForEstimation = () =>
+  Object.fromEntries(
+    configEstimation.map((item) => {
+      const rawValue = paramsEstimation.value[item.key];
+      const numValue = parseFiniteNumber(rawValue);
+      return [
+        item.key,
+        {
+          value: numValue === null ? DEFAULT_PARAMS_ESTIM[item.key] : numValue,
+          enabled: item.enabled,
+          min: item.min,
+          max: item.max,
+          pas: item.pas,
+        },
+      ];
+    }),
   );
 
 const emit = defineEmits(["launch-estimation", "launch-model", "export-estimation"]);
@@ -505,7 +614,7 @@ const emitLaunchEstimation = () => {
 
   emit("launch-estimation", {
     paramsInit: { ...params.value },
-    paramsEstim: buildParamsEstimPayload(),
+    paramsEstim: buildParamsEstimPayloadForEstimation(),
     maxCombinations: maxCombinations.value,
     maxRandomSamples: maxRandomSamples.value,
     estimationMode: estimationMode.value,
@@ -515,6 +624,10 @@ const emitLaunchEstimation = () => {
 // Déclenche le modèle avec tous les paramètres d'estimation et d'initialisation, même ceux non sélectionnés
 const emitLaunchModel = () => {  
   alertMessageModel.value = "";
+
+  if (modelInputError.value) {
+    return;
+  }
 
   emit("launch-model", {
     paramsInit: { ...params.value },
@@ -836,6 +949,10 @@ defineExpose({ setParamsEstim, resetParams });
       </div>
 
       <div class="d-flex flex-column align-items-center">
+        <div v-if="modelInputError" class="alert alert-danger">
+          {{ modelInputError }}
+        </div>
+
         <div v-if="rhoModelError" class="alert alert-danger">
           {{ rhoModelError }}
         </div>
@@ -851,7 +968,7 @@ defineExpose({ setParamsEstim, resetParams });
         <BaseButton
           size="lg"
           variant="btn btn-primary"
-          :disabled="isEstimating || Boolean(rhoModelError) || Boolean(alertMessageModel) || (!hasImportedData && !hasGeneratedData)"
+          :disabled="isEstimating || Boolean(modelInputError) || Boolean(rhoModelError) || Boolean(alertMessageModel) || (!hasImportedData && !hasGeneratedData)"
           @click.prevent="emitLaunchModel"
         >
           Lancer le modèle

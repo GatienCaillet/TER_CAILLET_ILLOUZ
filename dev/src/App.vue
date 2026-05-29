@@ -146,6 +146,29 @@ watch(data, (newData) => {
 });
 
 const handleGenerateEquations = async () => {
+  const sessionsCount = Number(numSessions.value);
+  const repetitionCount = Number(numRep.value);
+
+  if (!Number.isInteger(sessionsCount) || sessionsCount < 1) {
+    alert("Veuillez saisir un nombre de sessions valide (entier ≥ 1)");
+    return;
+  }
+
+  if (!Number.isInteger(repetitionCount) || repetitionCount < 1) {
+    alert("Veuillez saisir un nombre de répétitions valide (entier ≥ 1)");
+    return;
+  }
+
+  const invalidAddend = (selectedAddends.value || []).find((addend) => {
+    const num = Number(addend);
+    return !Number.isInteger(num) || num < 0;
+  });
+
+  if (invalidAddend !== undefined) {
+    alert("Veuillez vérifier les addends sélectionnés : certains ne sont pas des entiers valides");
+    return;
+  }
+
   const generatedEquations = [];
   let id = 1;
 
@@ -208,7 +231,7 @@ const handleGenerateEquations = async () => {
       
       const result = String.fromCharCode(65 + resultIndex);
       
-      for (let rep = 1; rep <= numRep.value; rep++) {
+      for (let rep = 1; rep <= repetitionCount; rep++) {
         combinations.push({
           augend: augend,
           addend: parseInt(addend),
@@ -220,7 +243,7 @@ const handleGenerateEquations = async () => {
 
   // Mettre les combinaisons dans un ordre aléatoire pour chaque session
   let previousAugend = null;
-  for (let session = 1; session <= numSessions.value; session++) {
+  for (let session = 1; session <= sessionsCount; session++) {
     // Mélanger les combinaisons pour cette session
     const shuffledCombinations = ensureNoConsecutiveAugends(
       shuffleInPlace([...combinations]),
@@ -266,21 +289,21 @@ const addCustomAddend = () => {
   const value = customAddendValue.value;
   
   // Valider que la valeur est un nombre valide
-  const numValue = parseInt(value, 10);
-  if (!value || isNaN(numValue) || numValue < 6) {
-    alert("Veuillez saisir un nombre supérieur ou égal à 6");
+  const numValue = Number(value);
+  if (!value || !Number.isFinite(numValue) || !Number.isInteger(numValue) || numValue < 6) {
+    alert("Veuillez saisir un addend valide (entier supérieur ou égal à 6)");
     return;
   }
 
   // Vérifier que l'addend n'existe pas déjà
-  if (allAvailableAddends.value.includes(value)) {
+  if (allAvailableAddends.value.includes(String(numValue))) {
     alert("Cet addend est déjà dans la liste");
     return;
   }
 
   // Ajouter l'addend à la liste des custom addends et le cocher
-  customAddends.value.push(value);
-  selectedAddends.value.push(value);
+  customAddends.value.push(String(numValue));
+  selectedAddends.value.push(String(numValue));
   
   // Réinitialiser l'input et le masquer
   customAddendValue.value = "";
@@ -964,11 +987,11 @@ onBeforeUnmount(() => {
 
                 <!-- Nombre de sessions -->
                 <label class="form-label">Indiquez le nombre de sessions :</label>
-                <input type="number" class="form-control mb-3" v-model="numSessions" min="1"/>
+                <input type="number" class="form-control mb-3" v-model.number="numSessions" min="1"/>
 
                 <!-- Nombre de répétition d'une équation au sein d'une session -->
                 <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session :</label>
-                <input type="number" class="form-control mb-3" v-model="numRep" min="1"/>
+                <input type="number" class="form-control mb-3" v-model.number="numRep" min="1"/>
 
                 <!-- Message d'erreur lorsque des combinaisons ne sont pas prises en compte -->
                 <div 
