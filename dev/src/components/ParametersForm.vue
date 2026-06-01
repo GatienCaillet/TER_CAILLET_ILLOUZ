@@ -269,8 +269,7 @@ const findInvalidEstimValueLabel = () => {
   return "";
 };
 
-// Validation immédiate (sans clic) pour lancer le modèle
-const modelInputError = computed(() => {
+const getModelInputError = () => {
   const invalidInit = findInvalidInitParamLabel();
   if (invalidInit) {
     return formatNumberError(invalidInit);
@@ -286,7 +285,10 @@ const modelInputError = computed(() => {
   }
 
   return "";
-});
+};
+
+// Validation immédiate (sans clic) pour lancer le modèle
+const modelInputError = computed(() => getModelInputError());
 
 // Met en évidence les valeurs extrêmes dans les résultats 
 const estimationResultsDisplayRows = computed(() => {
@@ -369,10 +371,9 @@ const validateEstimationParams = () => {
     return false;
   }
 
-  // Paramètres init : doivent être des nombres valides
-  const invalidInit = findInvalidInitParamLabel();
-  if (invalidInit) {
-    errorMessage.value = formatNumberError(invalidInit);
+  const inputError = getModelInputError();
+  if (inputError) {
+    errorMessage.value = inputError;
     alertMessage.value = "";
     return false;
   }
