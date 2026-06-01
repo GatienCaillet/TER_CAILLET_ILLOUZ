@@ -1078,7 +1078,7 @@ onBeforeUnmount(() => {
                 v-if="data.length === 0 && equations.length === 0"
                 class="small text-danger mt-0 data-format-hint"
               >
-                Attention : les équations doivent être justes, sans quoi le modèle ne pourra pas fonctionner.
+                Attention : les équations doivent être justes et le participant doit avoir répondu la bonne réponse aux équations, sans quoi le modèle ne pourra pas fonctionner.
               </p>
               <div
                 v-if="equations.length > 0"

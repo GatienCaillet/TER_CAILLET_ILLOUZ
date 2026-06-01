@@ -185,7 +185,7 @@ export function useDataIO() {
     const { onStart, onDone } = callbacks;
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".xlsx,.xls,.csv,.json";
+    input.accept = ".xlsx,.csv,.json";
 
     input.onchange = async (event) => {
       const file = event.target.files?.[0];
@@ -204,10 +204,10 @@ export function useDataIO() {
       try {
         if (extension === "json") {
           rows = await parseJsonRows(file);
-        } else if (["xlsx", "xls", "csv"].includes(String(extension))) {
+        } else if (["xlsx", "csv"].includes(String(extension))) {
           rows = await parseSpreadsheetRows(file);
         } else {
-          alert("Format non supporte. Utilisez .xlsx, .xls, .csv ou .json.");
+          alert("Format non supporté. Utilisez .xlsx, .csv ou .json.");
           onDone?.();
           return;
         }
@@ -223,7 +223,7 @@ export function useDataIO() {
         .filter((row) => row !== null);
 
       if (!mappedRows.length) {
-        alert("Aucune ligne valide trouvee. Colonnes requises : augend, addend, result, time (session optionnelle).");
+        alert("Aucune ligne valide trouvée. Colonnes requises : Augend, Addend, Résultat, Temps (Session optionnelle).");
         onDone?.();
         return;
       }
@@ -242,12 +242,12 @@ export function useDataIO() {
     const timestampedFilename = `${filename}-${buildTimestamp()}`;
 
     if (!allowedFormats.includes(normalizedFormat)) {
-      alert("Format non supporte pour l'export.");
+      alert("Format non supporté pour l'export.");
       return;
     }
 
     if (!Array.isArray(rows) || rows.length === 0) {
-      alert("Aucune donnee a exporter.");
+      alert("Aucune donnée à exporter.");
       return;
     }
 
