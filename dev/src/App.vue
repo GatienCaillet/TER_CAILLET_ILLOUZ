@@ -49,6 +49,7 @@ const generationLoadingStartedAt = ref(0);
 const currentEstimationModel = ref(null);
 const estimationWorker = ref(null);
 const modelWorker = ref(null);
+const equationWorker = ref(null);
 const isImportingEquations = ref(false);
 const isImportingData = ref(false);
 const MIN_LOADING_DURATION_MS = 700;
@@ -175,98 +176,51 @@ const handleGenerateEquations = async () => {
     return false;
   }
 
-  const generatedEquations = [];
-  let id = 1;
+  if (equationWorker.value) {
+    equationWorker.value.terminate();
+  }
 
-  const shuffleInPlace = (items) => {
-    for (let i = items.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [items[i], items[j]] = [items[j], items[i]];
-    }
+  const worker = new Worker(
+    new URL("./workers/equationWorker.js", import.meta.url),
+    { type: "module" },
+  );
+  equationWorker.value = worker;
 
-    return items;
-  };
+  let generatedEquations = [];
 
-  const ensureNoConsecutiveAugends = (items, previousAugend = null) => {
-    if (items.length === 0) {
-      return items;
-    }
+  try {
+    generatedEquations = await new Promise((resolve, reject) => {
+      worker.onmessage = (event) => {
+        const { type, result, message } = event.data || {};
 
-    if (previousAugend !== null && items[0].augend === previousAugend) {
-      const swapIndex = items.findIndex(
-        (item, idx) => idx > 0 && item.augend !== previousAugend,
-      );
+        if (type === "result") {
+          resolve(result || []);
+        }
 
-      if (swapIndex !== -1) {
-        [items[0], items[swapIndex]] = [items[swapIndex], items[0]];
-      }
-    }
+        if (type === "error") {
+          reject(new Error(message));
+        }
+      };
 
-    for (let i = 1; i < items.length; i += 1) {
-      if (items[i].augend !== items[i - 1].augend) {
-        continue;
-      }
+      worker.onerror = (event) => {
+        reject(new Error(event?.message || "Erreur worker"));
+      };
 
-      const swapIndex = items.findIndex(
-        (item, idx) => idx > i && item.augend !== items[i - 1].augend,
-      );
-
-      if (swapIndex === -1) {
-        return items;
-      }
-
-      [items[i], items[swapIndex]] = [items[swapIndex], items[i]];
-    }
-
-    return items;
-  };
-
-  // Générer toutes les combinaisons uniques
-  const combinations = [];
-  selectedAugends.value.forEach(augend => {
-    selectedAddends.value.forEach(addend => {
-      // Calculer le résultat de l'équation 
-      const augendIndex = augend.charCodeAt(0) - 65; // position de l'augend dans l'alphabet
-      const resultIndex = augendIndex + parseInt(addend);
-      
-      // Vérifie que le résultat ne dépasse pas Z
-      if (resultIndex > 25) {
-        
-        return; // Ne tient pas compte de cette combinaison
-      }
-      
-      const result = String.fromCharCode(65 + resultIndex);
-      
-      for (let rep = 1; rep <= repetitionCount; rep++) {
-        combinations.push({
-          augend: augend,
-          addend: parseInt(addend),
-          result: result, 
-        });
-      }
-    });
-  });
-
-  // Mettre les combinaisons dans un ordre aléatoire pour chaque session
-  let previousAugend = null;
-  for (let session = 1; session <= sessionsCount; session++) {
-    // Mélanger les combinaisons pour cette session
-    const shuffledCombinations = ensureNoConsecutiveAugends(
-      shuffleInPlace([...combinations]),
-      previousAugend,
-    );
-    
-    shuffledCombinations.forEach(combination => {
-      generatedEquations.push({
-        id: id++,
-        augend: combination.augend,
-        addend: combination.addend,
-        result: combination.result,
-        session: session,
+      worker.postMessage({
+        type: "generate",
+        payload: {
+          selectedAugends: Array.from(selectedAugends.value || []),
+          selectedAddends: Array.from(selectedAddends.value || []),
+          sessionsCount,
+          repetitionCount,
+        },
       });
     });
-
-    previousAugend = shuffledCombinations[shuffledCombinations.length - 1]?.augend ?? previousAugend;
+  } finally {
+    if (equationWorker.value) {
+      equationWorker.value.terminate();
+      equationWorker.value = null;
+    }
   }
 
   // Réinitialiser les paramètres aux valeurs par défaut avec les nouvelles données
