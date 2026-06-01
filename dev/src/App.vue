@@ -42,11 +42,13 @@ const isEstimating = ref(false);
 const isModelRunning = ref(false);
 const isGeneratingEquations = ref(false);
 const estimationProgress = ref({ current: 0, total: 0 });
+const modelProgress = ref({ current: 0, total: 0 });
 const loadingStartedAt = ref(0);
 const modelLoadingStartedAt = ref(0);
 const generationLoadingStartedAt = ref(0);
 const currentEstimationModel = ref(null);
 const estimationWorker = ref(null);
+const modelWorker = ref(null);
 const isImportingEquations = ref(false);
 const isImportingData = ref(false);
 const MIN_LOADING_DURATION_MS = 700;
@@ -653,6 +655,7 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
 
   isModelRunning.value = true;
   modelLoadingStartedAt.value = performance.now();
+  modelProgress.value = { current: 0, total: 0 };
 
   try {
     await nextTick();
@@ -662,11 +665,56 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
 
     const sourceEquations = equations.value.length > 0 ? equations.value : data.value;
     const stimuli = buildStimuli(sourceEquations);
-    const model = new Model(paramsInit, paramsEstim, stimuli);
+    modelProgress.value = { current: 0, total: stimuli.length };
 
-    model.calculEveryStimulusTime(stimuli);
+    if (modelWorker.value) {
+      modelWorker.value.terminate();
+    }
 
-    dataResults.value = model.results.map((result, index) => ({
+    const worker = new Worker(
+      new URL("./workers/modelWorker.js", import.meta.url),
+      { type: "module" },
+    );
+    modelWorker.value = worker;
+
+    const { results, practice, associations } = await new Promise(
+      (resolve, reject) => {
+        worker.onmessage = (event) => {
+          const { type, current, total, result, message } = event.data || {};
+
+          if (type === "progress") {
+            modelProgress.value = {
+              current,
+              total: total ?? stimuli.length,
+            };
+            return;
+          }
+
+          if (type === "result") {
+            resolve(result);
+          }
+
+          if (type === "error") {
+            reject(new Error(message));
+          }
+        };
+
+        worker.onerror = (event) => {
+          reject(new Error(event?.message || "Erreur worker"));
+        };
+
+        worker.postMessage({
+          type: "runModel",
+          payload: {
+            paramsInit,
+            paramsEstim,
+            stimuli,
+          },
+        });
+      },
+    );
+
+    dataResults.value = results.map((result, index) => ({
       id: index + 1,
       augend: result.augend,
       addend: result.addend,
@@ -676,8 +724,8 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
       session: result.session,
     }));
 
-    practiceMap.value = { ...model.practice };
-    associationsMap.value = { ...model.associations };
+    practiceMap.value = { ...practice };
+    associationsMap.value = { ...associations };
 
     // Scroll automatique vers la section des résultats après le lancement du modèle
     await nextTick();
@@ -696,7 +744,12 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
     }
 
     isModelRunning.value = false;
+    modelProgress.value = { current: 0, total: 0 };
     modelLoadingStartedAt.value = 0;
+    if (modelWorker.value) {
+      modelWorker.value.terminate();
+      modelWorker.value = null;
+    }
   }
 };
 
@@ -1241,7 +1294,11 @@ onBeforeUnmount(() => {
                 aria-label="Calcul du modèle"
               ></div>
               <p class="text-center mb-0 small text-muted">
-                Calcul des temps du modèle en cours...
+                <span v-if="modelProgress.total > 0">
+                  {{ modelProgress.current }} /
+                  {{ modelProgress.total }} combinaisons traitées
+                </span>
+                <span v-else> Calcul des temps du modèle en cours... </span>
               </p>
             </div>
           </div>
