@@ -469,25 +469,6 @@ const buildParamsEstimPayload = () =>
     ]),
   );
 
-// Version tolérante pour l'estimation : si une valeur est invalide, on retombe sur les valeurs par défaut.
-const buildParamsEstimPayloadForEstimation = () =>
-  Object.fromEntries(
-    configEstimation.map((item) => {
-      const rawValue = paramsEstimation.value[item.key];
-      const numValue = parseFiniteNumber(rawValue);
-      return [
-        item.key,
-        {
-          value: numValue === null ? DEFAULT_PARAMS_ESTIM[item.key] : numValue,
-          enabled: item.enabled,
-          min: item.min,
-          max: item.max,
-          pas: item.pas,
-        },
-      ];
-    }),
-  );
-
 const emit = defineEmits(["launch-estimation", "launch-model", "export-estimation"]);
 
 const handleExportEstimation = (format) => {
@@ -619,7 +600,7 @@ const emitLaunchEstimation = () => {
 
   emit("launch-estimation", {
     paramsInit: { ...params.value },
-    paramsEstim: buildParamsEstimPayloadForEstimation(),
+    paramsEstim: buildParamsEstimPayload(),
     maxCombinations: maxCombinations.value,
     maxRandomSamples: maxRandomSamples.value,
     estimationMode: estimationMode.value,
