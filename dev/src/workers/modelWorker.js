@@ -23,7 +23,8 @@ self.onmessage = (event) => {
 
     const results = [];
     const total = Array.isArray(stimuli) ? stimuli.length : 0;
-    const progressEvery = Math.max(1, Math.floor(total / 100));
+    const progressEvery = Math.max(1, Math.floor(total / 200));
+    let lastProgressAt = 0;
 
     for (let index = 0; index < total; index += 1) {
       if (shouldAbort) {
@@ -47,7 +48,13 @@ self.onmessage = (event) => {
       }
 
       const current = index + 1;
-      if (current % progressEvery === 0 || current === total) {
+      const now = performance.now();
+      if (
+        current === total ||
+        current % progressEvery === 0 ||
+        now - lastProgressAt >= 200
+      ) {
+        lastProgressAt = now;
         self.postMessage({ type: "progress", current, total });
       }
     }
