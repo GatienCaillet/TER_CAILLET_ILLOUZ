@@ -27,6 +27,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isModelRunning: {
+    type: Boolean,
+    default: false,
+  },
   dataImported: {
     type: Array,
     default: () => [],
@@ -968,10 +972,11 @@ defineExpose({ setParamsEstim, resetParams });
         <BaseButton
           size="lg"
           variant="btn btn-primary"
-          :disabled="isEstimating || Boolean(modelInputError) || Boolean(rhoModelError) || Boolean(alertMessageModel) || (!hasImportedData && !hasGeneratedData)"
+          :disabled="isEstimating || isModelRunning || Boolean(modelInputError) || Boolean(rhoModelError) || Boolean(alertMessageModel) || (!hasImportedData && !hasGeneratedData)"
           @click.prevent="emitLaunchModel"
         >
-          Lancer le modèle
+          <span v-if="isModelRunning">Calcul du modèle...</span>
+          <span v-else>Lancer le modèle</span>
         </BaseButton>
       </div>
     </form>

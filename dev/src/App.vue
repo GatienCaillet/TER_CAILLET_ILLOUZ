@@ -39,8 +39,10 @@ const associationsMap = ref({});
 const bestEstimatedParams = ref(null);
 const estimationResultsRows = ref([]);
 const isEstimating = ref(false);
+const isModelRunning = ref(false);
 const estimationProgress = ref({ current: 0, total: 0 });
 const loadingStartedAt = ref(0);
+const modelLoadingStartedAt = ref(0);
 const currentEstimationModel = ref(null);
 const estimationWorker = ref(null);
 const isImportingEquations = ref(false);
@@ -608,7 +610,19 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
     return;
   }
 
+  if (isModelRunning.value) {
+    return;
+  }
+
+  isModelRunning.value = true;
+  modelLoadingStartedAt.value = performance.now();
+
   try {
+    await nextTick();
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
+    );
+
     const sourceEquations = equations.value.length > 0 ? equations.value : data.value;
     const stimuli = buildStimuli(sourceEquations);
     const model = new Model(paramsInit, paramsEstim, stimuli);
@@ -636,6 +650,16 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
     dataResults.value = [];
     practiceMap.value = {};
     associationsMap.value = {};
+  } finally {
+    const elapsed = performance.now() - modelLoadingStartedAt.value;
+    if (elapsed < MIN_LOADING_DURATION_MS) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, MIN_LOADING_DURATION_MS - elapsed),
+      );
+    }
+
+    isModelRunning.value = false;
+    modelLoadingStartedAt.value = 0;
   }
 };
 
@@ -1103,6 +1127,7 @@ onBeforeUnmount(() => {
             :best-estimated-params="bestEstimatedParams"
             :estimation-results-rows="estimationResultsRows"
             :is-estimating="isEstimating"
+            :is-model-running="isModelRunning"
             :data-imported="currentInputEquations"
             :has-imported-data="hasImportedData"
             :has-generated-data="hasGeneratedData"
@@ -1138,6 +1163,26 @@ onBeforeUnmount(() => {
                   {{ estimationProgress.total }} combinaisons traitées
                 </span>
                 <span v-else> Estimation en cours... </span>
+              </p>
+            </div>
+          </div>
+
+          <div
+            v-if="isModelRunning"
+            class="loading-overlay"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div
+              class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative"
+            >
+              <div
+                class="loading-spinner"
+                role="status"
+                aria-label="Calcul du modèle"
+              ></div>
+              <p class="text-center mb-0 small text-muted">
+                Calcul des temps du modèle en cours...
               </p>
             </div>
           </div>
