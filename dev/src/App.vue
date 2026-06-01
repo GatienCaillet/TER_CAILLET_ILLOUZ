@@ -40,9 +40,11 @@ const bestEstimatedParams = ref(null);
 const estimationResultsRows = ref([]);
 const isEstimating = ref(false);
 const isModelRunning = ref(false);
+const isGeneratingEquations = ref(false);
 const estimationProgress = ref({ current: 0, total: 0 });
 const loadingStartedAt = ref(0);
 const modelLoadingStartedAt = ref(0);
+const generationLoadingStartedAt = ref(0);
 const currentEstimationModel = ref(null);
 const estimationWorker = ref(null);
 const isImportingEquations = ref(false);
@@ -153,12 +155,12 @@ const handleGenerateEquations = async () => {
 
   if (!Number.isInteger(sessionsCount) || sessionsCount < 1) {
     alert("Veuillez saisir un nombre de sessions valide (entier ≥ 1)");
-    return;
+    return false;
   }
 
   if (!Number.isInteger(repetitionCount) || repetitionCount < 1) {
     alert("Veuillez saisir un nombre de répétitions valide (entier ≥ 1)");
-    return;
+    return false;
   }
 
   const invalidAddend = (selectedAddends.value || []).find((addend) => {
@@ -168,7 +170,7 @@ const handleGenerateEquations = async () => {
 
   if (invalidAddend !== undefined) {
     alert("Veuillez vérifier les addends sélectionnés : certains ne sont pas des entiers valides");
-    return;
+    return false;
   }
 
   const generatedEquations = [];
@@ -278,12 +280,47 @@ const handleGenerateEquations = async () => {
   bestEstimatedParams.value = null;
 
   equations.value = generatedEquations;
+  return true;
 };
 
 // Wrapper pour générer les équations puis fermer le panneau
 const handleValidate = async () => {
-  await handleGenerateEquations();
-  closeEquationCollapse();
+  if (isGeneratingEquations.value) {
+    return;
+  }
+
+  isGeneratingEquations.value = true;
+  generationLoadingStartedAt.value = performance.now();
+
+  let didGenerate = false;
+
+  try {
+    await nextTick();
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
+    );
+
+    didGenerate = await handleGenerateEquations();
+    if (didGenerate) {
+      closeEquationCollapse();
+    }
+  } finally {
+    if (!didGenerate) {
+      isGeneratingEquations.value = false;
+      generationLoadingStartedAt.value = 0;
+      return;
+    }
+
+    const elapsed = performance.now() - generationLoadingStartedAt.value;
+    if (elapsed < MIN_LOADING_DURATION_MS) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, MIN_LOADING_DURATION_MS - elapsed),
+      );
+    }
+
+    isGeneratingEquations.value = false;
+    generationLoadingStartedAt.value = 0;
+  }
 };
 
 // Ajoute un addend personnalisé à la liste des addends sélectionnés
@@ -1036,9 +1073,11 @@ onBeforeUnmount(() => {
                     size="lg"
                     class="mb-3"
                     :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
+                    :disabled="isGeneratingEquations"
                     @click="handleValidate"
                   >
-                  Valider 
+                  <span v-if="isGeneratingEquations">Génération en cours...</span>
+                  <span v-else>Valider</span>
                   </BaseButton>  
                 </div>              
               </div>
@@ -1112,6 +1151,26 @@ onBeforeUnmount(() => {
                 Vous ne pouvez pas importer des données existantes car vous avez déjà généré une liste d'équations.
               </div>
             </div>
+          </div>
+        </div>
+
+        <div
+          v-if="isGeneratingEquations"
+          class="loading-overlay"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <div
+            class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative"
+          >
+            <div
+              class="loading-spinner"
+              role="status"
+              aria-label="Génération des équations"
+            ></div>
+            <p class="text-center mb-0 small text-muted">
+              Génération des équations en cours...
+            </p>
           </div>
         </div>
       </div>
