@@ -149,7 +149,7 @@ describe("ParametersForm", () => {
     expect(wrapper.vm.errorMessage.length).toBeGreaterThan(0);
   });
 
-  it("does not block estimation when an estimation value is invalid", async () => {
+  it("blocks estimation when an estimation value is invalid", async () => {
     const wrapper = await mountForm();
 
     wrapper.vm.configEstimation[0].enabled = true;
@@ -163,8 +163,8 @@ describe("ParametersForm", () => {
     await button.trigger("click");
 
     const emitted = wrapper.emitted("launch-estimation");
-    expect(emitted).toBeTruthy();
-    expect(emitted[0][0]).toHaveProperty("paramsEstim");
+    expect(emitted).toBeFalsy();
+    expect(wrapper.vm.errorMessage.length).toBeGreaterThan(0);
   });
 
   it("exposes rho error when invalid", async () => {
