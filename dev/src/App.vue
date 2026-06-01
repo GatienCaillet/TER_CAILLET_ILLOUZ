@@ -1142,7 +1142,7 @@ onBeforeUnmount(() => {
                 v-if="data.length === 0 && equations.length === 0"
                 class="small text-muted mt-2 mb-0 data-format-hint"
               >
-                Les données importées doivent être celles d'un participant avec au minimum les colonnes suivantes&nbsp;: Augend, Addend, Résultat, Session, Temps
+                Les données importées doivent être celles d'un participant avec au minimum les colonnes suivantes&nbsp;: Augend, Addend, Résultat, Session, Temps. Les formats acceptés pour le fichier sont XLSX, CSV et JSON.
               </p>
               <p
                 v-if="data.length === 0 && equations.length === 0"
@@ -1311,7 +1311,7 @@ onBeforeUnmount(() => {
 
           <div class="w-100" v-if="practiceRows.length || associationRows.length">
             <div class="d-flex flex-wrap gap-3">
-              <div class="flex-grow-1" style="min-width: 280px;">
+              <div class="grow" style="min-width: 280px;">
                 <BaseDataTable
                   title="Nombre de rencontres par lettre"
                   :show-button="false"
@@ -1343,7 +1343,7 @@ onBeforeUnmount(() => {
                   </BaseButton>
                 </div>
               </div>
-              <div class="flex-grow-1" style="min-width: 280px;">
+              <div class="grow" style="min-width: 280px;">
                 <BaseDataTable
                   title="Force d'associations"
                   :show-button="false"
