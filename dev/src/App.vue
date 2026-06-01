@@ -1094,7 +1094,7 @@ onBeforeUnmount(() => {
                   title="Aperçu des équations générées"
                   :show-button="false"
                   :clearable="true"
-                  max-height="45vh"
+                  max-height="40vh"
                   :rows="equations"
                   :columns="equationCols"
                   @clear="handleClearTable('equations')"
@@ -1129,7 +1129,7 @@ onBeforeUnmount(() => {
               <BaseDataTable
                 title="Aperçu de vos données"
                 :buttonLabel="labelImportData"
-                max-height="45vh"
+                max-height="40vh"
                 :rows="data"
                 :columns="dataCols"
                 :is-loading="isImportingData"
@@ -1270,7 +1270,7 @@ onBeforeUnmount(() => {
               title="Tableau des temps prédits par le modèle pour chaque équation"
               buttonLabel="Sauvegarder les résultats"
               :show-button="false"
-              max-height="70vh"
+              max-height="65vh"
               :rows="dataResults"
               :columns="resultCols"
             />
