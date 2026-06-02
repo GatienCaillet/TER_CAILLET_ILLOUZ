@@ -659,22 +659,28 @@ export class Model {
   /**
    * La fonction calcule le temps de réponse de chaque stimulus
    * @param {Stimuli} stimuli
+   * @param {Function|null} onProgress - Callback optionnel pour suivre la progression
    * @returns {void} results - Renvoie un tableau d'objets résultats
    */
-  calculEveryStimulusTime(stimuli) {
+calculEveryStimulusTime(stimuli, onProgress = null) {
     // Réinitialise l'état pour éviter qu'un calcul précédent influence le suivant
     this.resetState();
-
     this.results = [];
 
-    stimuli.forEach((stimulus) => {
-      // Chaque stimulus est vérifié avant le calcul
+    const total = stimuli.length;
+    const progressEvery = Math.max(1, Math.floor(total / 100));
+
+    for (let index = 0; index < total; index += 1) {
+      // 1. Vérification de l'interruption
+      if (this.shouldAbort) {
+        throw new Error("Model aborted by user");
+      }
+
+      const stimulus = stimuli[index];
       this.validateStimulus(stimulus);
 
-      // Temps obtenu via la meilleure stratégie disponible
       const { time: calculTime, method } = this.timeWithBestStrategy(stimulus);
 
-      // Ne conserve le résultat que si la récupération en mémoire n'a pas échoué
       if (calculTime !== null) {
         this.results.push({
           augend: stimulus.augend,
@@ -685,7 +691,12 @@ export class Model {
           session: stimulus.session,
         });
       }
-    });
 
+      // 2. Appel du callback de progression si fourni
+      const current = index + 1;
+      if (typeof onProgress === "function" && (current % progressEvery === 0 || current === total)) {
+        onProgress(current, total);
+      }
+    }
   }
 }
