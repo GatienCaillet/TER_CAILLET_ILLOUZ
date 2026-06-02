@@ -505,17 +505,6 @@ export class Model {
   }
 
   /**
-   * Lance une recherche en grille et conserve la configuration qui minimise l'erreur
-   * @param {Stimuli} stimuli
-   * @param {Function|null} onProgress
-   * @returns {ParamsEstim}
-   */
-  async estimateBestParams(stimuli = this.stimuli, onProgress = null) {
-    const { bestParams } = await this.estimateParamsGrid(stimuli, onProgress, false);
-    return bestParams;
-  }
-
-  /**
    * Lance une recherche en grille et retourne aussi le RMSE pour chaque combinaison
    * @param {Stimuli} stimuli
    * @param {Function|null} onProgress

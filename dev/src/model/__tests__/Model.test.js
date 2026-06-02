@@ -265,13 +265,11 @@ describe("Model", () => {
     ).rejects.toThrow(/aborted by user/i);
   });
 
-  it("wraps estimateBestParams helpers", async () => {
+  it("wraps estimateBestParamsWithScores helper", async () => {
     const model = new Model(baseInit, baseEstim, [stimulus]);
 
-    const best = await model.estimateBestParams([stimulus]);
     const detailed = await model.estimateBestParamsWithScores([stimulus]);
 
-    expect(best).toEqual(baseEstim);
     expect(detailed.evaluations).toHaveLength(1);
   });
 
