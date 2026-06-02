@@ -280,6 +280,10 @@ const getModelInputError = () => {
     return formatNumberError(invalidEstim);
   }
 
+  if (deltaModelError.value) {
+    return deltaModelError.value;
+  }
+
   if (rhoModelError.value) {
     return rhoModelError.value;
   }
@@ -437,6 +441,14 @@ const validateEstimationParams = () => {
         return false;
       }
     }
+
+    if (item.key === "delta") {
+      if (minNum <= 0 || maxNum <= 0) {
+        errorMessage.value =
+          `"${item.label}" : δ doit être strictement positif (min et max)`;
+        return false;
+      }
+    }
   }
 
   errorMessage.value = "";
@@ -445,6 +457,14 @@ const validateEstimationParams = () => {
 
 // Validation calculée à la demande pour garder l'interface réactive
 const canLaunchEstimation = computed(() => validateEstimationParams());
+
+const deltaModelError = computed(() => {
+  const deltaValue = Number(paramsEstimation.value.delta);
+  if (!Number.isFinite(deltaValue) || deltaValue <= 0) {
+    return "La valeur de δ (taux de la diminution de la durée de réponse selon l'entrainement) doit être strictement positive.";
+  }
+  return "";
+});
 
 const rhoModelError = computed(() => {
   const rhoValue = Number(paramsEstimation.value.rho);
@@ -939,6 +959,10 @@ defineExpose({ setParamsEstim, resetParams });
           {{ modelInputError }}
         </div>
 
+        <div v-if="deltaModelError" class="alert alert-danger">
+          {{ deltaModelError }}
+        </div>
+
         <div v-if="rhoModelError" class="alert alert-danger">
           {{ rhoModelError }}
         </div>
@@ -954,7 +978,7 @@ defineExpose({ setParamsEstim, resetParams });
         <BaseButton
           size="lg"
           variant="btn btn-primary"
-          :disabled="isEstimating || isModelRunning || Boolean(modelInputError) || Boolean(rhoModelError) || Boolean(alertMessageModel) || (!hasImportedData && !hasGeneratedData)"
+          :disabled="isEstimating || isModelRunning || Boolean(modelInputError) || Boolean(deltaModelError) || Boolean(rhoModelError) || Boolean(alertMessageModel) || (!hasImportedData && !hasGeneratedData)"
           @click.prevent="emitLaunchModel"
         >
           <span v-if="isModelRunning">Calcul du modèle...</span>

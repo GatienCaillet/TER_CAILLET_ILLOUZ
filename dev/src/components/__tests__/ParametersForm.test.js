@@ -176,6 +176,15 @@ describe("ParametersForm", () => {
     expect(wrapper.vm.rhoModelError.length).toBeGreaterThan(0);
   });
 
+  it("exposes delta error when invalid", async () => {
+    const wrapper = await mountForm();
+
+    wrapper.vm.paramsEstimation.delta = 0;
+    await nextTick();
+
+    expect(wrapper.vm.deltaModelError.length).toBeGreaterThan(0);
+  });
+
   it("validates estimation range parameters", async () => {
     const wrapper = await mountForm();
 
@@ -219,6 +228,20 @@ describe("ParametersForm", () => {
 
     expect(wrapper.vm.canLaunchEstimation).toBe(false);
     expect(wrapper.vm.errorMessage).toContain("ρ");
+  });
+
+  it("validates delta positivity for estimation", async () => {
+    const wrapper = await mountForm();
+
+    const deltaConfig = wrapper.vm.configEstimation.find(
+      (item) => item.key === "delta",
+    );
+    deltaConfig.enabled = true;
+    deltaConfig.min = 0;
+    await nextTick();
+
+    expect(wrapper.vm.canLaunchEstimation).toBe(false);
+    expect(wrapper.vm.errorMessage).toContain("δ");
   });
 
   it("opens settings modal and saves defaults", async () => {
