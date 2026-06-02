@@ -631,7 +631,7 @@ export class Model {
     const errorChance = errorRate > 1 ? errorRate / 100 : errorRate;
 
     // On conserve la stratégie la plus rapide
-    if (countingTimeEstimated < (this.initTime + retrievalTime)) {
+    if (countingTimeEstimated < retrievalTime) {
       // La récupération en mémoire réussit, on garde en mémoire la force d'association pour les prochaines fois
       this.associations[equationKey] = (this.associations[equationKey] || 0) + 1;
       return {
