@@ -1006,7 +1006,7 @@ defineExpose({ setParamsEstim, resetParams });
           ></button>
         </div>
 
-        <div class="grow overflow-auto pt-3 px-4 pb-4">
+        <div class="flex-grow-1 overflow-auto pt-3 px-4 pb-4">
           <div class="settings-section">
             <div class="fw-bold mb-2">Initialisation</div>
             <div class="row g-3">

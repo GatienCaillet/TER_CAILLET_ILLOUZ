@@ -1311,7 +1311,7 @@ onBeforeUnmount(() => {
 
           <div class="w-100" v-if="practiceRows.length || associationRows.length">
             <div class="d-flex flex-wrap gap-3">
-              <div class="grow" style="min-width: 280px;">
+              <div class="flex-grow-1" style="min-width: 280px;">
                 <BaseDataTable
                   title="Nombre de rencontres par lettre"
                   :show-button="false"
@@ -1343,7 +1343,7 @@ onBeforeUnmount(() => {
                   </BaseButton>
                 </div>
               </div>
-              <div class="grow" style="min-width: 280px;">
+              <div class="flex-grow-1" style="min-width: 280px;">
                 <BaseDataTable
                   title="Force d'associations"
                   :show-button="false"

@@ -552,7 +552,7 @@ export class Model {
 
     // Parcourt les stimuli précédents pour trouver le plus récent avec le même addend
     for (let i = this.results.length - 1; i >= 0; i -= 1) {
-      if (this.results[i].addend === stimulus.addend) {
+      if (this.results[i].addend === stimulus.addend && this.results[i].method === "counting") {
         countingTimeEstimated = this.results[i].time;
         break;
       }
