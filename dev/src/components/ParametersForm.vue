@@ -1028,21 +1028,21 @@ defineExpose({ setParamsEstim, resetParams });
                       <p class="text-justify">
                         L'estimation de paramètres consiste à rechercher les paramètres optimaux. 
                         Vous pouvez utiliser deux méthodes : 
-                        <ul>
-                          <li>
-                            <strong>Grid search</strong> permet d'évaluer toutes les combinaisons possibles 
-                            selon l'espace de recherche défini pour chaque paramètre. Cette méthode est exhaustive mais elle 
-                            peut être longue selon l'espace de recherche, le nombre de paramètres choisis 
-                            ou la puissance de votre ordinateur.
-                          </li>
-                          <li>
-                            <strong>Random search</strong> évalue un nombre défini de combinaisons aléatoires. 
-                            C'est la méthode la plus rapide mais elle ne garantit pas de trouver les paramètres 
-                            optimaux. Vous pouvez l'utiliser pour préciser les espaces de recherche et ensuite 
-                            utiliser la méthode Grid Search.
-                          </li>
-                        </ul>
                       </p>
+                      <ul>
+                        <li>
+                          <strong>Grid search</strong> permet d'évaluer toutes les combinaisons possibles 
+                          selon l'espace de recherche défini pour chaque paramètre. Cette méthode est exhaustive mais elle 
+                          peut être longue selon l'espace de recherche, le nombre de paramètres choisis 
+                          ou la puissance de votre ordinateur.
+                        </li>
+                        <li>
+                          <strong>Random search</strong> évalue un nombre défini de combinaisons aléatoires. 
+                          C'est la méthode la plus rapide mais elle ne garantit pas de trouver les paramètres 
+                          optimaux. Vous pouvez l'utiliser pour préciser les espaces de recherche et ensuite 
+                          utiliser la méthode Grid Search.
+                        </li>
+                      </ul>
                     </div>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
