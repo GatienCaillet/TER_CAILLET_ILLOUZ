@@ -123,10 +123,10 @@ const loadDefaults = () => {
   return defaults;
 };
 
-const savedDefaults = loadDefaults();
+const savedDefaults = ref(loadDefaults());
 
 // Paramètres d'initialisation affichés dans la première partie du formulaire
-const params = ref({ ...savedDefaults.paramsInit });
+const params = ref({ ...savedDefaults.value.paramsInit });
 
 const configInitialisation = [
   { id: "encoding-time", label: "Temps d'encodage (ms)", key: "encodingTime" },
@@ -144,11 +144,11 @@ const configInitialisation = [
 ];
 
 // Paramètres d'estimation affichés dans la deuxième partie du formulaire
-const paramsEstimation = ref({ ...savedDefaults.paramsEstim });
+const paramsEstimation = ref({ ...savedDefaults.value.paramsEstim });
 const previousParamsEstimation = ref(null);
-const maxCombinations = ref(savedDefaults.maxCombinations);
-const maxRandomSamples = ref(savedDefaults.maxRandomSamples);
-const estimationMode = ref(savedDefaults.estimationMode);
+const maxCombinations = ref(savedDefaults.value.maxCombinations);
+const maxRandomSamples = ref(savedDefaults.value.maxRandomSamples);
+const estimationMode = ref(savedDefaults.value.estimationMode);
 
 // Chaque entrée définit un paramètre d'estimation et sa plage possible
 const configEstimation = reactive([
@@ -156,18 +156,18 @@ const configEstimation = reactive([
     id: "alpha",
     label: "α : Temps de calcul entre chaque lettre (ms)",
     key: "alpha",
-    min: savedDefaults.ranges.alpha.min,
-    max: savedDefaults.ranges.alpha.max,
-    pas: savedDefaults.ranges.alpha.pas,
+    min: savedDefaults.value.ranges.alpha.min,
+    max: savedDefaults.value.ranges.alpha.max,
+    pas: savedDefaults.value.ranges.alpha.pas,
     enabled: false,
   },
   {
     id: "beta",
     label: "β : Facteur de durée de comptage",
     key: "beta",
-    min: savedDefaults.ranges.beta.min,
-    max: savedDefaults.ranges.beta.max,
-    pas: savedDefaults.ranges.beta.pas,
+    min: savedDefaults.value.ranges.beta.min,
+    max: savedDefaults.value.ranges.beta.max,
+    pas: savedDefaults.value.ranges.beta.pas,
     enabled: false,
   },
   {
@@ -175,27 +175,27 @@ const configEstimation = reactive([
     label:
       "δ : Taux de la diminution de la durée de réponse selon l'entrainement",
     key: "delta",
-    min: savedDefaults.ranges.delta.min,
-    max: savedDefaults.ranges.delta.max,
-    pas: savedDefaults.ranges.delta.pas,
+    min: savedDefaults.value.ranges.delta.min,
+    max: savedDefaults.value.ranges.delta.max,
+    pas: savedDefaults.value.ranges.delta.pas,
     enabled: false,
   },
   {
     id: "eta",
     label: "η : Temps de récupération en mémoire (ms)",
     key: "eta",
-    min: savedDefaults.ranges.eta.min,
-    max: savedDefaults.ranges.eta.max,
-    pas: savedDefaults.ranges.eta.pas,
+    min: savedDefaults.value.ranges.eta.min,
+    max: savedDefaults.value.ranges.eta.max,
+    pas: savedDefaults.value.ranges.eta.pas,
     enabled: false,
   },
   {
     id: "tau",
     label: "τ : Facteur de récupération en mémoire",
     key: "tau",
-    min: savedDefaults.ranges.tau.min,
-    max: savedDefaults.ranges.tau.max,
-    pas: savedDefaults.ranges.tau.pas,
+    min: savedDefaults.value.ranges.tau.min,
+    max: savedDefaults.value.ranges.tau.max,
+    pas: savedDefaults.value.ranges.tau.pas,
     enabled: false,
   },
   {
@@ -203,9 +203,9 @@ const configEstimation = reactive([
     label:
       "ρ : Taux de la diminution du temps de récupération selon la force de l'association",
     key: "rho",
-    min: savedDefaults.ranges.rho.min,
-    max: savedDefaults.ranges.rho.max,
-    pas: savedDefaults.ranges.rho.pas,
+    min: savedDefaults.value.ranges.rho.min,
+    max: savedDefaults.value.ranges.rho.max,
+    pas: savedDefaults.value.ranges.rho.pas,
     enabled: false,
   },
 ]);
@@ -501,12 +501,12 @@ const handleExportEstimation = (format) => {
 
 const isSettingsOpen = ref(false);
 const settingsDraft = ref({
-  paramsInit: { ...savedDefaults.paramsInit },
-  paramsEstim: { ...savedDefaults.paramsEstim },
-  ranges: cloneRanges(savedDefaults.ranges),
-  maxCombinations: savedDefaults.maxCombinations,
-  maxRandomSamples: savedDefaults.maxRandomSamples,
-  estimationMode: savedDefaults.estimationMode,
+  paramsInit: { ...savedDefaults.value.paramsInit },
+  paramsEstim: { ...savedDefaults.value.paramsEstim },
+  ranges: cloneRanges(savedDefaults.value.ranges),
+  maxCombinations: savedDefaults.value.maxCombinations,
+  maxRandomSamples: savedDefaults.value.maxRandomSamples,
+  estimationMode: savedDefaults.value.estimationMode,
 });
 
 const buildDefaultsSnapshot = () => ({
@@ -581,6 +581,8 @@ const saveSettings = () => {
     estimationMode: settingsDraft.value.estimationMode,
   };
 
+  savedDefaults.value = payload;
+  
   applyDefaults(payload);
   persistDefaults(payload);
   closeSettings();
@@ -604,6 +606,9 @@ const resetSettings = () => {
     maxRandomSamples: payload.maxRandomSamples,
     estimationMode: payload.estimationMode,
   };
+
+  savedDefaults.value = payload;
+
   applyDefaults(payload);
   persistDefaults(payload);
 };
@@ -664,17 +669,17 @@ const setParamsEstim = (newParams) => {
 // Réinitialiser les paramètres aux valeurs par défaut
 const resetParams = () => {
   Object.keys(DEFAULT_PARAMS_INIT).forEach((key) => {
-    params.value[key] = savedDefaults.paramsInit[key];
+    params.value[key] = savedDefaults.value.paramsInit[key];
   });
 
   Object.keys(DEFAULT_PARAMS_ESTIM).forEach((key) => {
-    paramsEstimation.value[key] = savedDefaults.paramsEstim[key];
+    paramsEstimation.value[key] = savedDefaults.value.paramsEstim[key];
   });
 
   configEstimation.forEach((item) => {
-    item.min = savedDefaults.ranges[item.key].min;
-    item.max = savedDefaults.ranges[item.key].max;
-    item.pas = savedDefaults.ranges[item.key].pas;
+    item.min = savedDefaults.value.ranges[item.key].min;
+    item.max = savedDefaults.value.ranges[item.key].max;
+    item.pas = savedDefaults.value.ranges[item.key].pas;
     item.enabled = false;
   });
 };
