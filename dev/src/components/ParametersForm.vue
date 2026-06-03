@@ -150,6 +150,12 @@ const maxCombinations = ref(savedDefaults.maxCombinations);
 const maxRandomSamples = ref(savedDefaults.maxRandomSamples);
 const estimationMode = ref(savedDefaults.estimationMode);
 
+const selectedSearchMethodLabel = computed(() =>
+  estimationMode.value === "grid"
+    ? "Méthode sélectionnée : Grid search (exhaustif)"
+    : "Méthode sélectionnée : Recherche aléatoire (rapide)",
+);
+
 // Chaque entrée définit un paramètre d'estimation et sa plage possible
 const configEstimation = reactive([
   {
@@ -988,8 +994,8 @@ defineExpose({ setParamsEstim, resetParams });
 
           <div class="mt-2">
             <BaseButton
-            size="md"
-            @click="openSearchMethod"
+              size="md"
+              @click="openSearchMethod"
             >
               <i class="bi bi-gear" aria-hidden="true"></i>
               Méthode de recherche
@@ -1004,6 +1010,8 @@ defineExpose({ setParamsEstim, resetParams });
                   data-bs-target="#modalInfoResearchMethod" 
             /> 
           </div>
+
+          <div class="mt-2 small text-secondary">{{ selectedSearchMethodLabel }}</div>
 
           <!-- Modal d'informations sur les méthodes de recherche -->
           <div class="modal fade" id="modalInfoResearchMethod" role="dialog" aria-modal="true" aria-label="Informations sur les méthodes de recherche">
