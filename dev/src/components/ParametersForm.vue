@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import ParameterField from "./ParameterField.vue";
 import BaseButton from "./BaseButton.vue";
 import BaseDataTable from "./BaseDataTable.vue";
@@ -550,6 +550,18 @@ const openSearchMethod = () => {
 const closeSearchMethod = () => {
   isSearchMethodOpen.value = false;
 };
+
+const resetSearchMethod = () => {
+  estimationMode.value = savedDefaults.value.estimationMode;
+};
+
+watch(
+  () => props.dataImported,
+  () => {
+    resetSearchMethod();
+  },
+  { deep: true },
+);
 
 const saveSearchMethod = () => {
   estimationMode.value = searchMethodDraft.value.estimationMode;
