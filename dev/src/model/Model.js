@@ -416,6 +416,7 @@ export class Model {
     candidateModel.calculEveryStimulusTime(stimuli);
 
     let errorSum = 0;
+    let validPairsCount = 0;
 
     // On mesure l'écart entre les temps simulés et les temps observés
     candidateModel.results.forEach((result, index) => {
@@ -426,12 +427,21 @@ export class Model {
         );
       }
 
+      if (
+        result.time === null || 
+        observedTime === null || 
+        result.method === "error"
+      ) {
+        return; // Passe au stimulus suivant sans faire planter le calcul
+      }
+
       const delta = result.time - observedTime;
       errorSum += delta * delta;
+      validPairsCount++;
     });
 
     return {
-      score: Math.sqrt(errorSum / candidateModel.results.length),
+      score: validPairsCount > 0 ? Math.sqrt(errorSum / validPairsCount) : 0,
       paramsEstim,
     };
   }
@@ -628,7 +638,7 @@ export class Model {
     const retrievalTime = this.calculRetrievalTime(stimulus);
     const equationKey = `${stimulus.augend.toUpperCase()}+${stimulus.addend}`;
     const errorRate = this.paramsInit.errorRate;
-    const errorChance = errorRate > 1 ? errorRate / 100 : errorRate;
+    const errorChance = errorRate / 100;
 
     // On conserve la stratégie la plus rapide
     if (countingTimeEstimated < retrievalTime) {
@@ -644,7 +654,7 @@ export class Model {
     if (Math.random() < errorChance) {
       return {
         time: null,
-        method: "retrieval",
+        method: "error",
       };
     }
 
@@ -671,7 +681,7 @@ calculEveryStimulusTime(stimuli, onProgress = null) {
     const progressEvery = Math.max(1, Math.floor(total / 100));
 
     for (let index = 0; index < total; index += 1) {
-      // 1. Vérification de l'interruption
+      // Vérification de l'interruption
       if (this.shouldAbort) {
         throw new Error("Model aborted by user");
       }
@@ -681,18 +691,16 @@ calculEveryStimulusTime(stimuli, onProgress = null) {
 
       const { time: calculTime, method } = this.timeWithBestStrategy(stimulus);
 
-      if (calculTime !== null) {
-        this.results.push({
-          augend: stimulus.augend,
-          addend: stimulus.addend,
-          result: stimulus.result,
-          time: calculTime,
-          method,
-          session: stimulus.session,
-        });
-      }
+      this.results.push({
+        augend: stimulus.augend,
+        addend: stimulus.addend,
+        result: stimulus.result,
+        time: calculTime,
+        method,
+        session: stimulus.session,
+      });
 
-      // 2. Appel du callback de progression si fourni
+      // Appel du callback de progression si fourni
       const current = index + 1;
       if (typeof onProgress === "function" && (current % progressEvery === 0 || current === total)) {
         onProgress(current, total);
