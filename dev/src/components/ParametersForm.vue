@@ -509,6 +509,13 @@ const settingsDraft = ref({
   estimationMode: savedDefaults.estimationMode,
 });
 
+const isSearchMethodOpen = ref(false);
+const searchMethodDraft = ref({
+  estimationMode: savedDefaults.estimationMode,
+  maxCombinations: savedDefaults.maxCombinations,
+  maxRandomSamples: savedDefaults.maxRandomSamples,
+});
+
 const buildDefaultsSnapshot = () => ({
   paramsInit: { ...params.value },
   paramsEstim: { ...paramsEstimation.value },
@@ -531,6 +538,33 @@ const openSettings = () => {
 
 const closeSettings = () => {
   isSettingsOpen.value = false;
+};
+
+const openSearchMethod = () => {
+  searchMethodDraft.value = {
+    estimationMode: estimationMode.value,
+    maxCombinations: maxCombinations.value,
+    maxRandomSamples: maxRandomSamples.value,
+  };
+  isSearchMethodOpen.value = true;
+};
+
+const closeSearchMethod = () => {
+  isSearchMethodOpen.value = false;
+};
+
+const saveSearchMethod = () => {
+  estimationMode.value = searchMethodDraft.value.estimationMode;
+  maxCombinations.value = searchMethodDraft.value.maxCombinations;
+  maxRandomSamples.value = searchMethodDraft.value.maxRandomSamples;
+  
+  // Update settings draft as well
+  settingsDraft.value.estimationMode = estimationMode.value;
+  settingsDraft.value.maxCombinations = maxCombinations.value;
+  settingsDraft.value.maxRandomSamples = maxRandomSamples.value;
+  
+  persistDefaults(buildDefaultsSnapshot());
+  closeSearchMethod();
 };
 
 const persistDefaults = (payload) => {
@@ -951,6 +985,24 @@ defineExpose({ setParamsEstim, resetParams });
           >
             Lancer l'estimation des paramètres
           </BaseButton>
+
+          <div class="mt-2 d-flex align-items-center">
+          <BaseButton
+          class=""
+          @click="openSearchMethod"
+          >
+            <i class="bi bi-gear" aria-hidden="true"></i>
+            Sélectionner la méthode de recherche
+          </BaseButton>
+          
+          <button
+                class="btn btn-outline-secondary btn-sm bi bi-info-lg mb-3 ms-2 rounded-circle" 
+                type="button" 
+                title="Informations sur la génération des données"
+                data-bs-toggle="" 
+                data-bs-target="" 
+              /> 
+          </div>
         </div>
       </div>
 
@@ -1152,6 +1204,105 @@ defineExpose({ setParamsEstim, resetParams });
             type="button"
             class="btn btn-primary"
             @click="saveSettings"
+          >
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="isSearchMethodOpen"
+      class="settings-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Méthode de recherche et limites de sécurité"
+      @click.self="closeSearchMethod"
+    >
+      <div class="settings-modal">
+        <div class="settings-modal-header d-flex align-items-center justify-content-between mb-3">
+          <h5 class="mb-0">Méthode de recherche et limites de sécurité</h5>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Fermer"
+            @click="closeSearchMethod"
+          ></button>
+        </div>
+
+        <div class="flex-grow-1 overflow-auto pt-3 px-4 pb-4">
+          <div class="settings-section">
+            <div class="fw-bold mb-3">Configuration de l'estimation</div>
+            
+            <div class="row g-3 mb-4">
+              <div class="col-12">
+                <label for="search-method-mode" class="form-label">
+                  Mode d'estimation
+                </label>
+                <select
+                  id="search-method-mode"
+                  v-model="searchMethodDraft.estimationMode"
+                  class="form-select"
+                >
+                  <option value="random">Recherche aléatoire (rapide)</option>
+                  <option value="grid">Grid search (exhaustif)</option>
+                </select>
+                <div class="form-text">
+                  <strong>Recherche aléatoire</strong> : Mode rapide par défaut. Effectue un nombre limité d'essais aléatoires.
+                  <br>
+                  <strong>Grid search</strong> : Mode exhaustif qui teste toutes les combinaisons possibles. Recommandé pour les machines puissantes uniquement.
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-12 col-lg-6">
+                <label for="search-method-max-combinations" class="form-label">
+                  Nombre maximum de combinaisons évaluées
+                </label>
+                <input
+                  id="search-method-max-combinations"
+                  v-model.number="searchMethodDraft.maxCombinations"
+                  class="form-control"
+                  type="number"
+                  min="1"
+                />
+                <div class="form-text">
+                  Limite de sécurité pour éviter un calcul trop long. Un message de confirmation s'affichera si le nombre de combinaisons dépasse cette valeur.
+                </div>
+              </div>
+
+              <div class="col-12 col-lg-6">
+                <label for="search-method-max-random-samples" class="form-label">
+                  Nombre maximum d'essais aléatoires
+                </label>
+                <input
+                  id="search-method-max-random-samples"
+                  v-model.number="searchMethodDraft.maxRandomSamples"
+                  class="form-control"
+                  type="number"
+                  min="1"
+                />
+                <div class="form-text">
+                  Limite d'essais pour la recherche aléatoire. Plus cette valeur est élevée, plus la recherche sera exhaustive mais plus longue.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-modal-footer d-flex flex-wrap justify-content-end gap-2 mt-4">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            @click="closeSearchMethod"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="saveSearchMethod"
           >
             Enregistrer
           </button>
