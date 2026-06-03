@@ -1003,7 +1003,7 @@ defineExpose({ setParamsEstim, resetParams });
                 data-bs-toggle="modal" 
                 data-bs-target="#modalInfoResearchMethod" 
           /> 
-        
+        </div>
 
           <!-- Modal d'informations sur les méthodes de recherche -->
           <div class="modal fade" id="modalInfoResearchMethod" role="dialog" aria-modal="true" aria-label="Informations sur les méthodes de recherche">
