@@ -997,6 +997,7 @@ defineExpose({ setParamsEstim, resetParams });
           <div class="mt-2">
             <BaseButton
               size="md"
+              :disabled="isEstimating || !canLaunchEstimation || !hasImportedData"
               @click="openSearchMethod"
             >
               <i class="bi bi-gear" aria-hidden="true"></i>
