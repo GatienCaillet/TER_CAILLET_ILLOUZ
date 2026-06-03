@@ -522,23 +522,15 @@ const searchMethodDraft = ref({
   maxRandomSamples: savedDefaults.maxRandomSamples,
 });
 
-const buildDefaultsSnapshot = () => ({
-  paramsInit: { ...params.value },
-  paramsEstim: { ...paramsEstimation.value },
-  ranges: Object.fromEntries(
-    configEstimation.map((item) => [item.key, {
-      min: item.min,
-      max: item.max,
-      pas: item.pas,
-    }]),
-  ),
-  maxCombinations: maxCombinations.value,
-  maxRandomSamples: maxRandomSamples.value,
-  estimationMode: estimationMode.value,
-});
-
 const openSettings = () => {
-  settingsDraft.value = buildDefaultsSnapshot();
+  settingsDraft.value = {
+    paramsInit: { ...savedDefaults.value.paramsInit },
+    paramsEstim: { ...savedDefaults.value.paramsEstim },
+    ranges: cloneRanges(savedDefaults.value.ranges),
+    maxCombinations: savedDefaults.value.maxCombinations,
+    maxRandomSamples: savedDefaults.value.maxRandomSamples,
+    estimationMode: savedDefaults.value.estimationMode,
+  };
   isSettingsOpen.value = true;
 };
 
@@ -563,13 +555,6 @@ const saveSearchMethod = () => {
   estimationMode.value = searchMethodDraft.value.estimationMode;
   maxCombinations.value = searchMethodDraft.value.maxCombinations;
   maxRandomSamples.value = searchMethodDraft.value.maxRandomSamples;
-  
-  // Update settings draft as well
-  settingsDraft.value.estimationMode = estimationMode.value;
-  settingsDraft.value.maxCombinations = maxCombinations.value;
-  settingsDraft.value.maxRandomSamples = maxRandomSamples.value;
-  
-  persistDefaults(buildDefaultsSnapshot());
   closeSearchMethod();
 };
 
