@@ -986,23 +986,60 @@ defineExpose({ setParamsEstim, resetParams });
             Lancer l'estimation des paramètres
           </BaseButton>
 
-          <div class="mt-2 d-flex align-items-center">
+          <div class="d-flex flex-row justify-content-around">
           <BaseButton
-          class=""
+          size="md"
           @click="openSearchMethod"
           >
             <i class="bi bi-gear" aria-hidden="true"></i>
-            Sélectionner la méthode de recherche
+            Méthode de recherche
           </BaseButton>
           
+          <!-- Informations sur les méthodes de recherche -->
           <button
                 class="btn btn-outline-secondary btn-sm bi bi-info-lg mb-3 ms-2 rounded-circle" 
                 type="button" 
-                title="Informations sur la génération des données"
-                data-bs-toggle="" 
-                data-bs-target="" 
-              /> 
-          </div>
+                title="Informations sur les méthodes de recherche"
+                data-bs-toggle="modal" 
+                data-bs-target="#modalInfoResearchMethod" 
+          /> 
+        
+
+          <!-- Modal d'informations sur les méthodes de recherche -->
+          <div class="modal fade" id="modalInfoResearchMethod" role="dialog" aria-modal="true" aria-label="Informations sur les méthodes de recherche">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Informations sur les méthodes de recherche</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p class="text-justify">
+                        L'estimation de paramètres consiste à rechercher les paramètres optimaux. 
+                        Vous pouvez utiliser deux méthodes : 
+                        <ul>
+                          <li>
+                            <strong>Grid search</strong> permet d'évaluer toutes les combinaisons possibles 
+                            selon l'espace de recherche défini pour chaque paramètre. Cette méthode est exhaustive mais elle 
+                            peut être longue selon l'espace de recherche, le nombre de paramètres choisis 
+                            ou la puissance de votre ordinateur.
+                          </li>
+                          <li>
+                            <strong>Random search</strong> évalue un nombre défini de combinaisons aléatoires. 
+                            C'est la méthode la plus rapide mais elle ne garantit pas de trouver les paramètres 
+                            optimaux. Vous pouvez l'utiliser pour préciser les espaces de recherche et ensuite 
+                            utiliser la méthode Grid Search.
+                          </li>
+                        </ul>
+                      </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    </div>
+                  </div>
+                </div>
+                  
+        </div> 
         </div>
       </div>
 
