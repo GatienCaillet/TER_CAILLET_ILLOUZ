@@ -46,6 +46,15 @@ const aggregateData = (rawData) => {
   const grouped = {};
 
   rawData.forEach((item) => {
+    if (
+      item.method === "error" || 
+      item.method === "Erreur" || 
+      item.time === null || 
+      item.time === undefined
+    ) {
+      return; 
+    }
+
     const addend = item.addend;
     const session = item.session;
     const time = item.time;
@@ -126,6 +135,10 @@ const strategyRatesData = computed(() => {
         (item) => item.session === session && item.addend === addend
       );
       
+      const correctPoints = pointData.filter(
+        (item) => item.method !== "error" && item.method !== "Erreur" && item.time !== null
+      );
+
       if (pointData.length > 0) {
         const counting = pointData.filter((item) => item.method === "Comptage").length;
         const total = pointData.length;
@@ -345,6 +358,10 @@ const drawChart = () => {
       (item) => item.session === session && item.addend === addend
     );
     
+    const correctPoints = pointData.filter(
+    (item) => item.method !== "error" && item.method !== "Erreur" && item.time !== null
+  );
+  
     if (!pointData.length) return { counting: 0, retrieval: 0, total: 0, countingPct: 0, retrievalPct: 0 };
     
     const counting = pointData.filter((item) => item.method === "Comptage").length;

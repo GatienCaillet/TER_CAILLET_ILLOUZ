@@ -668,15 +668,29 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
       },
     );
 
-    dataResults.value = results.map((result, index) => ({
-      id: index + 1,
-      augend: result.augend,
-      addend: result.addend,
-      result: result.result,
-      time: Math.round(result.time),
-      method: result.method === "counting" ? "Comptage" : "Récupération",
-      session: result.session,
-    }));
+dataResults.value = results.map((result, index) => {
+  // On vérifie si c'est une erreur
+  const isError = result.method === "error" || result.time === null;
+
+  // On crée un dictionnaire propre pour traduire la méthode
+  const methodTranslations = {
+    counting: "Comptage",
+    retrieval: "Récupération",
+    error: "Erreur"
+  };
+
+  return {
+    id: index + 1,
+    augend: result.augend,
+    addend: result.addend,
+    result: result.result,
+    // Si c'est une erreur, on affiche "Échec", sinon on arrondit le temps
+    time: isError ? "Échec" : Math.round(result.time),
+    // On utilise le dictionnaire de traduction
+    method: methodTranslations[result.method] || result.method,
+    session: result.session,
+  };
+});
 
     practiceMap.value = { ...practice };
     associationsMap.value = { ...associations };
