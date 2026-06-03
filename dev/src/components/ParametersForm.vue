@@ -986,24 +986,24 @@ defineExpose({ setParamsEstim, resetParams });
             Lancer l'estimation des paramètres
           </BaseButton>
 
-          <div class="d-flex flex-row justify-content-around">
-          <BaseButton
-          size="md"
-          @click="openSearchMethod"
-          >
-            <i class="bi bi-gear" aria-hidden="true"></i>
-            Méthode de recherche
-          </BaseButton>
-          
-          <!-- Informations sur les méthodes de recherche -->
-          <button
-                class="btn btn-outline-secondary btn-sm bi bi-info-lg mb-3 ms-2 rounded-circle" 
-                type="button" 
-                title="Informations sur les méthodes de recherche"
-                data-bs-toggle="modal" 
-                data-bs-target="#modalInfoResearchMethod" 
-          /> 
-        </div>
+          <div class="mt-2">
+            <BaseButton
+            size="md"
+            @click="openSearchMethod"
+            >
+              <i class="bi bi-gear" aria-hidden="true"></i>
+              Méthode de recherche
+            </BaseButton>
+            
+            <!-- Informations sur les méthodes de recherche -->
+            <button
+                  class="btn btn-outline-secondary btn-sm bi bi-info-lg ms-2 rounded-circle" 
+                  type="button" 
+                  title="Informations sur les méthodes de recherche"
+                  data-bs-toggle="modal" 
+                  data-bs-target="#modalInfoResearchMethod" 
+            /> 
+          </div>
 
           <!-- Modal d'informations sur les méthodes de recherche -->
           <div class="modal fade" id="modalInfoResearchMethod" role="dialog" aria-modal="true" aria-label="Informations sur les méthodes de recherche">
