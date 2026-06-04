@@ -30,7 +30,8 @@ describe("BaseDataTable", () => {
     const wrapper = mount(BaseDataTable, {
       props: { columns, rows: [{ id: 1, value: 10 }], clearable: true }
     });
-    const clearButton = wrapper.find("button.btn-outline-danger, button");
+
+    const clearButton = wrapper.find("button.btn-clear-table");
     await clearButton.trigger("click");
     expect(wrapper.emitted("clear")).toBeTruthy();
   });

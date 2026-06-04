@@ -53,6 +53,7 @@ const sortedRows = computed(() => {
   }
 
   const direction = sortDirection.value === "asc" ? 1 : -1;
+  
   return [...props.rows].sort((a, b) => {
     const aValue = toSortableValue(a?.[sortKey.value]);
     const bValue = toSortableValue(b?.[sortKey.value]);
@@ -67,11 +68,11 @@ const sortedRows = computed(() => {
       return -1 * direction;
     }
 
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      if (aValue === bValue) {
-        return 0;
-      }
-      return aValue > bValue ? 1 * direction : -1 * direction;
+    if (typeof aValue === "number" && typeof bValue === "string") {
+      return -1 * direction;
+    }
+    if (typeof aValue === "string" && typeof bValue === "number") {
+      return 1 * direction;
     }
 
     if (aValue === bValue) {
@@ -187,6 +188,7 @@ defineEmits(["import", "clear"]);
       <BaseButton
         v-if="clearable && rows.length"
         size="sm"
+        class="btn-clear-table"
         variant="btn btn-outline-secondary"
         @click="$emit('clear')"
       >

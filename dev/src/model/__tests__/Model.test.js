@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { Model } from "./Model";
+import { Model } from "../Model";
 
 describe("Model", () => {
   const baseInit = {
@@ -72,7 +72,7 @@ describe("Model", () => {
   it("validates stimuli and throws on invalid cases", () => {
     const model = new Model(baseInit, baseEstim);
 
-    expect(() => model.validateStimulus(null)).toThrow(/indefini ou manquant/i);
+    expect(() => model.validateStimulus(null)).toThrow(/indéfini ou manquant/i);
     expect(() => model.validateStimulus({ augend: "?", addend: 1 })).toThrow(/augend doit être une lettre/i);
     expect(() => model.validateStimulus({ augend: "A", addend: -1 })).toThrow(/addend doit être un entier/i);
     expect(() => model.validateStimulus({ augend: "Z", addend: 1 })).toThrow(/dépasse Z/i);

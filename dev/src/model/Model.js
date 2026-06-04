@@ -531,6 +531,10 @@ export class Model {
    * @returns {void}
    */
   validateStimulus(stimulus) {
+    if (!stimulus) {
+      throw new Error("Stimulus indéfini ou manquant");
+    }
+    
     const augend = String(stimulus.augend || "").toUpperCase();
     const addend = Number(stimulus.addend);
     const augendIndex = ALPHABET.indexOf(augend);

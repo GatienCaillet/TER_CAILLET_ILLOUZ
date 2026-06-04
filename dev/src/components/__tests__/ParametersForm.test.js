@@ -60,7 +60,7 @@ describe("ParametersForm.vue - Suite de Tests", () => {
 
     it("affiche une alerte spécifique si les données sont générées au lieu d'importées", () => {
       const wrapper = mountForm({ hasImportedData: false, hasGeneratedData: true });
-      expect(wrapper.text()).toContain("L'estimation nécessite l'import de données existantes");
+      expect(wrapper.text()).toContain("L'estimation des paramètres nécessite l'import de données existantes");
     });
 
     it("affiche correctement les meilleurs paramètres estimés lorsqu'ils sont fournis", async () => {
@@ -115,7 +115,7 @@ describe("ParametersForm.vue - Suite de Tests", () => {
       );
 
       await button.trigger("click");
-      expect(wrapper.emitted("launch-model")).falsy();
+      expect(wrapper.emitted("launch-model")).toBeFalsy();
     });
   });
 

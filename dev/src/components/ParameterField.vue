@@ -55,6 +55,7 @@ defineEmits([
       />
 
       <fieldset
+        :disabled="rangeDisabled"
         class="d-flex flex-row gap-2 align-items-center border-3 p-0 m-0"
         :class="{
           'opacity-50': !enabled || rangeDisabled,
