@@ -642,7 +642,7 @@ export class Model {
 
     // On conserve la stratégie la plus rapide
     if (countingTimeEstimated < retrievalTime) {
-      // La récupération en mémoire réussit, on garde en mémoire la force d'association pour les prochaines fois
+      // On garde en mémoire la force d'association pour les prochaines fois
       this.associations[equationKey] = (this.associations[equationKey] || 0) + 1;
       return {
         time: this.initTime + this.calculCountingTime(stimulus),
