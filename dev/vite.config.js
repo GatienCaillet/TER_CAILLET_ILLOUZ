@@ -14,6 +14,7 @@ export default defineConfig({
     globals: true,
     // Simule l'environnement du navigateur
     environment: 'jsdom',
+    setupFiles: ["./vitest.setup.js"],
   },
   resolve: {
     alias: {
