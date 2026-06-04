@@ -543,7 +543,7 @@ onBeforeUnmount(() => {
             href="#utilisateur"
             @click.prevent="activeDataset = 'utilisateur'"
           >
-            Temps utilisateurs
+            Temps des participants
           </a>
         </li>
       </ul>

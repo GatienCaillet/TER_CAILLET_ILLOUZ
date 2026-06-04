@@ -914,7 +914,7 @@ defineExpose({ setParamsEstim, resetParams });
         <div v-if="bestEstimatedParams" class="d-flex justify-content-center">
           <div class="alert alert-success text-center w-auto d-inline-block">
             <strong>
-              ✓ Estimation finie, les paramètres d'estimation ont été remplacés par les nouveaux :
+              ✓ Estimation terminée, les paramètres d'estimation ont été remplacés par les nouveaux :
             </strong>
 
             <div class="mt-2">

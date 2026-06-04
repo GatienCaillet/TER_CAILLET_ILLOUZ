@@ -27,7 +27,7 @@ const dataCols = [
 const resultCols = [
   ...equationCols,
   { key: "time", label: "Temps" },
-  { key: "method", label: "Méthode" },
+  { key: "method", label: "Stratégie" },
 ];
 
 // État principal de l'application.
