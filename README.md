@@ -56,8 +56,8 @@ Puis ouvrir un navigateur internet et aller sur l'adresse indiquée après "➜ 
 (exemple : ➜  Local:   http://localhost:5173/)
 
 ## Notice d'utilisation
-(Pas encore mise)
-La notice d'utilisation se trouve dans la partie documentation (/docs/) sous forme de PDF.
+La notice d'utilisation se trouve dans la partie documentation (/docs/) sous forme de PDF au nom "notice_d_utilisation.pdf".
+Elle explique comment utiliser l'application et les différentes fonctionnalités disponibles.
 
 ## Auteurs et contexte
 Nous sommes Gatien CAILLET et Jeanne-Esther ILLOUZ, au moment de la réalisation étudiants en 1ère année de Master Mathématiques et Informatiques Appliquées aux Sciences Humaines et Sociales parcours Informatique et Cognition (MIASHS-IC) à L'Université Grenoble Alpes (UGA). Nous avons réalisé cette application dans le cadre de notre Travail d'Etudes et de Recherches (TER) sous la tutelle de Benoît Lemaire.
