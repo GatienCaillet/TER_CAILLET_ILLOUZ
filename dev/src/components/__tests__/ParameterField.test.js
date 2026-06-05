@@ -55,4 +55,91 @@ describe("ParameterField", () => {
       expect(fieldset.attributes("disabled")).toBeDefined();
     }
   });
+
+  it("émet les bons événements lors de la saisie de valeurs en mode plage (range)", async () => {
+    const wrapper = mount(ParameterField, {
+      props: {
+        id: "alpha",
+        label: "Alpha",
+        modelValue: 10,
+        min: 0,
+        max: 50,
+        pas: 5,
+        enabled: true,
+        showRange: true,
+      },
+    });
+
+    const inputs = wrapper.findAll("input[type='number']");
+
+    // inputs[0] -> Champ de la valeur principale (modelValue)
+    inputs[0].element.value = "15";
+    inputs[0].element.valueAsNumber = 15;
+    await inputs[0].trigger("input");
+    expect(wrapper.emitted("update:modelValue")[0]).toEqual([15]);
+
+    // inputs[1] -> Champ Min
+    inputs[1].element.value = "5";
+    inputs[1].element.valueAsNumber = 5;
+    await inputs[1].trigger("input");
+    expect(wrapper.emitted("update:min")[0]).toEqual([5]);
+
+    // inputs[2] -> Champ Max
+    inputs[2].element.value = "60";
+    inputs[2].element.valueAsNumber = 60;
+    await inputs[2].trigger("input");
+    expect(wrapper.emitted("update:max")[0]).toEqual([60]);
+
+    // inputs[3] -> Champ Pas
+    inputs[3].element.value = "2";
+    inputs[3].element.valueAsNumber = 2;
+    await inputs[3].trigger("input");
+    expect(wrapper.emitted("update:pas")[0]).toEqual([2]);
+  });
+
+  it("émet l'événement update:enabled au changement d'état de la checkbox", async () => {
+    const wrapper = mount(ParameterField, {
+      props: {
+        id: "alpha",
+        label: "Alpha",
+        modelValue: 10,
+        min: 0,
+        max: 50,
+        pas: 5,
+        enabled: false,
+        showRange: true,
+      },
+    });
+
+    const checkbox = wrapper.find("input[type='checkbox']");
+    checkbox.element.checked = true;
+    await checkbox.trigger("change");
+    
+    expect(wrapper.emitted("update:enabled")[0]).toEqual([true]);
+  });
+
+  it("n'émet pas de notification update:enabled lorsqu'elle est déjà activée", async () => {
+    const wrapper = mount(ParameterField, {
+      props: {
+        id: "alpha",
+        label: "Alpha",
+        modelValue: 1,
+        min: 0,
+        max: 10,
+        pas: 2,
+        enabled: true, // Déjà activé
+        showRange: true,
+        rangeDisabled: false,
+      },
+    });
+
+    const fieldset = wrapper.find("fieldset");
+    await fieldset.trigger("click");
+
+    const inputs = wrapper.findAll("input[type='number']");
+    await inputs[1].trigger("focus");
+
+    // L'événement ne doit pas être déclenché à nouveau
+    expect(wrapper.emitted("update:enabled")).toBeFalsy();
+  });
 });

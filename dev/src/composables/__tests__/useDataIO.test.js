@@ -415,4 +415,27 @@ describe("useDataIO - Suite Globale de Tests Unitaires", () => {
       expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("Aucune donnée à exporter"));
     });
   });
+
+  it("déclenche une alerte si la liste des lignes à exporter est vide", async () => {
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const { useDataIO } = await import("../useDataIO.js");
+    const { exportTable } = useDataIO();
+
+    // Test avec tableau vide
+    await exportTable([], { format: "xlsx" });
+    expect(alertSpy).toHaveBeenCalledWith("Aucune donnée à exporter.");
+
+    alertSpy.mockRestore();
+  });
+
+  it("déclenche une alerte si le format d'export fourni n'est pas supporté", async () => {
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const { useDataIO } = await import("../useDataIO.js");
+    const { exportTable } = useDataIO();
+
+    await exportTable([{ value: 1 }], { format: "pdf" });
+    expect(alertSpy).toHaveBeenCalledWith("Format non supporté pour l'export.");
+
+    alertSpy.mockRestore();
+  });
 });
