@@ -216,6 +216,10 @@ const handleGenerateEquations = async () => {
         },
       });
     });
+  } catch (error) {
+    // AJOUT : On intercepte l'erreur proprement pour l'utilisateur
+    alert("Impossible de générer les équations. " + error.message);
+    return false;
   } finally {
     if (equationWorker.value) {
       equationWorker.value.terminate();

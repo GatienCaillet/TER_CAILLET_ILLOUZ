@@ -118,7 +118,10 @@ describe("App - Tests Globaux de Couverture", () => {
     randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.999);
     alertSpy = vi.fn();
     vi.stubGlobal("alert", alertSpy);
-    vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => true),
+    );
 
     workerStub = class WorkerStub {
       constructor() {
@@ -133,7 +136,10 @@ describe("App - Tests Globaux de Couverture", () => {
           this.onmessage?.({ data: { type: "result", result } });
         } catch (error) {
           this.onmessage?.({
-            data: { type: "error", message: error?.message || "Erreur inconnue" },
+            data: {
+              type: "error",
+              message: error?.message || "Erreur inconnue",
+            },
           });
         }
       }
@@ -217,18 +223,39 @@ describe("App - Tests Globaux de Couverture", () => {
   describe("Propriétés calculées (Computed Properties)", () => {
     it("allAvailableAddends fusionne et trie correctement les valeurs", () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       expect(wrapper.vm.allAvailableAddends).toEqual(["2", "3", "4", "5"]);
 
       wrapper.vm.customAddends = ["10", "1"];
-      expect(wrapper.vm.allAvailableAddends).toEqual(["1", "2", "3", "4", "5", "10"]);
+      expect(wrapper.vm.allAvailableAddends).toEqual([
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "10",
+      ]);
     });
 
     it("hasResults et totalSections reflètent l'état des résultats du modèle", () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       expect(wrapper.vm.hasResults).toBe(false);
@@ -241,7 +268,14 @@ describe("App - Tests Globaux de Couverture", () => {
 
     it("hasImportedData et hasGeneratedData déterminent l'origine des données de calcul", () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       expect(wrapper.vm.hasImportedData).toBe(false);
@@ -257,7 +291,14 @@ describe("App - Tests Globaux de Couverture", () => {
 
     it("tri alphabétique de practiceRows et associationRows", () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       wrapper.vm.practiceMap = { C: 1, A: 4, B: 2 };
@@ -276,14 +317,25 @@ describe("App - Tests Globaux de Couverture", () => {
 
     it("currentInputEquations renvoie prioritairement les équations générées", () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       wrapper.vm.data = [{ id: 1, type: "imported" }];
-      expect(wrapper.vm.currentInputEquations).toEqual([{ id: 1, type: "imported" }]);
+      expect(wrapper.vm.currentInputEquations).toEqual([
+        { id: 1, type: "imported" },
+      ]);
 
       wrapper.vm.equations = [{ id: 2, type: "generated" }];
-      expect(wrapper.vm.currentInputEquations).toEqual([{ id: 2, type: "generated" }]);
+      expect(wrapper.vm.currentInputEquations).toEqual([
+        { id: 2, type: "generated" },
+      ]);
     });
   });
 
@@ -293,7 +345,14 @@ describe("App - Tests Globaux de Couverture", () => {
   describe("Gestion I/O (Import & Export)", () => {
     it("handleExportTable appelle correctement le composable associé", () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       const testRows = [{ id: 1 }];
@@ -310,7 +369,14 @@ describe("App - Tests Globaux de Couverture", () => {
 
     it("handleImportData configure les déclencheurs et nettoie l'état au chargement", () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       wrapper.vm.handleImportData();
@@ -350,7 +416,14 @@ describe("App - Tests Globaux de Couverture", () => {
       document.body.appendChild(toggleBtn);
 
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       wrapper.vm.isEquationOpen = true;
@@ -368,7 +441,14 @@ describe("App - Tests Globaux de Couverture", () => {
     it("ferme le panneau de configuration automatique via le watcher 'data'", async () => {
       const wrapper = mount(App, {
         attachTo: document.body,
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       wrapper.vm.isEquationOpen = true;
@@ -388,32 +468,57 @@ describe("App - Tests Globaux de Couverture", () => {
   describe("Validations de saisies de handleGenerateEquations", () => {
     it("bloque la génération si le compte de session est invalide", async () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       wrapper.vm.numSessions = 0;
       const success = await wrapper.vm.handleGenerateEquations();
 
-      expect(alertSpy).toHaveBeenCalledWith("Veuillez saisir un nombre de sessions valide (entier ≥ 1)");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Veuillez saisir un nombre de sessions valide (entier ≥ 1)",
+      );
       expect(success).toBe(false);
     });
 
     it("bloque la génération si le nombre de répétitions est incorrect", async () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       wrapper.vm.numSessions = 3;
       wrapper.vm.numRep = -2;
       const success = await wrapper.vm.handleGenerateEquations();
 
-      expect(alertSpy).toHaveBeenCalledWith("Veuillez saisir un nombre de répétitions valide (entier ≥ 1)");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Veuillez saisir un nombre de répétitions valide (entier ≥ 1)",
+      );
       expect(success).toBe(false);
     });
 
     it("interdit la validation si un addend négatif ou corrompu est sélectionné", async () => {
       const wrapper = mount(App, {
-        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } },
+        global: {
+          stubs: {
+            BaseDataTable: true,
+            GraphicsResult: true,
+            ParametersForm: true,
+            BaseButton: true,
+          },
+        },
       });
 
       wrapper.vm.numSessions = 2;
@@ -421,8 +526,114 @@ describe("App - Tests Globaux de Couverture", () => {
       wrapper.vm.selectedAddends = ["3", "-4"];
       const success = await wrapper.vm.handleGenerateEquations();
 
-      expect(alertSpy).toHaveBeenCalledWith("Veuillez vérifier les addends sélectionnés : certains ne sont pas des entiers valides");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Veuillez vérifier les addends sélectionnés : certains ne sont pas des entiers valides",
+      );
       expect(success).toBe(false);
     });
+  });
+
+  it("gère proprement les erreurs renvoyées par le Worker de génération", async () => {
+    // On écrase temporairement le Worker global pour ce test précis
+    // afin de simuler une erreur immédiate du thread
+    vi.stubGlobal(
+      "Worker",
+      class WorkerErrorStub {
+        terminate() {}
+        postMessage(message) {
+          if (message?.type === "generate") {
+            this.onmessage?.({
+              data: { type: "error", message: "Échec critique du thread" },
+            });
+          }
+        }
+      },
+    );
+
+    const wrapper = mount(App, {
+      global: {
+        stubs: {
+          BaseDataTable: { template: "<div />" },
+          GraphicsResult: { template: "<div />" },
+          ParametersForm: { template: "<div />" },
+          BaseButton: { template: "<button><slot /></button>" },
+        },
+      },
+    });
+
+    wrapper.vm.selectedAugends = ["A"];
+    wrapper.vm.selectedAddends = ["2"];
+    wrapper.vm.numSessions = 1;
+    wrapper.vm.numRep = 1;
+
+    // Exécute la méthode
+    const result = await wrapper.vm.handleGenerateEquations();
+
+    // Assertions
+    expect(result).toBe(false); // La fonction doit retourner false en cas d'erreur
+    expect(alertSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Échec critique du thread"),
+    );
+  });
+
+  it("exécute le calcul du modèle et met à jour l'état des résultats", async () => {
+    // 1. On mock le Worker spécifique au modèle pour simuler un calcul réussi
+    vi.stubGlobal(
+      "Worker",
+      class WorkerModelStub {
+        terminate() {}
+        postMessage(message) {
+          if (message?.type === "runModel") {
+            // Simule la réponse du worker attendue par App.vue
+            this.onmessage?.({
+              data: {
+                type: "result",
+                result: {
+                  results: [
+                    {
+                      augend: "A",
+                      addend: 2,
+                      result: "C",
+                      session: 1,
+                      time: 250,
+                      method: "counting",
+                    },
+                  ],
+                  practice: { A: 1 },
+                  associations: { "A+2": 1 },
+                },
+              },
+            });
+          }
+        }
+      },
+    );
+
+    const wrapper = mount(App, {
+      global: {
+        stubs: {
+          BaseDataTable: true,
+          GraphicsResult: true,
+          ParametersForm: true,
+          BaseButton: true,
+        },
+      },
+    });
+
+    // 2. On injecte des données pour passer la validation (data.length > 0)
+    wrapper.vm.data = [
+      { id: 1, augend: "A", addend: 2, result: "C", session: 1, time: 250 },
+    ];
+
+    // 3. On appelle la BONNE méthode avec les paramètres requis
+    await wrapper.vm.handleLaunchModel({
+      paramsInit: { alpha: 0.1, beta: 1.5 },
+      paramsEstim: { delta: 0.5 },
+    });
+
+    // 4. Vérifications
+    expect(wrapper.vm.hasResults).toBe(true);
+    expect(wrapper.vm.dataResults.length).toBe(1);
+    expect(wrapper.vm.dataResults[0].time).toBe(250); // Le temps doit être arrondi/traité
   });
 });
