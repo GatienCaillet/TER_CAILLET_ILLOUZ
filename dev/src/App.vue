@@ -8,6 +8,8 @@ import { Model } from "./model/Model";
 import BaseButton from "./components/BaseButton.vue";
 import { Alert } from "bootstrap/dist/js/bootstrap.bundle";
 
+const baseUrl = import.meta.env.BASE_URL;
+
 // Colonnes communes aux tableaux d'équations et de résultats
 const equationCols = [
   { key: "id", label: "#" },
@@ -286,7 +288,7 @@ const handleValidate = async () => {
 // Ajoute un addend personnalisé à la liste des addends sélectionnés
 const addCustomAddend = () => {
   const value = customAddendValue.value;
-  
+
   // Valider que la valeur est un nombre valide
   const numValue = Number(value);
   if (!value || !Number.isFinite(numValue) || !Number.isInteger(numValue) || numValue < 6) {
@@ -303,7 +305,7 @@ const addCustomAddend = () => {
   // Ajouter l'addend à la liste des custom addends et le cocher
   customAddends.value.push(String(numValue));
   selectedAddends.value.push(String(numValue));
-  
+
   // Réinitialiser l'input et le masquer
   customAddendValue.value = "";
   showAddendInput.value = false;
@@ -314,7 +316,7 @@ const handleClearTable = (table) => {
     equations.value = [];
   } else if (table === "data") {
     data.value = [];
-  } 
+  }
 };
 
 // Transforme les lignes importees en stimuli pour le modèle
@@ -672,29 +674,29 @@ const handleLaunchModel = async ({ paramsInit, paramsEstim }) => {
       },
     );
 
-dataResults.value = results.map((result, index) => {
-  // On vérifie si c'est une erreur
-  const isError = result.method === "error" || result.time === null;
+    dataResults.value = results.map((result, index) => {
+      // On vérifie si c'est une erreur
+      const isError = result.method === "error" || result.time === null;
 
-  // On crée un dictionnaire propre pour traduire la méthode
-  const methodTranslations = {
-    counting: "Comptage",
-    retrieval: "Récupération",
-    error: "Erreur"
-  };
+      // On crée un dictionnaire propre pour traduire la méthode
+      const methodTranslations = {
+        counting: "Comptage",
+        retrieval: "Récupération",
+        error: "Erreur"
+      };
 
-  return {
-    id: index + 1,
-    augend: result.augend,
-    addend: result.addend,
-    result: result.result,
-    // Si c'est une erreur, on affiche "Échec", sinon on arrondit le temps
-    time: isError ? "Échec" : Math.round(result.time),
-    // On utilise le dictionnaire de traduction
-    method: methodTranslations[result.method] || result.method,
-    session: result.session,
-  };
-});
+      return {
+        id: index + 1,
+        augend: result.augend,
+        addend: result.addend,
+        result: result.result,
+        // Si c'est une erreur, on affiche "Échec", sinon on arrondit le temps
+        time: isError ? "Échec" : Math.round(result.time),
+        // On utilise le dictionnaire de traduction
+        method: methodTranslations[result.method] || result.method,
+        session: result.session,
+      };
+    });
 
     practiceMap.value = { ...practice };
     associationsMap.value = { ...associations };
@@ -740,7 +742,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-
 /* Snap scrolling */
 .y-mandatory-scroll-snapping {
   scroll-snap-type: y mandatory;
@@ -773,7 +774,7 @@ onBeforeUnmount(() => {
   line-height: 1;
   border-radius: 999px;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
-  padding: 0 1.25rem; 
+  padding: 0 1.25rem;
 }
 
 .scroll-nav button:disabled {
@@ -842,11 +843,14 @@ onBeforeUnmount(() => {
   font-size: 0.85rem;
 }
 
-.list-group-item, .list-group-item label, .list-group-item input {
+.list-group-item,
+.list-group-item label,
+.list-group-item input {
   cursor: pointer;
 }
 
-.augend-list, .addend-list {
+.augend-list,
+.addend-list {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
@@ -899,25 +903,23 @@ onBeforeUnmount(() => {
 
 <template>
   <main ref="mainScrollRef" class="y-mandatory-scroll-snapping">
+    <a :href="`${baseUrl}notice-d-utilisation.pdf`" target="_blank"
+      class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 position-fixed top-0 end-0 m-3"
+      style="z-index: 1050;">
+      <i class="bi bi-file-earmark-pdf"></i>
+      Notice d'utilisation
+    </a>
+
     <div class="scroll-nav scroll-nav-top" aria-label="Navigation du scroll">
-      <button
-        v-if="canGoUp"
-        type="button"
-        class="btn bi bi-chevron-compact-up text-primary border-0 shadow-none fs-1"
-        aria-label="Aller à la page précédente"
-        @click="goToSection(currentSectionIndex - 1)"
-      >
+      <button v-if="canGoUp" type="button" class="btn bi bi-chevron-compact-up text-primary border-0 shadow-none fs-1"
+        aria-label="Aller à la page précédente" @click="goToSection(currentSectionIndex - 1)">
       </button>
     </div>
 
     <div class="scroll-nav scroll-nav-bottom" aria-label="Navigation du scroll">
-      <button
-        v-if="canGoDown"
-        type="button"
+      <button v-if="canGoDown" type="button"
         class="btn bi bi-chevron-compact-down text-primary border-0 shadow-none fs-1"
-        aria-label="Aller à la page suivante"
-        @click="goToSection(currentSectionIndex + 1)"
-      >        
+        aria-label="Aller à la page suivante" @click="goToSection(currentSectionIndex + 1)">
       </button>
     </div>
 
@@ -929,34 +931,25 @@ onBeforeUnmount(() => {
         </h1>
         <h2 class="text-center section-title small">
           Cette application vous permet, à partir de données de participants,
-          d'optimiser les paramètres d'estimation et de générer les temps de réponse du modèle avec leur représentation graphique.
+          d'optimiser les paramètres d'estimation et de générer les temps de réponse du modèle avec leur représentation
+          graphique.
         </h2>
         <div class="first-section-card">
           <div class="d-flex flex-row justify-content-around">
             <div :class="isEquationOpen ? 'dropup' : 'dropdown'">
-              <BaseButton
-                variant="btn btn-outline-primary mb-3 dropdown-toggle"
-                size="lg"
-                data-bs-toggle="collapse"
-                data-bs-target="#equationParameters"
-                :aria-expanded="isEquationOpen"
-                aria-controls="equationParameters"
-                :disabled="data.length > 0"
-                @click="isEquationOpen = !isEquationOpen"
-              >
-              Générer une liste d'équations
+              <BaseButton variant="btn btn-outline-primary mb-3 dropdown-toggle" size="lg" data-bs-toggle="collapse"
+                data-bs-target="#equationParameters" :aria-expanded="isEquationOpen" aria-controls="equationParameters"
+                :disabled="data.length > 0" @click="isEquationOpen = !isEquationOpen">
+                Générer une liste d'équations
               </BaseButton>
 
               <!-- Informations sur la génération des équations -->
-              <button
-                class="btn btn-outline-secondary btn-sm bi bi-info-lg mb-3 ms-2 rounded-circle" 
-                type="button" 
-                title="Informations sur la génération des données"
-                data-bs-toggle="modal" 
-                data-bs-target="#modalInfos" 
-              /> 
+              <button class="btn btn-outline-secondary btn-sm bi bi-info-lg mb-3 ms-2 rounded-circle" type="button"
+                title="Informations sur la génération des données" data-bs-toggle="modal"
+                data-bs-target="#modalInfos" />
               <!-- Modal d'informations sur la génération des équations -->
-              <div class="modal fade" id="modalInfos" role="dialog" aria-modal="true" aria-label="Informations sur la génération des données">
+              <div class="modal fade" id="modalInfos" role="dialog" aria-modal="true"
+                aria-label="Informations sur la génération des données">
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
@@ -965,17 +958,19 @@ onBeforeUnmount(() => {
                     </div>
                     <div class="modal-body">
                       <p class="text-justify">
-                        Vous pouvez générer des données d'expérience en sélectionnant les augends et les addends 
-                        que vous souhaitez inclure. Le résultat de chaque équation est calculé automatiquement 
-                        (toutes les équations sont donc justes). Vous pouvez également spécifier le nombre de sessions 
-                        et le nombre de répétitions pour chaque équation au sein d'une session. <br>L'ordre des équations 
-                        au sein d'une session est aléatoire de façon à ce que 2 équations avec des augends similaires ne 
-                        peuvent pas se suivre. Les équations générées seront affichées dans un tableau d'aperçu avant 
+                        Vous pouvez générer des données d'expérience en sélectionnant les augends et les addends
+                        que vous souhaitez inclure. Le résultat de chaque équation est calculé automatiquement
+                        (toutes les équations sont donc justes). Vous pouvez également spécifier le nombre de sessions
+                        et le nombre de répétitions pour chaque équation au sein d'une session. <br>L'ordre des
+                        équations
+                        au sein d'une session est aléatoire de façon à ce que 2 équations avec des augends similaires ne
+                        peuvent pas se suivre. Les équations générées seront affichées dans un tableau d'aperçu avant
                         d'être utilisées pour le lancement du modèle.
                       </p>
                       <p class="text-danger">
-                        Attention : en générant des équations, vous ne pourrez pas lancer d'estimation des paramètres, 
-                        étant donné qu'il n'y a pas de temps de référence pour calculer des RMSE. Si vous souhaitez faire cela, 
+                        Attention : en générant des équations, vous ne pourrez pas lancer d'estimation des paramètres,
+                        étant donné qu'il n'y a pas de temps de référence pour calculer des RMSE. Si vous souhaitez
+                        faire cela,
                         vous devez importer des données existantes.
                       </p>
                     </div>
@@ -984,13 +979,9 @@ onBeforeUnmount(() => {
                     </div>
                   </div>
                 </div>
-              </div>    
+              </div>
 
-              <div
-                v-if="data.length > 0"
-                class="alert alert-warning py-2 mb-3 data-format-hint"
-                role="alert"
-              >
+              <div v-if="data.length > 0" class="alert alert-warning py-2 mb-3 data-format-hint" role="alert">
                 Vous ne pouvez pas générer une liste d'équations car vous avez déjà importé des données.
               </div>
 
@@ -998,201 +989,127 @@ onBeforeUnmount(() => {
               <div class="equation-lists collapse" id="equationParameters">
                 <label class="form-label">Sélectionnez les augends :</label>
                 <div class="mb-2 d-flex gap-2">
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-primary"
-                    @click="selectedAugends = alphabetWithoutYZ.split('')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-primary"
+                    @click="selectedAugends = alphabetWithoutYZ.split('')">
                     Tout sélectionner
                   </BaseButton>
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-primary"
-                    @click="selectedAugends = []"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-primary" @click="selectedAugends = []">
                     Tout désélectionner
                   </BaseButton>
                 </div>
                 <ul class="list-group list-group-horizontal-sm flex-wrap mb-3 augend-list">
-                  <li  class="list-group-item" 
-                    v-for="x in alphabetWithoutYZ"
-                    :key="x"
-                  >
+                  <li class="list-group-item" v-for="x in alphabetWithoutYZ" :key="x">
                     <input class="form-check-input me-1" type="checkbox" :value="x" :id="x" v-model="selectedAugends">
                     <label class="form-check-label stretched-link" :for="x">{{ x }}</label>
-                  </li>    
+                  </li>
                 </ul>
 
                 <!-- Liste des addends -->
                 <label class="form-label">Sélectionnez les addends :</label>
 
                 <div class="mb-2 d-flex gap-2">
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-primary"
-                    @click="selectedAddends = allAvailableAddends.slice()"
-                  >
+                  <BaseButton size="sm" variant="btn btn-primary"
+                    @click="selectedAddends = allAvailableAddends.slice()">
                     Tout sélectionner
                   </BaseButton>
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-primary"
-                    @click="selectedAddends = []"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-primary" @click="selectedAddends = []">
                     Tout désélectionner
                   </BaseButton>
                 </div>
-                
+
                 <!-- changer l souris quand on passe sur la liste d'addend à cocher -->
                 <div class="d-flex align-items-center gap-2">
                   <ul class="list-group list-group-horizontal-sm addend-list mb-3">
                     <li class="list-group-item" v-for="addend in allAvailableAddends" :key="addend">
-                      <input class="form-check-input me-1" type="checkbox" :value="addend" :id="'addend-' + addend" v-model="selectedAddends">
+                      <input class="form-check-input me-1" type="checkbox" :value="addend" :id="'addend-' + addend"
+                        v-model="selectedAddends">
                       <label class="form-check-label stretched-link" :for="'addend-' + addend">{{ addend }}</label>
                     </li>
-                    <li class="list-group-item d-flex justify-content-center" @click="showAddendInput = !showAddendInput">
+                    <li class="list-group-item d-flex justify-content-center"
+                      @click="showAddendInput = !showAddendInput">
                       <label class="bi bi-plus-square text-primary"></label>
                     </li>
                   </ul>
                 </div>
 
                 <div class="d-flex align-items-center gap-2 mb-3">
-                <input 
-                  v-if="showAddendInput"
-                  class="form-control" 
-                  type="number" 
-                  min="6"
-                  placeholder="Saisir l'addend souhaité" 
-                  v-model="customAddendValue"
-                />
-                <button
-                  v-if="showAddendInput"
-                  class="btn btn-outline-secondary"
-                  @click="addCustomAddend"
-                >
-                  Ajouter
-                </button>
+                  <input v-if="showAddendInput" class="form-control" type="number" min="6"
+                    placeholder="Saisir l'addend souhaité" v-model="customAddendValue" />
+                  <button v-if="showAddendInput" class="btn btn-outline-secondary" @click="addCustomAddend">
+                    Ajouter
+                  </button>
                 </div>
 
                 <!-- Nombre de sessions -->
                 <label class="form-label">Indiquez le nombre de sessions :</label>
-                <input type="number" class="form-control mb-3" v-model.number="numSessions" min="1"/>
+                <input type="number" class="form-control mb-3" v-model.number="numSessions" min="1" />
 
                 <!-- Nombre de répétition d'une équation au sein d'une session -->
-                <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session :</label>
-                <input type="number" class="form-control mb-3" v-model.number="numRep" min="1"/>
+                <label class="form-label">Indiquez le nombre de répétitions d'une équation au sein d'une session
+                  :</label>
+                <input type="number" class="form-control mb-3" v-model.number="numRep" min="1" />
 
                 <!-- Message d'erreur lorsque des combinaisons ne sont pas prises en compte -->
-                <div 
-                  v-if="invalidCombinations.length > 0" 
-                  class="alert alert-warning mb-3 data-format-hint"                   
-                  role="alert"
-                >
-                  <strong>Attention :</strong> Le résultat de certaines combinaisons dépasse Z. Celles-ci ne seront donc pas prises en compte dans le modèle. 
+                <div v-if="invalidCombinations.length > 0" class="alert alert-warning mb-3 data-format-hint"
+                  role="alert">
+                  <strong>Attention :</strong> Le résultat de certaines combinaisons dépasse Z. Celles-ci ne seront donc
+                  pas prises en compte dans le modèle.
                   (<code>{{ invalidCombinations.join(", ") }}</code>)
                 </div>
 
                 <div class="d-flex align-items-center justify-content-center">
-                  <BaseButton
-                    variant="btn btn-outline-primary"
-                    size="lg"
-                    class="mb-3"
+                  <BaseButton variant="btn btn-outline-primary" size="lg" class="mb-3"
                     :hidden="selectedAugends.length === 0 || selectedAddends.length === 0"
-                    :disabled="isGeneratingEquations"
-                    @click="handleValidate"
-                  >
-                  <span v-if="isGeneratingEquations">Génération en cours...</span>
-                  <span v-else>Valider</span>
-                  </BaseButton>  
-                </div>              
+                    :disabled="isGeneratingEquations" @click="handleValidate">
+                    <span v-if="isGeneratingEquations">Génération en cours...</span>
+                    <span v-else>Valider</span>
+                  </BaseButton>
+                </div>
               </div>
 
               <div v-if="equations.length > 0" style="overflow-y: auto;">
-                <BaseDataTable
-                  title="Aperçu des équations générées"
-                  :show-button="false"
-                  :clearable="true"
-                  max-height="40vh"
-                  :rows="equations"
-                  :columns="equationCols"
-                  @clear="handleClearTable('equations')"
-                />
+                <BaseDataTable title="Aperçu des équations générées" :show-button="false" :clearable="true"
+                  max-height="40vh" :rows="equations" :columns="equationCols" @clear="handleClearTable('equations')" />
                 <div class="d-flex flex-wrap gap-2 mt-2">
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
-                    @click="handleExportTable(equations, equationCols, 'equations', 'xlsx')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-secondary"
+                    @click="handleExportTable(equations, equationCols, 'equations', 'xlsx')">
                     Exporter XLSX
                   </BaseButton>
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
-                    @click="handleExportTable(equations, equationCols, 'equations', 'csv')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-secondary"
+                    @click="handleExportTable(equations, equationCols, 'equations', 'csv')">
                     Exporter CSV
                   </BaseButton>
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
-                    @click="handleExportTable(equations, equationCols, 'equations', 'json')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-secondary"
+                    @click="handleExportTable(equations, equationCols, 'equations', 'json')">
                     Exporter JSON
                   </BaseButton>
                 </div>
-              </div>  
-              
+              </div>
+
             </div>
             <div>
-              <BaseDataTable
-                title="Aperçu de vos données"
-                :buttonLabel="labelImportData"
-                max-height="40vh"
-                :rows="data"
-                :columns="dataCols"
-                :is-loading="isImportingData"
-                :clearable="true"
-                :button-disabled="equations.length > 0"
-                @import="handleImportData"
-                @clear="handleClearTable('data')"
-              />
-              <p
-                v-if="data.length === 0 && equations.length === 0"
-                class="small text-muted mt-2 mb-0 data-format-hint"
-              >
-                Les données importées doivent être celles d'un participant avec au minimum les colonnes suivantes&nbsp;: Augend, Addend, Résultat, Session, Temps. Les formats acceptés pour le fichier sont XLSX, CSV et JSON.
+              <BaseDataTable title="Aperçu de vos données" :buttonLabel="labelImportData" max-height="40vh" :rows="data"
+                :columns="dataCols" :is-loading="isImportingData" :clearable="true"
+                :button-disabled="equations.length > 0" @import="handleImportData" @clear="handleClearTable('data')" />
+              <p v-if="data.length === 0 && equations.length === 0" class="small text-muted mt-2 mb-0 data-format-hint">
+                Les données importées doivent être celles d'un participant avec au minimum les colonnes suivantes&nbsp;:
+                Augend, Addend, Résultat, Session, Temps. Les formats acceptés pour le fichier sont XLSX, CSV et JSON.
               </p>
-              <p
-                v-if="data.length === 0 && equations.length === 0"
-                class="small text-danger mt-0 data-format-hint"
-              >
-                Attention : les équations doivent être justes et le participant doit avoir répondu la bonne réponse aux équations, sans quoi le modèle ne pourra pas fonctionner.
+              <p v-if="data.length === 0 && equations.length === 0" class="small text-danger mt-0 data-format-hint">
+                Attention : les équations doivent être justes et le participant doit avoir répondu la bonne réponse aux
+                équations, sans quoi le modèle ne pourra pas fonctionner.
               </p>
-              <div
-                v-if="equations.length > 0"
-                class="alert alert-warning py-2 mt-2 mb-0 data-format-hint"
-                role="alert"
-              >
+              <div v-if="equations.length > 0" class="alert alert-warning py-2 mt-2 mb-0 data-format-hint" role="alert">
                 Vous ne pouvez pas importer des données existantes car vous avez déjà généré une liste d'équations.
               </div>
             </div>
           </div>
         </div>
 
-        <div
-          v-if="isGeneratingEquations"
-          class="loading-overlay"
-          aria-live="polite"
-          aria-busy="true"
-        >
+        <div v-if="isGeneratingEquations" class="loading-overlay" aria-live="polite" aria-busy="true">
           <div
-            class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative"
-          >
-            <div
-              class="loading-spinner"
-              role="status"
-              aria-label="Génération des équations"
-            ></div>
+            class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative">
+            <div class="loading-spinner" role="status" aria-label="Génération des équations"></div>
             <p class="text-center mb-0 small text-muted">
               Génération des équations en cours...
             </p>
@@ -1206,41 +1123,20 @@ onBeforeUnmount(() => {
       <div class="snap-section-inner container-lg">
         <div class="section-card">
           <!-- Formulaire des paramètres d'initialisation et d'estimation -->
-          <ParametersForm
-            ref="paramsForm"
-            :best-estimated-params="bestEstimatedParams"
-            :estimation-results-rows="estimationResultsRows"
-            :is-estimating="isEstimating"
-            :is-model-running="isModelRunning"
-            :data-imported="currentInputEquations"
-            :has-imported-data="hasImportedData"
-            :has-generated-data="hasGeneratedData"
-            @launch-estimation="handleLaunchEstimation"
-            @launch-model="handleLaunchModel"
-            @export-estimation="({ rows, columns, format }) => handleExportTable(rows, columns, 'estimation-parametres', format)"
-          />
+          <ParametersForm ref="paramsForm" :best-estimated-params="bestEstimatedParams"
+            :estimation-results-rows="estimationResultsRows" :is-estimating="isEstimating"
+            :is-model-running="isModelRunning" :data-imported="currentInputEquations"
+            :has-imported-data="hasImportedData" :has-generated-data="hasGeneratedData"
+            @launch-estimation="handleLaunchEstimation" @launch-model="handleLaunchModel"
+            @export-estimation="({ rows, columns, format }) => handleExportTable(rows, columns, 'estimation-parametres', format)" />
 
           <!-- Barre de progression lors de l'estimation -->
-          <div
-            v-if="isEstimating"
-            class="loading-overlay"
-            aria-live="polite"
-            aria-busy="true"
-          >
+          <div v-if="isEstimating" class="loading-overlay" aria-live="polite" aria-busy="true">
             <div
-              class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative"
-            >
-              <button
-                type="button"
-                class="btn-close position-absolute top-0 end-0 m-2"
-                aria-label="Fermer"
-                @click="handleCloseLoadingOverlay"
-              ></button>
-              <div
-                class="loading-spinner"
-                role="status"
-                aria-label="Estimation en cours"
-              ></div>
+              class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative">
+              <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Fermer"
+                @click="handleCloseLoadingOverlay"></button>
+              <div class="loading-spinner" role="status" aria-label="Estimation en cours"></div>
               <p class="text-center mb-0 small text-muted">
                 <span v-if="estimationProgress.total > 0">
                   {{ estimationProgress.current }} /
@@ -1251,20 +1147,10 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div
-            v-if="isModelRunning"
-            class="loading-overlay"
-            aria-live="polite"
-            aria-busy="true"
-          >
+          <div v-if="isModelRunning" class="loading-overlay" aria-live="polite" aria-busy="true">
             <div
-              class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative"
-            >
-              <div
-                class="loading-spinner"
-                role="status"
-                aria-label="Calcul du modèle"
-              ></div>
+              class="loading-panel d-flex flex-column align-items-center justify-content-center gap-3 position-relative">
+              <div class="loading-spinner" role="status" aria-label="Calcul du modèle"></div>
               <p class="text-center mb-0 small text-muted">
                 <span v-if="modelProgress.total > 0">
                   {{ modelProgress.current }} /
@@ -1284,111 +1170,66 @@ onBeforeUnmount(() => {
         <div class="section-card d-flex flex-column">
           <div class="d-flex flex-row gap-4 align-items-center justify-content-center">
             <div class="d-flex flex-column gap-2">
-            <BaseDataTable
-              title="Tableau des temps prédits par le modèle pour chaque équation"
-              buttonLabel="Sauvegarder les résultats"
-              :show-button="false"
-              max-height="65vh"
-              :rows="dataResults"
-              :columns="resultCols"
-            />
-            <div v-if="dataResults.length" class="d-flex flex-wrap gap-2">
-              <BaseButton
-                size="sm"
-                variant="btn btn-outline-secondary"
-                @click="handleExportTable(dataResults, resultCols, 'resultats', 'xlsx')"
-              >
-                Exporter XLSX
-              </BaseButton>
-              <BaseButton
-                size="sm"
-                variant="btn btn-outline-secondary"
-                @click="handleExportTable(dataResults, resultCols, 'resultats', 'csv')"
-              >
-                Exporter CSV
-              </BaseButton>
-              <BaseButton
-                size="sm"
-                variant="btn btn-outline-secondary"
-                @click="handleExportTable(dataResults, resultCols, 'resultats', 'json')"
-              >
-                Exporter JSON
-              </BaseButton>
-            </div>
+              <BaseDataTable title="Tableau des temps prédits par le modèle pour chaque équation"
+                buttonLabel="Sauvegarder les résultats" :show-button="false" max-height="65vh" :rows="dataResults"
+                :columns="resultCols" />
+              <div v-if="dataResults.length" class="d-flex flex-wrap gap-2">
+                <BaseButton size="sm" variant="btn btn-outline-secondary"
+                  @click="handleExportTable(dataResults, resultCols, 'resultats', 'xlsx')">
+                  Exporter XLSX
+                </BaseButton>
+                <BaseButton size="sm" variant="btn btn-outline-secondary"
+                  @click="handleExportTable(dataResults, resultCols, 'resultats', 'csv')">
+                  Exporter CSV
+                </BaseButton>
+                <BaseButton size="sm" variant="btn btn-outline-secondary"
+                  @click="handleExportTable(dataResults, resultCols, 'resultats', 'json')">
+                  Exporter JSON
+                </BaseButton>
+              </div>
             </div>
 
             <!-- Graphique des résultats -->
-            <GraphicsResult
-              :data="dataResults"
-              :user-data="data"
+            <GraphicsResult :data="dataResults" :user-data="data"
               title="Moyennes des temps par session et addend (en ms)"
               @export-summary="({ rows, columns, format, filename }) => handleExportTable(rows, columns, filename || 'moyennes-sessions-addends', format)"
-              @export-strategy-rates="({ rows, columns, format, filename }) => handleExportTable(rows, columns, filename || 'taux-strategie-comptage', format)"
-            />
+              @export-strategy-rates="({ rows, columns, format, filename }) => handleExportTable(rows, columns, filename || 'taux-strategie-comptage', format)" />
           </div>
 
           <div class="w-100" v-if="practiceRows.length || associationRows.length">
             <div class="d-flex flex-wrap gap-3">
               <div class="flex-grow-1" style="min-width: 280px;">
-                <BaseDataTable
-                  title="Nombre de rencontres par lettre"
-                  :show-button="false"
-                  max-height="30vh"
-                  :rows="practiceRows"
-                  :columns="practiceCols"
-                />
+                <BaseDataTable title="Nombre de rencontres par lettre" :show-button="false" max-height="30vh"
+                  :rows="practiceRows" :columns="practiceCols" />
                 <div v-if="practiceRows.length" class="d-flex flex-wrap gap-2 mt-2">
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
-                    @click="handleExportTable(practiceRows, practiceCols, 'nombre-rencontres-lettres', 'xlsx')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-secondary"
+                    @click="handleExportTable(practiceRows, practiceCols, 'nombre-rencontres-lettres', 'xlsx')">
                     Exporter XLSX
                   </BaseButton>
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
-                    @click="handleExportTable(practiceRows, practiceCols, 'nombre-rencontres-lettres', 'csv')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-secondary"
+                    @click="handleExportTable(practiceRows, practiceCols, 'nombre-rencontres-lettres', 'csv')">
                     Exporter CSV
                   </BaseButton>
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
-                    @click="handleExportTable(practiceRows, practiceCols, 'nombre-rencontres-lettres', 'json')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-secondary"
+                    @click="handleExportTable(practiceRows, practiceCols, 'nombre-rencontres-lettres', 'json')">
                     Exporter JSON
                   </BaseButton>
                 </div>
               </div>
               <div class="flex-grow-1" style="min-width: 280px;">
-                <BaseDataTable
-                  title="Force d'associations"
-                  :show-button="false"
-                  max-height="30vh"
-                  :rows="associationRows"
-                  :columns="associationCols"
-                />
+                <BaseDataTable title="Force d'associations" :show-button="false" max-height="30vh"
+                  :rows="associationRows" :columns="associationCols" />
                 <div v-if="associationRows.length" class="d-flex flex-wrap gap-2 mt-2">
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
-                    @click="handleExportTable(associationRows, associationCols, 'force-associations', 'xlsx')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-secondary"
+                    @click="handleExportTable(associationRows, associationCols, 'force-associations', 'xlsx')">
                     Exporter XLSX
                   </BaseButton>
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
-                    @click="handleExportTable(associationRows, associationCols, 'force-associations', 'csv')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-secondary"
+                    @click="handleExportTable(associationRows, associationCols, 'force-associations', 'csv')">
                     Exporter CSV
                   </BaseButton>
-                  <BaseButton
-                    size="sm"
-                    variant="btn btn-outline-secondary"
-                    @click="handleExportTable(associationRows, associationCols, 'force-associations', 'json')"
-                  >
+                  <BaseButton size="sm" variant="btn btn-outline-secondary"
+                    @click="handleExportTable(associationRows, associationCols, 'force-associations', 'json')">
                     Exporter JSON
                   </BaseButton>
                 </div>
