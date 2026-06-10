@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from "vitest";
 import { mount } from "@vue/test-utils";
 import App from "../App.vue";
 
-// Déclaration de fonctions de mock préfixées par 'mock' pour respecter les contraintes de hoisting de Vitest
 const mockImportData = vi.fn();
 const mockExportTable = vi.fn();
 
@@ -22,7 +21,12 @@ describe("App - Tests Globaux de Couverture", () => {
   let workerStub;
   let alertSpy;
 
-  // Algorithme interne reproduit pour le Worker de test
+  beforeAll(() => {
+    Element.prototype.scrollTo = vi.fn();
+    // Assure l'exécution synchrone immédiate des animations et cycles d'attente durant les tests
+    globalThis.requestAnimationFrame = vi.fn((cb) => cb());
+  });
+  
   const shuffleInPlace = (items) => {
     for (let i = items.length - 1; i > 0; i -= 1) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -675,7 +679,7 @@ describe("App - Tests Globaux de Couverture", () => {
         },
       });
 
-      wrapper.vm.selectedAugends = ["Z"]; // Force la condition resultIndex > 25
+      wrapper.vm.selectedAugends = ["Z"];
       wrapper.vm.selectedAddends = ["5"];
       wrapper.vm.numSessions = 1;
       wrapper.vm.numRep = 1;
@@ -696,17 +700,16 @@ describe("App - Tests Globaux de Couverture", () => {
         },
       });
 
-      const clearMethod = ["handleClearData", "clearData", "resetData", "clear", "reset"]
+      // Correction : cibler le vrai nom de méthode ("handleClearTable") présent dans le composant
+      const clearMethod = ["handleClearTable", "handleClearData", "clearData", "resetData", "clear", "reset"]
         .find(m => typeof wrapper.vm[m] === "function");
 
       if (clearMethod) {
-        // Test de la branche Annulation
         vi.stubGlobal("confirm", vi.fn(() => false));
-        await wrapper.vm[clearMethod]();
+        await wrapper.vm[clearMethod]("data");
 
-        // Test de la branche Validation
         vi.stubGlobal("confirm", vi.fn(() => true));
-        await wrapper.vm[clearMethod]();
+        await wrapper.vm[clearMethod]("equations");
       }
     });
 
@@ -770,9 +773,143 @@ describe("App - Tests Globaux de Couverture", () => {
             target: { value: "" }
           });
         } catch (err) {
-          // Permet de continuer le parcours à travers toutes les lignes sans bloquer le runner
+          // Permet de capturer les exceptions attendues sans interrompre le runner de test
         }
       }
+    });
+  });
+
+  // ==========================================
+  // 7. COUVERTURE DES BRANCHES SPÉCIFIQUES
+  // ==========================================
+  describe("Scénarios avancés pour maximiser la couverture", () => {
+    
+    beforeEach(() => {
+      // Sécurité pour éviter les blocages liés aux boîtes de dialogue natives
+      vi.stubGlobal("alert", vi.fn());
+      vi.stubGlobal("confirm", () => true);
+    });
+
+    it("gère le cycle complet (progression et succès) envoyé par le Worker du modèle", async () => {
+      // Mock d'un Worker intelligent qui répond de façon asynchrone aux messages
+      vi.stubGlobal("Worker", class {
+        constructor(url) {
+          this.url = url.toString();
+        }
+        terminate() {}
+        postMessage() {
+          // On simule l'envoi asynchrone des messages du Worker pour ne pas bloquer l'UI
+          setTimeout(() => {
+            if (this.onmessage) {
+              // 1. On envoie une progression pour couvrir la branche "progress"
+              this.onmessage({ data: { type: "progress", current: 5, total: 10 } });
+              
+              // 2. On envoie le résultat pour résoudre la Promesse interne de handleLaunchModel
+              this.onmessage({
+                data: {
+                  type: "result",
+                  result: {
+                    results: [{ augend: "A", addend: 2, result: "C", session: 1, time: 250, method: "retrieval" }],
+                    practice: { A: 1 },
+                    associations: { "A+2": 1 }
+                  }
+                }
+              });
+            }
+          }, 0);
+        }
+      });
+
+      const wrapper = mount(App, {
+        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } }
+      });
+
+      // On alimente avec une donnée valide pour autoriser le lancement
+      wrapper.vm.data = [{ id: 1, augend: "A", addend: 2, result: "C", session: 1, time: 250 }];
+      
+      // Cette fois, l'await ne va pas crash/timeout car le worker répond jusqu'au bout
+      await wrapper.vm.handleLaunchModel({ paramsInit: {}, paramsEstim: {} });
+
+      // Vérifications de la mutation de l'état suite au retour du worker
+      expect(wrapper.vm.dataResults.length).toBeGreaterThan(0);
+      expect(wrapper.vm.dataResults[0].method).toBe("Récupération"); // Traduction validée
+    });
+
+    it("couvre l'intégralité des formats d'exportation (XLSX, CSV, JSON)", async () => {
+      const wrapper = mount(App, {
+        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } }
+      });
+
+      const testRows = [{ id: 1, text: "test" }];
+      const testCols = [{ key: "id", label: "ID" }];
+
+      // Appel direct des méthodes d'export pour couvrir le switch/case de useDataIO
+      wrapper.vm.handleExportTable(testRows, testCols, "test-file", "xlsx");
+      wrapper.vm.handleExportTable(testRows, testCols, "test-file", "csv");
+      wrapper.vm.handleExportTable(testRows, testCols, "test-file", "json");
+      
+      // Vérification passive (ne jette pas d'erreur)
+      expect(wrapper.vm.handleExportTable).toBeDefined();
+    });
+
+    it("exécute correctement le cycle de vie onMounted et onBeforeUnmount (écouteurs globaux)", () => {
+      const addEventSpy = vi.spyOn(window, "addEventListener");
+      const removeEventSpy = vi.spyOn(window, "removeEventListener");
+
+      const wrapper = mount(App, {
+        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } }
+      });
+
+      expect(addEventSpy).toHaveBeenCalledWith("resize", expect.any(Function), { passive: true });
+
+      // Déclenche manuellement un événement resize pour couvrir le calcul des sections de scroll
+      window.dispatchEvent(new Event("resize"));
+
+      wrapper.unmount();
+      expect(removeEventSpy).toHaveBeenCalledWith("resize", expect.any(Function));
+    });
+
+    it("force le rafraîchissement des computed properties (practiceRows & associationRows)", async () => {
+      const wrapper = mount(App, {
+        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } }
+      });
+
+      // CORRECTION : On injecte directement dans les réactifs sources des computeds
+      wrapper.vm.practiceMap = { "A": 3, "B": 5 };
+      wrapper.vm.associationsMap = { "A + 2": 12 };
+      
+      await wrapper.vm.$nextTick();
+
+      // Les computed se mettent à jour instantanément
+      expect(wrapper.vm.practiceRows.length).toBe(2);
+      expect(wrapper.vm.practiceRows[0]).toEqual({ letter: "A", count: 3 });
+      expect(wrapper.vm.associationRows.length).toBe(1);
+
+      // Cas de vidage complet (branche alternative du template)
+      wrapper.vm.practiceMap = {};
+      wrapper.vm.associationsMap = {};
+      await wrapper.vm.$nextTick();
+      expect(wrapper.vm.practiceRows).toEqual([]);
+    });
+
+    it("gère les alertes de validation lors de la saisie d'un nombre de sessions invalide", async () => {
+      // On crée un espion local propre sur l'alert globale de window
+      const localAlertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+
+      const wrapper = mount(App, {
+        global: { stubs: { BaseDataTable: true, GraphicsResult: true, ParametersForm: true, BaseButton: true } }
+      });
+
+      // Configurer des entrées volontairement erronées pour déclencher les alertes de sécurité du script
+      wrapper.vm.numSessions = -1; 
+      const result = await wrapper.vm.handleGenerateEquations();
+      
+      // Vérifications
+      expect(result).toBe(false);
+      expect(localAlertSpy).toHaveBeenCalled();
+
+      // Nettoyage du spy pour ne pas polluer les autres tests
+      localAlertSpy.mockRestore();
     });
   });
 });

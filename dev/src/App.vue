@@ -54,7 +54,10 @@ const modelWorker = ref(null);
 const equationWorker = ref(null);
 const isImportingEquations = ref(false);
 const isImportingData = ref(false);
-const MIN_LOADING_DURATION_MS = 700;
+
+// Désactive le délai de chargement artificiel en mode test pour accélérer l'exécution
+const MIN_LOADING_DURATION_MS = import.meta.env?.MODE === 'test' ? 0 : 700;
+
 const mainScrollRef = ref(null);
 const currentSectionIndex = ref(0);
 const isEquationOpen = ref(false);
@@ -582,7 +585,7 @@ const handleLaunchEstimation = async ({
     currentEstimationModel.value = null;
     if (estimationWorker.value) {
       estimationWorker.value.terminate();
-      estimationWorker.value = null;
+      equationWorker.value = null;
     }
   }
 };
@@ -738,6 +741,42 @@ onMounted(() => {
 onBeforeUnmount(() => {
   mainScrollRef.value?.removeEventListener("scroll", updateCurrentSectionIndex);
   window.removeEventListener("resize", updateCurrentSectionIndex);
+});
+
+// IMPORTANT : EXPOSITION DES MÉTHODES ET PROPRIÉTÉS COMPOSANT POUR LES TESTS
+defineExpose({
+  selectedAugends,
+  selectedAddends,
+  numSessions,
+  numRep,
+  handleGenerateEquations,
+  handleValidate,
+  equations,
+  customAddends,
+  allAvailableAddends,
+  dataResults,
+  hasResults,
+  totalSections,
+  hasImportedData,
+  hasGeneratedData,
+  data,
+  practiceMap,
+  practiceRows,
+  associationsMap,
+  associationRows,
+  currentInputEquations,
+  handleExportTable,
+  handleImportData,
+  isImportingData,
+  bestEstimatedParams,
+  isEquationOpen,
+  closeEquationCollapse,
+  handleLaunchModel,
+  handleLaunchEstimation,
+  handleClearTable,
+  addCustomAddend,
+  customAddendValue,
+  showAddendInput
 });
 </script>
 
