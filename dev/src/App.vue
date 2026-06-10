@@ -943,8 +943,8 @@ defineExpose({
 <template>
   <main ref="mainScrollRef" class="y-mandatory-scroll-snapping">
     <a :href="`${baseUrl}notice-d-utilisation.pdf`" target="_blank"
-      class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 position-fixed top-0 end-0 m-3"
-      style="z-index: 1050;">
+      class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-2 position-fixed top-0 end-0 mx-4 my-1"
+      style="z-index: 1050; font-size: 0.75rem; padding: 0.25rem 0.5rem;">
       <i class="bi bi-file-earmark-pdf"></i>
       Notice d'utilisation
     </a>

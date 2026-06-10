@@ -56,7 +56,7 @@ Puis ouvrir un navigateur internet et aller sur l'adresse indiquée après "➜ 
 (exemple : ➜  Local:   http://localhost:5173/)
 
 ## Notice d'utilisation
-La notice d'utilisation se trouve dans la partie documentation (/docs/) sous forme de PDF au nom "notice_d_utilisation.pdf".
+Vous pouvez trouver ici la notice d'utilisation : [notice-d-utilisation.pdf](https://github.com/GatienCaillet/TER_CAILLET_ILLOUZ/blob/main/dev/public/notice-d-utilisation.pdf).
 Elle explique comment utiliser l'application et les différentes fonctionnalités disponibles.
 
 ## Auteurs et contexte
